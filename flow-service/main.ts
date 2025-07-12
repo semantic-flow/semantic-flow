@@ -1,6 +1,6 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { Scalar } from '@scalar/hono-api-reference'
-import { health } from './routes/health.ts'
+import { health } from './src/routes/health.ts'
 
 const app = new OpenAPIHono()
 
