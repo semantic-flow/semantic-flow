@@ -1,6 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { Scalar } from '@scalar/hono-api-reference'
 import { health } from './src/routes/health.ts'
+import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
 
 const app = new OpenAPIHono()
 
@@ -9,20 +10,22 @@ app.get('/', (c) => {
 })
 
 // OpenAPI documentation
-app.doc('/openapi.json', {
-  openapi: '3.0.0',
+const content = {
+  openapi: '3.1.0',
   info: {
-    version: '1.0.0',
+    version: '0.1.0',
     title: 'Flow Service API',
     description: 'REST API for semantic mesh management and weave processes'
   },
   servers: [
     {
       url: 'http://localhost:8000',
-      description: 'Development server'
+      description: 'Local server'
     }
   ]
-})
+}
+
+app.doc('/openapi.json', content)
 
 // Scalar API documentation
 app.get('/docs', Scalar({
@@ -31,6 +34,12 @@ app.get('/docs', Scalar({
   theme: 'default',
   layout: 'classic'
 }))
+
+const markdown = await createMarkdownFromOpenApi(JSON.stringify(content))
+
+app.get('/llms.txt', (c) => {
+  return c.text(markdown)
+})
 
 // Mount health routes
 app.route('/api', health)
