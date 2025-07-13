@@ -1,4 +1,5 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
+import { logger } from '../utils/logger.ts'
 
 const health = new OpenAPIHono()
 
@@ -28,12 +29,20 @@ const healthRoute = createRoute({
 })
 
 health.openapi(healthRoute, (c) => {
-  return c.json({
+  logger.debug('Health check requested', {
+    userAgent: c.req.header('user-agent'),
+    ip: c.req.header('x-forwarded-for') || 'unknown'
+  })
+
+  const response = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     service: 'flow-service',
     version: '1.0.0'
-  })
+  }
+
+  logger.info('Health check completed', { status: response.status })
+  return c.json(response)
 })
 
 export { health }

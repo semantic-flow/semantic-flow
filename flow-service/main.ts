@@ -2,6 +2,14 @@ import { OpenAPIHono } from '@hono/zod-openapi'
 import { Scalar } from '@scalar/hono-api-reference'
 import { health } from './src/routes/health.ts'
 import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
+import { logger, initSentry } from './src/utils/logger.ts'
+
+
+// Initialize Sentry with your DSN
+initSentry()
+
+// Log service startup
+logger.info("Flow Service initializing", { version: "0.1.0" })
 
 const app = new OpenAPIHono()
 
@@ -44,10 +52,13 @@ app.get('/llms.txt', (c) => {
 // Mount health routes
 app.route('/api', health)
 
-console.log('🚀 Flow Service starting...')
-console.log('📍 Root: http://localhost:8000/')
-console.log('❤️ Health check: http://localhost:8000/api/health')
-console.log('📚 API documentation: http://localhost:8000/docs')
-console.log('📋 OpenAPI spec: http://localhost:8000/openapi.json')
+
+// Startup logging
+logger.info('🚀 Flow Service starting...')
+logger.info('📍 Root: http://localhost:8000/')
+logger.info('❤️ Health check: http://localhost:8000/api/health')
+logger.info('📚 API documentation: http://localhost:8000/docs')
+logger.info('📋 OpenAPI spec: http://localhost:8000/openapi.json')
+logger.info('📄 LLM-friendly docs: http://localhost:8000/llms.txt')
 
 Deno.serve(app.fetch)
