@@ -6,6 +6,7 @@
  */
 
 import type { ServiceConfigInput, EnvironmentConfig, LogLevel } from '../types.ts';
+import { ConfigError } from '../types.ts';
 
 /**
  * Load environment variables and convert to ServiceConfigInput format
@@ -26,7 +27,7 @@ export function loadEnvConfig(): ServiceConfigInput {
   if (env.FLOW_SERVICE_HOST) {
     configInput["fsvc:host"] = env.FLOW_SERVICE_HOST;
   }
-  
+
   // Mesh paths configuration
   if (env.FLOW_MESH_PATHS) {
     const meshPaths = env.FLOW_MESH_PATHS.split(',').map(p => p.trim()).filter(p => p);
@@ -34,21 +35,28 @@ export function loadEnvConfig(): ServiceConfigInput {
       configInput["fsvc:meshPaths"] = meshPaths;
     }
   }
-  
+
   // Logging configuration
   const loggingConfig: any = {};
   let hasLoggingConfig = false;
 
   // Console logging
   if (env.FLOW_LOG_LEVEL) {
-    const logLevel = parseLogLevel(env.FLOW_LOG_LEVEL);
-    if (logLevel) {
+    try {
+      const logLevel = validateLogLevel(env.FLOW_LOG_LEVEL);
       loggingConfig["fsvc:hasConsoleChannel"] = {
         "@type": "fsvc:LogChannelConfig",
         "fsvc:logChannelEnabled": true,
         "fsvc:logLevel": logLevel
       };
       hasLoggingConfig = true;
+    } catch (error) {
+      // Re-throw ConfigError, but wrap other errors
+      if (error instanceof ConfigError) {
+        throw error;
+      }
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new ConfigError(`Invalid FLOW_LOG_LEVEL environment variable: ${errorMessage}`);
     }
   }
 
@@ -62,9 +70,16 @@ export function loadEnvConfig(): ServiceConfigInput {
       };
 
       if (env.FLOW_FILE_LOG_LEVEL) {
-        const logLevel = parseLogLevel(env.FLOW_FILE_LOG_LEVEL);
-        if (logLevel) {
+        try {
+          const logLevel = validateLogLevel(env.FLOW_FILE_LOG_LEVEL);
           fileChannel["fsvc:logLevel"] = logLevel;
+        } catch (error) {
+          // Re-throw ConfigError, but wrap other errors
+          if (error instanceof ConfigError) {
+            throw error;
+          }
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          throw new ConfigError(`Invalid FLOW_FILE_LOG_LEVEL environment variable: ${errorMessage}`);
         }
       }
 
@@ -176,20 +191,16 @@ function getEnvironmentVariables(): EnvironmentConfig {
 }
 
 /**
- * Parse log level from string
+ * Validate log level from environment variable
  */
-function parseLogLevel(value: string): LogLevel | undefined {
-  const normalized = value.toLowerCase().trim();
+function validateLogLevel(level: string): LogLevel {
+  const validLevels: LogLevel[] = ["debug", "info", "warn", "error"];
+  const normalized = level.toLowerCase().trim() as LogLevel;
 
-  switch (normalized) {
-    case "debug":
-    case "info":
-    case "warn":
-    case "error":
-      return normalized;
-    default:
-      return undefined;
+  if (!validLevels.includes(normalized)) {
+    throw new ConfigError(`Invalid log level in environment variable: ${level}. Must be one of: ${validLevels.join(", ")}`);
   }
+  return normalized;
 }
 
 /**

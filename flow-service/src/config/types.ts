@@ -112,7 +112,7 @@ export interface ServiceOptions {
   readonly port?: number;
   readonly host?: string;
   readonly meshPaths?: string[];
-  readonly logLevel?: string;
+  readonly logLevel?: LogLevel;
   readonly sentryEnabled?: boolean;
 }
 

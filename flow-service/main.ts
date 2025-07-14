@@ -3,20 +3,13 @@ import { Scalar } from '@scalar/hono-api-reference'
 import { health } from './src/routes/health.ts'
 import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
 import { createServiceConfig } from './src/config/index.ts'
+import { logStartupConfiguration, logStartupUrls } from './src/utils/startup-logger.ts'
 
 // Initialize configuration system
 const config = await createServiceConfig()
 
 // Log service startup with configuration info
-console.log(`🔧 Flow Service initializing with configuration:`)
-console.log(`   Port: ${config.port}`)
-console.log(`   Host: ${config.host}`)
-console.log(`   Mesh Paths: ${config.meshPaths.length > 0 ? config.meshPaths.join(', ') : 'none configured'}`)
-console.log(`   Console Log Level: ${config.consoleLogLevel}`)
-console.log(`   File Logging: ${config.fileLogEnabled ? 'enabled' : 'disabled'}`)
-console.log(`   Sentry: ${config.sentryEnabled ? 'enabled' : 'disabled'}`)
-console.log(`   API: ${config.apiEnabled ? 'enabled' : 'disabled'}`)
-console.log(`   SPARQL: ${config.sparqlEnabled ? 'enabled' : 'disabled'}`)
+logStartupConfiguration(config)
 
 const app = new OpenAPIHono()
 
@@ -61,13 +54,7 @@ app.route('/api', health)
 
 
 // Startup logging
-const baseUrl = `http://${config.host}:${config.port}`
-console.log('🚀 Flow Service starting...')
-console.log(`📍 Root: ${baseUrl}/`)
-console.log(`❤️ Health check: ${baseUrl}/api/health`)
-console.log(`📚 API documentation: ${baseUrl}/docs`)
-console.log(`📋 OpenAPI spec: ${baseUrl}/openapi.json`)
-console.log(`📄 LLM-friendly docs: ${baseUrl}/llms.txt`)
+logStartupUrls(config)
 
 Deno.serve({
   port: config.port,

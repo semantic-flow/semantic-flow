@@ -5,7 +5,7 @@
  * Merges CLI options → Environment variables → Config file → Platform defaults
  */
 
-import type { ServiceConfigContext, ServiceConfigInput, ServiceOptions } from '../types.ts';
+import type { ServiceConfigContext, ServiceConfigInput, ServiceOptions, LogLevel } from '../types.ts';
 import { loadEnvConfig, getServiceConfigPath } from '../loaders/env-loader.ts';
 import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
 import { PLATFORM_SERVICE_DEFAULTS, getEnvironmentDefaults } from '../defaults.ts';
@@ -60,6 +60,17 @@ export async function resolveServiceConfig(cliOptions?: ServiceOptions): Promise
 }
 
 /**
+ * Validate log level input and return typed result
+ */
+function validateLogLevel(level: string | LogLevel): LogLevel {
+  const validLevels: LogLevel[] = ["debug", "info", "warn", "error"];
+  if (!validLevels.includes(level as LogLevel)) {
+    throw new ConfigError(`Invalid log level: ${level}. Must be one of: ${validLevels.join(", ")}`);
+  }
+  return level as LogLevel;
+}
+
+/**
  * Convert CLI options to ServiceConfigInput format
  */
 function convertCliOptionsToConfig(cliOptions: ServiceOptions): ServiceConfigInput {
@@ -83,7 +94,7 @@ function convertCliOptionsToConfig(cliOptions: ServiceOptions): ServiceConfigInp
       "fsvc:hasConsoleChannel": {
         "@type": "fsvc:LogChannelConfig",
         "fsvc:logChannelEnabled": true,
-        "fsvc:logLevel": cliOptions.logLevel as any
+        "fsvc:logLevel": validateLogLevel(cliOptions.logLevel)
       }
     };
   }
@@ -206,9 +217,19 @@ export class ServiceConfigAccessor {
     return loggingConfig["fsvc:hasFileChannel"]?.["fsvc:logChannelEnabled"] || false;
   }
 
+  get fileLogLevel(): string {
+    const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] || this.context.defaultOptions["fsvc:hasLoggingConfig"];
+    return loggingConfig["fsvc:hasFileChannel"]?.["fsvc:logLevel"] || "warn";
+  }
+
   get sentryEnabled(): boolean {
     const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] || this.context.defaultOptions["fsvc:hasLoggingConfig"];
     return loggingConfig["fsvc:hasSentryChannel"]?.["fsvc:logChannelEnabled"] || false;
+  }
+
+  get sentryLogLevel(): string {
+    const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] || this.context.defaultOptions["fsvc:hasLoggingConfig"];
+    return loggingConfig["fsvc:hasSentryChannel"]?.["fsvc:logLevel"] || "error";
   }
 
   get sentryDsn(): string | undefined {
@@ -224,5 +245,10 @@ export class ServiceConfigAccessor {
   get sparqlEnabled(): boolean {
     const containedServices = this.context.inputOptions["fsvc:hasContainedServices"] || this.context.defaultOptions["fsvc:hasContainedServices"];
     return containedServices["fsvc:sparqlEnabled"] ?? true;
+  }
+
+  get queryWidgetEnabled(): boolean {
+    const containedServices = this.context.inputOptions["fsvc:hasContainedServices"] || this.context.defaultOptions["fsvc:hasContainedServices"];
+    return containedServices["fsvc:queryWidgetEnabled"] ?? true;
   }
 }
