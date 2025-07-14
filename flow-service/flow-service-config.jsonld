@@ -1,0 +1,11 @@
+{
+  "@context": {
+    "fsvc": "https://semantic-flow.github.io/ontology/flow-service/",
+    "node": "https://semantic-flow.github.io/ontology/node-config/"
+  },
+  "@type": "fsvc:ServiceConfig",
+  "@id": "fsvc:defaultConfig",
+  "fsvc:meshPaths": [
+    "../../test-ns/"
+  ]
+}

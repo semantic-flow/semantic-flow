@@ -44,9 +44,7 @@
     ],
     "node:templateMappings": {
       "@type": "node:TemplateMapping",
-      "node:resourcePage": "templates/default-resource.html",
-      "node:indexPage": "templates/default-index.html",
-      "node:errorPage": "templates/default-error.html"
+      "node:resourcePage": "templates/default-resource.html"
     },
     "node:configInheritanceEnabled": true,
     "node:generateUnifiedDataset": false,

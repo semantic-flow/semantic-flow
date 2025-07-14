@@ -1,0 +1,100 @@
+/**
+ * Configuration System Entry Point
+ *
+ * Exports the complete service configuration system with cascading configuration resolution
+ * and side-by-side configuration context.
+ */
+
+// Core Types
+export type {
+  ServiceConfig,
+  ServiceConfigInput,
+  NodeConfig,
+  NodeConfigInput,
+  ServiceConfigContext,
+  NodeConfigContext,
+  ServiceOptions,
+  LogLevel,
+  JSONLDContext,
+  LogChannelConfig,
+  LoggingConfig,
+  ContainedServicesConfig,
+  TemplateMapping
+} from './types.ts';
+
+// Error Types
+export {
+  ConfigError,
+  ConfigValidationError
+} from './types.ts';
+
+// Helper Functions
+export {
+  getServicePort,
+  getServiceHost,
+  getConsoleLogLevel,
+  getFileLogEnabled,
+  getSentryEnabled,
+  getVersioningEnabled
+} from './types.ts';
+
+// Default Configurations
+export {
+  PLATFORM_SERVICE_DEFAULTS,
+  PLATFORM_NODE_DEFAULTS,
+  DEFAULT_CONTEXT,
+  DEVELOPMENT_SERVICE_OVERRIDES,
+  PRODUCTION_SERVICE_OVERRIDES,
+  getEnvironmentDefaults
+} from './defaults.ts';
+
+// Environment Variable Loading
+export {
+  loadEnvConfig,
+  getServiceConfigPath
+} from './loaders/env-loader.ts';
+
+// JSON-LD File Loading
+export {
+  loadServiceConfig,
+  loadNodeConfig,
+  saveServiceConfig,
+  saveNodeConfig,
+  configExists,
+  getNodeHierarchy,
+  isConfigInheritanceEnabled,
+  validateJSONLD,
+  cloneConfig
+} from './loaders/jsonld-loader.ts';
+
+// Service Configuration Resolution (Cascading Pattern)
+export {
+  resolveServiceConfig,
+  mergeConfigs,
+  getConfigValue,
+  mergeConfigContext,
+  validateServiceConfig,
+  ServiceConfigAccessor
+} from './resolution/service-config-resolver.ts';
+
+// Import the implementations for the helper functions
+import type { ServiceOptions, ServiceConfig } from './types.ts';
+import { resolveServiceConfig, validateServiceConfig, mergeConfigContext, ServiceConfigAccessor } from './resolution/service-config-resolver.ts';
+
+/**
+ * Quick-start configuration resolution for most common use cases
+ */
+export async function createServiceConfig(cliOptions?: ServiceOptions): Promise<ServiceConfigAccessor> {
+  const context = await resolveServiceConfig(cliOptions);
+  validateServiceConfig(context);
+  return new ServiceConfigAccessor(context);
+}
+
+/**
+ * Get a complete merged configuration object (alternative to side-by-side pattern)
+ */
+export async function getCompleteServiceConfig(cliOptions?: ServiceOptions): Promise<ServiceConfig> {
+  const context = await resolveServiceConfig(cliOptions);
+  validateServiceConfig(context);
+  return mergeConfigContext(context);
+}
