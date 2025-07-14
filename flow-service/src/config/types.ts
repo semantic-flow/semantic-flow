@@ -152,30 +152,59 @@ export class ConfigValidationError extends ConfigError {
 // Utility Types for Configuration Access
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
-// Helper functions for type-safe configuration access
+/**
+ * Retrieves the service port from the input options if specified; otherwise, returns the default port.
+ *
+ * @returns The configured service port number
+ */
 export function getServicePort(context: ServiceConfigContext): number {
   return context.inputOptions["fsvc:port"] ?? context.defaultOptions["fsvc:port"];
 }
 
+/**
+ * Retrieves the service host from the input options if provided; otherwise, returns the default host.
+ *
+ * @returns The configured service host name or address.
+ */
 export function getServiceHost(context: ServiceConfigContext): string {
   return context.inputOptions["fsvc:host"] ?? context.defaultOptions["fsvc:host"];
 }
 
+/**
+ * Retrieves the console log level from the service configuration context, preferring input options over defaults.
+ *
+ * @returns The log level for the console channel.
+ */
 export function getConsoleLogLevel(context: ServiceConfigContext): LogLevel {
   return context.inputOptions["fsvc:hasLoggingConfig"]?.["fsvc:hasConsoleChannel"]?.["fsvc:logLevel"]
     ?? context.defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasConsoleChannel"]["fsvc:logLevel"];
 }
 
+/**
+ * Determines whether file logging is enabled, preferring the input options if specified, otherwise using the default options.
+ *
+ * @returns `true` if file logging is enabled; otherwise, `false`
+ */
 export function getFileLogEnabled(context: ServiceConfigContext): boolean {
   return context.inputOptions["fsvc:hasLoggingConfig"]?.["fsvc:hasFileChannel"]?.["fsvc:logChannelEnabled"]
     ?? context.defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasFileChannel"]["fsvc:logChannelEnabled"];
 }
 
+/**
+ * Determines whether Sentry logging is enabled, preferring the input configuration if specified.
+ *
+ * @returns `true` if Sentry logging is enabled; otherwise, `false`
+ */
 export function getSentryEnabled(context: ServiceConfigContext): boolean {
   return context.inputOptions["fsvc:hasLoggingConfig"]?.["fsvc:hasSentryChannel"]?.["fsvc:logChannelEnabled"]
     ?? context.defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasSentryChannel"]["fsvc:logChannelEnabled"];
 }
 
+/**
+ * Determines whether versioning is enabled for a node, preferring input options over defaults.
+ *
+ * @returns `true` if versioning is enabled; otherwise, `false`
+ */
 export function getVersioningEnabled(context: NodeConfigContext): boolean {
   return context.inputOptions["node:versioningEnabled"] ?? context.defaultOptions["node:versioningEnabled"];
 }

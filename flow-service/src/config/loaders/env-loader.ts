@@ -9,7 +9,11 @@ import type { ServiceConfigInput, EnvironmentConfig, LogLevel } from '../types.t
 import { ConfigError } from '../types.ts';
 
 /**
- * Load environment variables and convert to ServiceConfigInput format
+ * Loads environment variables prefixed with `FLOW_` and assembles them into a structured `ServiceConfigInput` object.
+ *
+ * Parses and validates environment variables for service settings, mesh paths, logging channels (console, file, Sentry), contained services, and node defaults. Only includes configuration sections for which relevant environment variables are set and valid. Throws a `ConfigError` if an invalid log level is provided.
+ *
+ * @returns A `ServiceConfigInput` object representing the configuration derived from environment variables.
  */
 export function loadEnvConfig(): ServiceConfigInput {
   const env = getEnvironmentVariables();
@@ -169,7 +173,9 @@ export function loadEnvConfig(): ServiceConfigInput {
 }
 
 /**
- * Get environment variables with type safety
+ * Retrieves all relevant `FLOW_` environment variables and returns them as a typed configuration object.
+ *
+ * @returns An object containing the values of expected `FLOW_` environment variables, or `undefined` if not set.
  */
 function getEnvironmentVariables(): EnvironmentConfig {
   return {
@@ -191,7 +197,11 @@ function getEnvironmentVariables(): EnvironmentConfig {
 }
 
 /**
- * Validate log level from environment variable
+ * Validates and normalizes a log level string from an environment variable.
+ *
+ * @param level - The log level string to validate
+ * @returns The normalized log level if valid
+ * @throws ConfigError if the log level is not one of "debug", "info", "warn", or "error"
  */
 function validateLogLevel(level: string): LogLevel {
   const validLevels: LogLevel[] = ["debug", "info", "warn", "error"];
@@ -204,7 +214,12 @@ function validateLogLevel(level: string): LogLevel {
 }
 
 /**
- * Parse boolean from string (supports common boolean representations)
+ * Parses a string into a boolean value, supporting common true/false representations.
+ *
+ * Recognizes "true", "1", "yes", "on" as `true`, and "false", "0", "no", "off" as `false`.
+ *
+ * @param value - The string to parse as a boolean
+ * @returns The parsed boolean value, or `undefined` if the input is unrecognized
  */
 function parseBoolean(value: string): boolean | undefined {
   const normalized = value.toLowerCase().trim();
@@ -226,7 +241,10 @@ function parseBoolean(value: string): boolean | undefined {
 }
 
 /**
- * Get service config path from environment or CLI options
+ * Returns the service configuration file path from the CLI argument if provided, or from the `FLOW_CONFIG_PATH` environment variable.
+ *
+ * @param cliConfigPath - Optional path to the configuration file specified via CLI
+ * @returns The resolved configuration file path, or `undefined` if neither is set
  */
 export function getServiceConfigPath(cliConfigPath?: string): string | undefined {
   return cliConfigPath || Deno.env.get("FLOW_CONFIG_PATH");

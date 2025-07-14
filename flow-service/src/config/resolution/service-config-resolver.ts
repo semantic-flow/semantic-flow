@@ -13,8 +13,13 @@ import { ConfigError } from '../types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';
 
 /**
- * Resolve service configuration using cascading configuration pattern
- * Returns side-by-side configuration context (not merged)
+ * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.
+ *
+ * Returns a context object containing both the merged input options and the default options, allowing for side-by-side comparison without merging them.
+ *
+ * @param cliOptions - Optional CLI-provided service options to override other configuration sources
+ * @returns A context object with both input and default configuration options
+ * @throws ConfigError if configuration resolution fails or an unexpected error occurs
  */
 export async function resolveServiceConfig(cliOptions?: ServiceOptions): Promise<ServiceConfigContext> {
   try {
@@ -61,7 +66,11 @@ export async function resolveServiceConfig(cliOptions?: ServiceOptions): Promise
 }
 
 /**
- * Validate log level input and return typed result
+ * Validates that the provided log level is one of the allowed values.
+ *
+ * @param level - The log level to validate, as a string or LogLevel
+ * @returns The validated log level as a LogLevel type
+ * @throws ConfigError if the log level is not valid
  */
 function validateLogLevel(level: string | LogLevel): LogLevel {
   const validLevels: LogLevel[] = ["debug", "info", "warn", "error"];
@@ -72,7 +81,12 @@ function validateLogLevel(level: string | LogLevel): LogLevel {
 }
 
 /**
- * Convert CLI options to ServiceConfigInput format
+ * Converts CLI-provided service options into the internal ServiceConfigInput format.
+ *
+ * Maps CLI options such as port, host, mesh paths, log level, and Sentry enablement to their corresponding configuration keys, constructing nested logging configuration objects as needed.
+ *
+ * @param cliOptions - The service options provided via the command line interface
+ * @returns A partial service configuration object representing the CLI options in config format
  */
 function convertCliOptionsToConfig(cliOptions: ServiceOptions): ServiceConfigInput {
   const config: ServiceConfigInput = {};
@@ -117,8 +131,12 @@ function convertCliOptionsToConfig(cliOptions: ServiceOptions): ServiceConfigInp
 }
 
 /**
- * Get resolved configuration value with fallback
- * Implements the side-by-side pattern decision logic
+ * Retrieves a configuration value from the context, returning the value from input options if defined, or falling back to the default options.
+ *
+ * @param context - The service configuration context containing both input and default options
+ * @param inputKey - The key to look up in the input options
+ * @param defaultKey - The key to look up in the default options if the input value is undefined
+ * @returns The resolved configuration value
  */
 export function getConfigValue<T>(
   context: ServiceConfigContext,
@@ -132,15 +150,22 @@ export function getConfigValue<T>(
 }
 
 /**
- * Merge configuration context into a complete resolved configuration
- * Use this when you need a complete config object instead of the side-by-side pattern
+ * Merges the default and input options from the configuration context into a single resolved configuration object.
+ *
+ * Use this function when a fully merged configuration is required, rather than separate input and default options.
+ *
+ * @returns The complete configuration object with input options overriding defaults.
  */
 export function mergeConfigContext(context: ServiceConfigContext): typeof PLATFORM_SERVICE_DEFAULTS {
   return mergeConfigs(context.defaultOptions, context.inputOptions as Partial<typeof PLATFORM_SERVICE_DEFAULTS>);
 }
 
 /**
- * Validate that required configuration values are present
+ * Validates that required service configuration values are present and correctly formatted.
+ *
+ * Checks that the port is within the valid range, the host is a non-empty string, and if Sentry logging is enabled, ensures a valid Sentry DSN is configured.
+ *
+ * @throws ConfigError if any required configuration is missing or invalid.
  */
 export function validateServiceConfig(context: ServiceConfigContext): void {
   const port = getConfigValue<number>(context, "fsvc:port", "fsvc:port");

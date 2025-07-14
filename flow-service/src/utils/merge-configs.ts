@@ -5,12 +5,13 @@
  */
 
 /**
- * Deep merge utility for configuration objects
- * Later values override earlier values in the cascading pattern
+ * Recursively merges two configuration objects, with values from the override object taking precedence.
  *
- * @param base - Base configuration object
- * @param override - Override configuration to merge in
- * @returns Merged configuration with overrides applied
+ * Performs a deep merge: nested objects are merged recursively, while arrays and primitive values in the override replace those in the base. Null and undefined values in the override are ignored and do not overwrite base values.
+ *
+ * @param base - The base configuration object
+ * @param override - An object containing override values to merge into the base
+ * @returns A new configuration object resulting from merging override into base
  */
 export function mergeConfigs<T extends object>(base: T, override: Partial<T>): T {
   const result = { ...base } as Record<string, unknown>;
