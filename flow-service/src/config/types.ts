@@ -24,6 +24,10 @@ export interface LogChannelConfig {
   readonly "fsvc:logLevel": "debug" | "info" | "warn" | "error";
   readonly "fsvc:logFilePath"?: string;
   readonly "fsvc:sentryDsn"?: string;
+  readonly "fsvc:logRetentionDays"?: number;
+  readonly "fsvc:logMaxFiles"?: number;
+  readonly "fsvc:logMaxFileSize"?: number;
+  readonly "fsvc:logRotationInterval"?: "daily" | "weekly" | "monthly" | "size-based";
 }
 
 export interface LoggingConfig {
@@ -128,6 +132,10 @@ export interface EnvironmentConfig {
   readonly FLOW_FILE_LOG_ENABLED?: string;
   readonly FLOW_FILE_LOG_LEVEL?: string;
   readonly FLOW_FILE_LOG_PATH?: string;
+  readonly FLOW_LOG_RETENTION_DAYS?: string;
+  readonly FLOW_LOG_MAX_FILES?: string;
+  readonly FLOW_LOG_MAX_FILE_SIZE?: string;
+  readonly FLOW_LOG_ROTATION_INTERVAL?: string;
   readonly FLOW_DEFAULT_VERSIONING?: string;
   readonly FLOW_DEFAULT_FORMATS?: string;
   readonly FLOW_API_ENABLED?: string;

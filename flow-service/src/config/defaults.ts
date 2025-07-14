@@ -53,7 +53,11 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": false,
       "fsvc:logLevel": "warn",
-      "fsvc:logFilePath": "./logs/flow-service.log"
+      "fsvc:logFilePath": "./logs/flow-service.log",
+      "fsvc:logRetentionDays": 30,
+      "fsvc:logMaxFiles": 10,
+      "fsvc:logMaxFileSize": 10485760,
+      "fsvc:logRotationInterval": "daily"
     },
     "fsvc:hasSentryChannel": {
       "@type": "fsvc:LogChannelConfig",
@@ -100,12 +104,16 @@ export const DEVELOPMENT_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": true,
       "fsvc:logLevel": "info",
-      "fsvc:logFilePath": "./logs/flow-service-dev.log"
+      "fsvc:logFilePath": "./logs/flow-service-dev.log",
+      "fsvc:logRetentionDays": 7,
+      "fsvc:logMaxFiles": 5,
+      "fsvc:logMaxFileSize": 5242880,
+      "fsvc:logRotationInterval": "daily"
     },
     "fsvc:hasSentryChannel": {
       "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": false,  // Disable Sentry in development by default
-      "fsvc:logLevel": "error"
+      "fsvc:logChannelEnabled": true,  // Disable Sentry in development by default
+      "fsvc:logLevel": "warn"
     }
   }
 };
@@ -123,7 +131,11 @@ export const PRODUCTION_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": true,
       "fsvc:logLevel": "warn",
-      "fsvc:logFilePath": "./logs/flow-service.log"
+      "fsvc:logFilePath": "./logs/flow-service.log",
+      "fsvc:logRetentionDays": 90,
+      "fsvc:logMaxFiles": 20,
+      "fsvc:logMaxFileSize": 52428800,
+      "fsvc:logRotationInterval": "daily"
     },
     "fsvc:hasSentryChannel": {
       "@type": "fsvc:LogChannelConfig",

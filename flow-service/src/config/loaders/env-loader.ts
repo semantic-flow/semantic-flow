@@ -41,7 +41,7 @@ export function loadEnvConfig(): ServiceConfigInput {
   }
 
   // Logging configuration (mutable for construction)
-  const loggingConfig: Record<string, Record<string, string | boolean> | string> = {};
+  const loggingConfig: Record<string, Record<string, string | boolean | number> | string> = {};
   let hasLoggingConfig = false;
 
   // Console logging
@@ -68,7 +68,7 @@ export function loadEnvConfig(): ServiceConfigInput {
   if (env.FLOW_FILE_LOG_ENABLED) {
     const enabled = parseBoolean(env.FLOW_FILE_LOG_ENABLED);
     if (enabled !== undefined) {
-      const fileChannel: Record<string, string | boolean> = {
+      const fileChannel: Record<string, string | boolean | number> = {
         "@type": "fsvc:LogChannelConfig",
         "fsvc:logChannelEnabled": enabled
       };
@@ -89,6 +89,35 @@ export function loadEnvConfig(): ServiceConfigInput {
 
       if (env.FLOW_FILE_LOG_PATH) {
         fileChannel["fsvc:logFilePath"] = env.FLOW_FILE_LOG_PATH;
+      }
+
+      // Parse log retention settings
+      if (env.FLOW_LOG_RETENTION_DAYS) {
+        const retentionDays = parseInt(env.FLOW_LOG_RETENTION_DAYS, 10);
+        if (!isNaN(retentionDays) && retentionDays > 0 && retentionDays <= 365) {
+          fileChannel["fsvc:logRetentionDays"] = retentionDays;
+        }
+      }
+
+      if (env.FLOW_LOG_MAX_FILES) {
+        const maxFiles = parseInt(env.FLOW_LOG_MAX_FILES, 10);
+        if (!isNaN(maxFiles) && maxFiles > 0 && maxFiles <= 100) {
+          fileChannel["fsvc:logMaxFiles"] = maxFiles;
+        }
+      }
+
+      if (env.FLOW_LOG_MAX_FILE_SIZE) {
+        const maxFileSize = parseInt(env.FLOW_LOG_MAX_FILE_SIZE, 10);
+        if (!isNaN(maxFileSize) && maxFileSize >= 1048576) { // At least 1MB
+          fileChannel["fsvc:logMaxFileSize"] = maxFileSize;
+        }
+      }
+
+      if (env.FLOW_LOG_ROTATION_INTERVAL) {
+        const interval = env.FLOW_LOG_ROTATION_INTERVAL.toLowerCase().trim();
+        if (["daily", "weekly", "monthly", "size-based"].includes(interval)) {
+          fileChannel["fsvc:logRotationInterval"] = interval as "daily" | "weekly" | "monthly" | "size-based";
+        }
       }
 
       loggingConfig["fsvc:hasFileChannel"] = fileChannel;
@@ -189,6 +218,10 @@ function getEnvironmentVariables(): EnvironmentConfig {
     FLOW_FILE_LOG_ENABLED: Deno.env.get("FLOW_FILE_LOG_ENABLED"),
     FLOW_FILE_LOG_LEVEL: Deno.env.get("FLOW_FILE_LOG_LEVEL"),
     FLOW_FILE_LOG_PATH: Deno.env.get("FLOW_FILE_LOG_PATH"),
+    FLOW_LOG_RETENTION_DAYS: Deno.env.get("FLOW_LOG_RETENTION_DAYS"),
+    FLOW_LOG_MAX_FILES: Deno.env.get("FLOW_LOG_MAX_FILES"),
+    FLOW_LOG_MAX_FILE_SIZE: Deno.env.get("FLOW_LOG_MAX_FILE_SIZE"),
+    FLOW_LOG_ROTATION_INTERVAL: Deno.env.get("FLOW_LOG_ROTATION_INTERVAL"),
     FLOW_DEFAULT_VERSIONING: Deno.env.get("FLOW_DEFAULT_VERSIONING"),
     FLOW_DEFAULT_FORMATS: Deno.env.get("FLOW_DEFAULT_FORMATS"),
     FLOW_API_ENABLED: Deno.env.get("FLOW_API_ENABLED"),

@@ -1,4 +1,7 @@
-import * as Sentry from "https://deno.land/x/sentry/index.mjs"
+import * as Sentry from 'npm:@sentry/deno';
+import { getCompleteServiceConfig } from '../config/index.ts';
+import { dirname } from 'https://deno.land/std@0.208.0/path/mod.ts';
+import { ensureDir } from 'https://deno.land/std@0.208.0/fs/mod.ts';
 
 // Environment-based configuration
 const isDevelopment = Deno.env.get('DENO_ENV') !== 'production'
@@ -15,9 +18,261 @@ export const LogLevels = {
 
 type LogLevel = keyof typeof LogLevels
 
+// Structured logging interfaces
+export interface LogContext {
+  // Operation tracking
+  operation?: 'scan' | 'weave' | 'validate' | 'config-resolve' | 'api-request' | 'startup';
+  requestId?: string;
+
+  // Mesh/Node context
+  meshPath?: string;
+  nodePath?: string;
+  nodeType?: 'data' | 'namespace' | 'reference';
+
+  // Performance metrics
+  duration?: number;
+  startTime?: number;
+  nodeCount?: number;
+  fileCount?: number;
+
+  // Configuration context
+  configSource?: 'file' | 'inheritance' | 'defaults' | 'api' | 'environment';
+  schemaVersion?: string;
+
+  // Error context
+  errorCode?: string;
+  violations?: string[];
+  cause?: string;
+
+  // API context
+  endpoint?: string;
+  statusCode?: number;
+  userAgent?: string;
+
+  // Service context
+  component?: 'mesh-scanner' | 'api-handler' | 'config-resolver' | 'weave-processor';
+
+  // Arbitrary additional context
+  [key: string]: unknown;
+}
+
+export interface StructuredLogger {
+  debug(message: string, context?: LogContext): Promise<void>;
+  info(message: string, context?: LogContext): Promise<void>;
+  warn(message: string, context?: LogContext): Promise<void>;
+  error(message: string, error?: Error, context?: LogContext): Promise<void>;
+
+  // Contextual logger factories
+  withContext(baseContext: LogContext): StructuredLogger;
+}
+
+// File logging functionality
+class FileLogger {
+  private logFile: string;
+  private isWriting = false;
+  private writeQueue: string[] = [];
+
+  constructor(logFilePath: string) {
+    this.logFile = logFilePath;
+  }
+
+  async ensureLogDirectory(): Promise<void> {
+    try {
+      const dir = dirname(this.logFile);
+      await ensureDir(dir);
+    } catch (error) {
+      console.error(`Failed to create log directory: ${error}`);
+    }
+  }
+
+  async writeToFile(content: string): Promise<void> {
+    this.writeQueue.push(content);
+    if (!this.isWriting) {
+      await this.processWriteQueue();
+    }
+  }
+
+  private async processWriteQueue(): Promise<void> {
+    if (this.writeQueue.length === 0) return;
+
+    this.isWriting = true;
+
+    try {
+      await this.ensureLogDirectory();
+
+      const content = this.writeQueue.join('\n') + '\n';
+      this.writeQueue = [];
+
+      await Deno.writeTextFile(this.logFile, content, { append: true });
+    } catch (error) {
+      console.error(`Failed to write to log file: ${error}`);
+      // Graceful degradation - continue without crashing
+    } finally {
+      this.isWriting = false;
+
+      // Process any new entries that were added while writing
+      if (this.writeQueue.length > 0) {
+        await this.processWriteQueue();
+      }
+    }
+  }
+
+  async rotateIfNeeded(): Promise<void> {
+    try {
+      const stats = await Deno.stat(this.logFile);
+      const now = new Date();
+      const fileDate = new Date(stats.mtime || stats.birthtime || now);
+
+      // Check if file is from a different day
+      if (fileDate.toDateString() !== now.toDateString()) {
+        await this.performDailyRotation();
+      }
+    } catch (error) {
+      // File doesn't exist yet, no rotation needed
+      if (!(error instanceof Deno.errors.NotFound)) {
+        console.error(`Failed to check log file for rotation: ${error}`);
+      }
+    }
+  }
+
+  private async performDailyRotation(): Promise<void> {
+    try {
+      const now = new Date();
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const rotatedName = this.logFile.replace('.log', `-${yesterday.toISOString().split('T')[0]}.log`);
+
+      await Deno.rename(this.logFile, rotatedName);
+      console.log(`Log rotated to: ${rotatedName}`);
+    } catch (error) {
+      console.error(`Failed to rotate log file: ${error}`);
+    }
+  }
+}
+
+// Global file logger instance
+let fileLogger: FileLogger | null = null;
+
+async function getFileLogger(): Promise<FileLogger | null> {
+  if (!fileLogger) {
+    try {
+      const config = await getCompleteServiceConfig();
+      const fileChannel = config["fsvc:hasLoggingConfig"]["fsvc:hasFileChannel"];
+
+      if (fileChannel["fsvc:logChannelEnabled"] && fileChannel["fsvc:logFilePath"]) {
+        fileLogger = new FileLogger(fileChannel["fsvc:logFilePath"]);
+        await fileLogger.rotateIfNeeded();
+      }
+    } catch (error) {
+      console.error(`Failed to initialize file logger: ${error}`);
+    }
+  }
+  return fileLogger;
+}
+
 // Initialize Sentry (only in production or when explicitly configured)
 const sentryDsn = Deno.env.get('SENTRY_DSN')
 let sentryInitialized = false
+
+// Formatters for structured logging
+function formatStructuredMessage(level: LogLevel, message: string, context?: LogContext): string {
+  const timestamp = new Date().toISOString();
+  const baseEntry = {
+    timestamp,
+    level: level.toLowerCase(),
+    message,
+    service: 'flow-service',
+    version: Deno.env.get('FLOW_VERSION'),
+    environment: Deno.env.get('DENO_ENV') || 'development',
+    ...context
+  };
+
+  return JSON.stringify(baseEntry);
+}
+
+function formatConsoleMessage(level: LogLevel, message: string, context?: LogContext): string {
+  const timestamp = new Date().toISOString();
+  const prefix = `[${timestamp}] ${level.padEnd(5)}`;
+
+  if (isDevelopment) {
+    const coloredLevel = level === 'ERROR' || level === 'CRITICAL' ? colorize('red', level) :
+      level === 'WARN' ? colorize('yellow', level) :
+        level === 'DEBUG' ? colorize('blue', level) :
+          colorize('green', level);
+
+    const coloredPrefix = colorize('gray', `[${timestamp}]`) + ` ${coloredLevel.padEnd(5)}`;
+    let contextStr = '';
+
+    if (context && Object.keys(context).length > 0) {
+      const parts = [];
+      if (context.operation) parts.push(`op=${context.operation}`);
+      if (context.meshPath) parts.push(`mesh=${context.meshPath}`);
+      if (context.duration) parts.push(`${context.duration}ms`);
+      if (context.nodeCount) parts.push(`${context.nodeCount} nodes`);
+      if (context.component) parts.push(`[${context.component}]`);
+
+      contextStr = parts.length > 0 ? ` (${parts.join(', ')})` : '';
+    }
+
+    return `${coloredPrefix} ${message}${contextStr}`;
+  }
+
+  return context ? `${prefix} ${message} ${JSON.stringify(context)}` : `${prefix} ${message}`;
+}
+
+async function writeToAllChannels(level: LogLevel, message: string, context?: LogContext, error?: Error): Promise<void> {
+  // Write to console
+  const consoleFormatted = formatConsoleMessage(level, message, context);
+
+  switch (level) {
+    case 'DEBUG':
+    case 'INFO':
+      console.log(consoleFormatted);
+      break;
+    case 'WARN':
+      console.warn(consoleFormatted);
+      break;
+    case 'ERROR':
+    case 'CRITICAL':
+      console.error(consoleFormatted);
+      break;
+  }
+
+  // Write to file if enabled
+  const fileLoggerInstance = await getFileLogger();
+  if (fileLoggerInstance) {
+    try {
+      await fileLoggerInstance.rotateIfNeeded();
+      const fileFormatted = formatStructuredMessage(level, message, context);
+      await fileLoggerInstance.writeToFile(fileFormatted);
+    } catch (err) {
+      console.error(`Failed to write to file log: ${err}`);
+    }
+  }
+
+  // Write to Sentry if enabled
+  if (sentryInitialized) {
+    try {
+      if (error) {
+        Sentry.captureException(error, {
+          level: level.toLowerCase() as any,
+          tags: {
+            source: 'flow-service',
+            component: context?.component,
+            operation: context?.operation
+          },
+          extra: { message, ...context },
+        });
+      } else {
+        Sentry.captureMessage(message, level.toLowerCase() as any);
+        if (context) {
+          Sentry.setContext(`${level.toLowerCase()}_context`, context);
+        }
+      }
+    } catch (err) {
+      console.error(`Failed to write to Sentry: ${err}`);
+    }
+  }
+}
 
 export function initSentry(dsn?: string) {
   const targetDsn = dsn || sentryDsn
@@ -93,149 +348,94 @@ function safeSpread(obj?: unknown): Record<string, unknown> {
   return obj as Record<string, unknown>
 }
 
-// Core logging interface (inspired by your weave logger)
-export const logger = {
+// Structured logger implementation
+class StructuredLoggerImpl implements StructuredLogger {
+  constructor(private baseContext: LogContext = {}) { }
+
+  async debug(message: string, context?: LogContext): Promise<void> {
+    if (!shouldLog('DEBUG')) return;
+    const mergedContext = { ...this.baseContext, ...context };
+    await writeToAllChannels('DEBUG', message, mergedContext);
+  }
+
+  async info(message: string, context?: LogContext): Promise<void> {
+    if (!shouldLog('INFO')) return;
+    const mergedContext = { ...this.baseContext, ...context };
+    await writeToAllChannels('INFO', message, mergedContext);
+  }
+
+  async warn(message: string, context?: LogContext): Promise<void> {
+    if (!shouldLog('WARN')) return;
+    const mergedContext = { ...this.baseContext, ...context };
+    await writeToAllChannels('WARN', message, mergedContext);
+  }
+
+  async error(message: string, error?: Error, context?: LogContext): Promise<void> {
+    if (!shouldLog('ERROR')) return;
+    const mergedContext = { ...this.baseContext, ...context };
+    await writeToAllChannels('ERROR', message, mergedContext, error);
+  }
+
+  async critical(message: string, error?: Error, context?: LogContext): Promise<void> {
+    const mergedContext = { ...this.baseContext, ...context };
+    await writeToAllChannels('CRITICAL', message, mergedContext, error);
+  }
+
+  withContext(baseContext: LogContext): StructuredLogger {
+    return new StructuredLoggerImpl({ ...this.baseContext, ...baseContext });
+  }
+}
+
+// Create main logger instance
+export const logger = new StructuredLoggerImpl();
+
+// Backward compatibility - export legacy interface
+export const legacyLogger = {
   debug(message: string, meta?: Record<string, unknown>) {
-    if (!shouldLog('DEBUG')) return
-
-    const formatted = formatMessage('DEBUG', message, meta)
-    console.log(formatted)
-
-    if (sentryInitialized) {
-      // In production, send logs to Sentry using captureMessage
-      if (!isDevelopment) {
-        Sentry.captureMessage(message, 'debug')
-        if (meta) {
-          Sentry.setContext('debug_context', meta)
-        }
-      } else {
-        // In development, just add breadcrumbs
-        Sentry.addBreadcrumb({
-          message,
-          level: 'debug',
-          data: meta || {},
-        })
-      }
-    }
+    logger.debug(message, meta as LogContext);
   },
 
   info(message: string, meta?: Record<string, unknown>) {
-    if (!shouldLog('INFO')) return
-
-    const formatted = formatMessage('INFO', message, meta)
-    console.log(formatted)
-
-    console.log(`🔧 DEBUG INFO: sentryInitialized=${sentryInitialized}, isDevelopment=${isDevelopment}`)
-
-    if (sentryInitialized) {
-      // In production, send logs to Sentry using captureMessage
-      if (!isDevelopment) {
-        console.log(`🔧 DEBUG INFO: Sending to Sentry as captureMessage`)
-        Sentry.captureMessage(message, 'info')
-        if (meta) {
-          Sentry.setContext('info_context', meta)
-        }
-      } else {
-        console.log(`🔧 DEBUG INFO: Adding breadcrumb to Sentry`)
-        // In development, just add breadcrumbs
-        Sentry.addBreadcrumb({
-          message,
-          level: 'info',
-          data: meta || {},
-        })
-      }
-    } else {
-      console.log(`🔧 DEBUG INFO: Sentry not initialized, skipping`)
-    }
+    logger.info(message, meta as LogContext);
   },
 
   warn(message: string, meta?: Record<string, unknown>) {
-    if (!shouldLog('WARN')) return
-
-    const formatted = formatMessage('WARN', message, meta)
-    console.warn(formatted)
-
-    if (sentryInitialized) {
-      Sentry.captureMessage(message, 'warning')
-      if (meta) {
-        Sentry.setContext('warning_context', meta)
-      }
-    }
+    logger.warn(message, meta as LogContext);
   },
 
   error(message: string, error?: Error | unknown, meta?: Record<string, unknown>) {
-    if (!shouldLog('ERROR')) return
-
-    const errorInfo = error instanceof Error ? {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    } : { error: String(error) }
-
-    const combinedMeta = { ...errorInfo, ...safeSpread(meta) }
-    const formatted = formatMessage('ERROR', message, combinedMeta)
-    console.error(formatted)
-
-    if (sentryInitialized) {
-      if (error instanceof Error) {
-        Sentry.captureException(error, {
-          tags: { source: 'flow-service' },
-          extra: { message, ...safeSpread(meta) },
-        })
-      } else {
-        Sentry.captureMessage(message, 'error')
-        if (error || meta) {
-          Sentry.setContext('error_context', { error, ...safeSpread(meta) })
-        }
-      }
-    }
+    const errorObj = error instanceof Error ? error : undefined;
+    const context = error instanceof Error ? meta as LogContext : { error, ...meta } as LogContext;
+    logger.error(message, errorObj, context);
   },
 
   critical(message: string, error?: Error | unknown, meta?: Record<string, unknown>) {
-    const errorInfo = error instanceof Error ? {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    } : { error: String(error) }
-
-    const combinedMeta = { ...errorInfo, ...safeSpread(meta) }
-    const formatted = formatMessage('CRITICAL', message, combinedMeta)
-    console.error(formatted)
-
-    if (sentryInitialized) {
-      if (error instanceof Error) {
-        Sentry.captureException(error, {
-          level: 'fatal',
-          tags: { source: 'flow-service', critical: 'true' },
-          extra: { message, ...safeSpread(meta) },
-        })
-      } else {
-        Sentry.captureMessage(message, 'fatal')
-        if (error || meta) {
-          Sentry.setContext('critical_context', { error, ...safeSpread(meta) })
-        }
-      }
-    }
+    const errorObj = error instanceof Error ? error : undefined;
+    const context = error instanceof Error ? meta as LogContext : { error, ...meta } as LogContext;
+    logger.critical(message, errorObj, context);
   },
-}
+};
 
 // Enhanced error handler (inspired by your weave handleCaughtError)
-export function handleError(
+export async function handleError(
   error: unknown,
   context?: string,
   meta?: Record<string, unknown>
-): void {
+): Promise<void> {
   const contextMessage = context ? `${context}: ` : ''
 
   if (error instanceof Error) {
-    logger.error(`${contextMessage}${error.message}`, error, {
+    await logger.error(`${contextMessage}${error.message}`, error, {
       stack: error.stack,
-      cause: error.cause,
+      cause: error.cause ? String(error.cause) : undefined,
       name: error.name,
       ...safeSpread(meta),
     })
   } else {
-    logger.error(`${contextMessage}Unknown error occurred`, error, meta)
+    await logger.error(`${contextMessage}Unknown error occurred`, undefined, {
+      error: String(error),
+      ...safeSpread(meta),
+    })
   }
 }
 
