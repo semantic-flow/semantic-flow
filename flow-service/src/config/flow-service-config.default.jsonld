@@ -1,0 +1,55 @@
+{
+  "@context": {
+    "fsvc": "https://semantic-flow.github.io/ontology/flow-service/",
+    "node": "https://semantic-flow.github.io/ontology/node-config/"
+  },
+  "@type": "fsvc:ServiceConfig",
+  "@id": "fsvc:defaultConfig",
+  "fsvc:port": 3000,
+  "fsvc:host": "localhost",
+  "fsvc:hasLoggingConfig": {
+    "@type": "fsvc:LoggingConfig",
+    "fsvc:hasConsoleChannel": {
+      "@type": "fsvc:LogChannelConfig",
+      "fsvc:logChannelEnabled": true,
+      "fsvc:logLevel": "info"
+    },
+    "fsvc:hasFileChannel": {
+      "@type": "fsvc:LogChannelConfig",
+      "fsvc:logChannelEnabled": false,
+      "fsvc:logLevel": "warn",
+      "fsvc:logFilePath": "./logs/flow-service.log"
+    },
+    "fsvc:hasSentryChannel": {
+      "@type": "fsvc:LogChannelConfig",
+      "fsvc:logChannelEnabled": false,
+      "fsvc:logLevel": "error",
+      "fsvc:sentryDsn": "https://example.sentry.io/projects/flow-service"
+    }
+  },
+  "fsvc:hasContainedServices": {
+    "@type": "fsvc:ContainedServicesConfig",
+    "fsvc:apiEnabled": true,
+    "fsvc:sparqlEnabled": true,
+    "fsvc:queryWidgetEnabled": true,
+    "fsvc:staticServerEnabled": true,
+    "fsvc:apiDocsEnabled": true
+  },
+  "fsvc:nodeDefaults": {
+    "@type": "node:NodeConfig",
+    "node:versioningEnabled": true,
+    "node:distributionFormats": [
+      "application/trig",
+      "application/ld+json"
+    ],
+    "node:templateMappings": {
+      "@type": "node:TemplateMapping",
+      "node:resourcePage": "templates/default-resource.html",
+      "node:indexPage": "templates/default-index.html",
+      "node:errorPage": "templates/default-error.html"
+    },
+    "node:configInheritanceEnabled": true,
+    "node:generateUnifiedDataset": false,
+    "node:generateAggregatedDataset": false
+  }
+}

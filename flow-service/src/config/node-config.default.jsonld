@@ -1,0 +1,21 @@
+{
+  "@context": {
+    "node": "https://semantic-flow.github.io/ontology/node-config/"
+  },
+  "@type": "node:NodeConfig",
+  "@id": "node:defaultConfig",
+  "node:versioningEnabled": true,
+  "node:configInheritanceEnabled": true,
+  "node:distributionFormats": [
+    "application/trig",
+    "application/ld+json"
+  ],
+  "node:hasTemplateMapping": {
+    "@type": "node:TemplateMapping",
+    "node:resourcePage": "/_assets/templates/default-resource-page.html"
+  },
+  "node:generateUnifiedDataset": false,
+  "node:generateAggregatedDataset": false,
+  "node:generateResourcePages": true,
+  "node:stylesheetPath": "/_assets/css/default-resource-page.css"
+}
