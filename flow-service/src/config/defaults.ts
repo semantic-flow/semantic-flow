@@ -134,7 +134,12 @@ export const PRODUCTION_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
 };
 
 /**
- * Get environment-specific defaults
+ * Returns the merged service configuration for the specified environment.
+ *
+ * If the environment is "production" or "prod", production overrides are applied; otherwise, development overrides are used by default. The result is a deep merge of the platform service defaults with the selected environment-specific overrides.
+ *
+ * @param environment - Optional environment name ("production", "prod", "development", or "dev")
+ * @returns The effective service configuration for the given environment
  */
 export function getEnvironmentDefaults(environment?: string): ServiceConfig {
   const env = environment?.toLowerCase() || "development";

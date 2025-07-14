@@ -9,7 +9,12 @@ import type { ServiceConfigInput, NodeConfigInput } from '../types.ts';
 import { ConfigError } from '../types.ts';
 
 /**
- * Load service configuration from JSON-LD file
+ * Loads a service configuration from a JSON-LD file at the specified path.
+ *
+ * Reads and parses the file, validating that the `@type` property is `"fsvc:ServiceConfig"`. Returns the parsed configuration object, or `null` if the file does not exist. Throws `ConfigError` for invalid JSON, incorrect type, or other failures.
+ *
+ * @param configPath - Path to the service configuration JSON-LD file
+ * @returns The parsed service configuration object, or `null` if the file is missing
  */
 export async function loadServiceConfig(configPath: string): Promise<ServiceConfigInput | null> {
   try {
@@ -43,7 +48,12 @@ export async function loadServiceConfig(configPath: string): Promise<ServiceConf
 }
 
 /**
- * Load node configuration from JSON-LD file
+ * Loads a node configuration from a JSON-LD file at the specified node path.
+ *
+ * Reads and parses the node configuration file, validating that its `@type` is `"node:NodeConfig"`. Returns the parsed configuration object, or `null` if the file does not exist. Throws `ConfigError` if the file contains invalid JSON, has an incorrect type, or on other failures.
+ *
+ * @param nodePath - The directory path of the node whose configuration should be loaded
+ * @returns The parsed node configuration object, or `null` if the configuration file does not exist
  */
 export async function loadNodeConfig(nodePath: string): Promise<NodeConfigInput | null> {
   const configPath = getNodeConfigPath(nodePath);
@@ -79,7 +89,9 @@ export async function loadNodeConfig(nodePath: string): Promise<NodeConfigInput 
 }
 
 /**
- * Save service configuration to JSON-LD file
+ * Saves a service configuration object as a JSON-LD file at the specified path.
+ *
+ * Ensures the target directory exists before writing. Throws a ConfigError if saving fails.
  */
 export async function saveServiceConfig(configPath: string, config: ServiceConfigInput): Promise<void> {
   try {
@@ -100,7 +112,9 @@ export async function saveServiceConfig(configPath: string, config: ServiceConfi
 }
 
 /**
- * Save node configuration to JSON-LD file
+ * Saves a node configuration object as a JSON-LD file at the derived node config path.
+ *
+ * Ensures the target directory exists before writing. Throws a ConfigError if saving fails.
  */
 export async function saveNodeConfig(nodePath: string, config: NodeConfigInput): Promise<void> {
   const configPath = getNodeConfigPath(nodePath);
@@ -123,7 +137,12 @@ export async function saveNodeConfig(nodePath: string, config: NodeConfigInput):
 }
 
 /**
- * Get the configuration file path for a node
+ * Returns the configuration file path for a given node directory.
+ *
+ * Appends `/_config-component` to the provided node path to construct the config file location.
+ *
+ * @param nodePath - The file system path to the node directory
+ * @returns The full path to the node's configuration file
  */
 function getNodeConfigPath(nodePath: string): string {
   // Node configs are stored as _config-component within the node directory
@@ -131,7 +150,10 @@ function getNodeConfigPath(nodePath: string): string {
 }
 
 /**
- * Check if a configuration file exists
+ * Determines whether a configuration file exists at the specified path.
+ *
+ * @param configPath - The file system path to the configuration file
+ * @returns `true` if the file exists and is a regular file; otherwise, `false`
  */
 export async function configExists(configPath: string): Promise<boolean> {
   try {
@@ -143,8 +165,10 @@ export async function configExists(configPath: string): Promise<boolean> {
 }
 
 /**
- * Get node hierarchy for inheritance resolution
- * Returns paths from deepest to shallowest, excluding the current node
+ * Returns an array of ancestor node paths for the given node, ordered from deepest to shallowest, excluding the current node itself.
+ *
+ * @param nodePath - The path of the node whose hierarchy is to be determined
+ * @returns An array of ancestor node paths, from deepest ancestor to root
  */
 export function getNodeHierarchy(nodePath: string): string[] {
   const parts = nodePath.split('/').filter(part => part);
@@ -162,7 +186,12 @@ export function getNodeHierarchy(nodePath: string): string[] {
 }
 
 /**
- * Check if config inheritance is enabled for a node
+ * Determines whether configuration inheritance is enabled for the specified node.
+ *
+ * Loads the node's configuration and checks the "node:configInheritanceEnabled" property. Returns its boolean value if present; otherwise, defaults to `true`. If the configuration cannot be loaded, also defaults to `true`.
+ *
+ * @param nodePath - The file system path to the node directory
+ * @returns `true` if config inheritance is enabled or unspecified; `false` if explicitly disabled
  */
 export async function isConfigInheritanceEnabled(nodePath: string): Promise<boolean> {
   try {
@@ -182,7 +211,9 @@ export async function isConfigInheritanceEnabled(nodePath: string): Promise<bool
 }
 
 /**
- * Validate JSON-LD structure
+ * Validates that the input is a JSON-LD object containing both "@type" and "@context" properties.
+ *
+ * Throws a ConfigError if the input is not an object or if required properties are missing.
  */
 export function validateJSONLD(data: unknown): void {
   if (!data || typeof data !== 'object') {
@@ -201,7 +232,10 @@ export function validateJSONLD(data: unknown): void {
 }
 
 /**
- * Deep clone a configuration object
+ * Creates a deep copy of the given configuration object using JSON serialization.
+ *
+ * @param config - The configuration object to clone
+ * @returns A new object that is a deep clone of the input configuration
  */
 export function cloneConfig<T>(config: T): T {
   return JSON.parse(JSON.stringify(config));

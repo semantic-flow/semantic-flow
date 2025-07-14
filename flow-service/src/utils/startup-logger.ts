@@ -7,7 +7,9 @@
 import type { ServiceConfigAccessor } from '../config/resolution/service-config-resolver.ts';
 
 /**
- * Log service startup configuration with timestamp
+ * Logs the service startup configuration details with a timestamp in US locale.
+ *
+ * Outputs mesh paths, logging levels, and feature enablement statuses to the console for the provided configuration.
  */
 export function logStartupConfiguration(config: ServiceConfigAccessor): void {
   const now = new Date();
@@ -32,7 +34,9 @@ export function logStartupConfiguration(config: ServiceConfigAccessor): void {
 }
 
 /**
- * Log service startup URLs
+ * Logs the root service URL and API documentation URL based on the provided configuration.
+ *
+ * @param config - The configuration accessor containing host and port information
  */
 export function logStartupUrls(config: ServiceConfigAccessor): void {
   const baseUrl = `http://${config.host}:${config.port}`;

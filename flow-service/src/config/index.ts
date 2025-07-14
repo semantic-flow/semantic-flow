@@ -84,7 +84,10 @@ import type { ServiceOptions, ServiceConfig } from './types.ts';
 import { resolveServiceConfig, validateServiceConfig, mergeConfigContext, ServiceConfigAccessor } from './resolution/service-config-resolver.ts';
 
 /**
- * Quick-start configuration resolution for most common use cases
+ * Resolves and validates the service configuration context, returning a `ServiceConfigAccessor` for side-by-side configuration access.
+ *
+ * @param cliOptions - Optional command-line options to influence configuration resolution
+ * @returns An accessor for retrieving configuration values from the resolved context
  */
 export async function createServiceConfig(cliOptions?: ServiceOptions): Promise<ServiceConfigAccessor> {
   const context = await resolveServiceConfig(cliOptions);
@@ -93,7 +96,10 @@ export async function createServiceConfig(cliOptions?: ServiceOptions): Promise<
 }
 
 /**
- * Get a complete merged configuration object (alternative to side-by-side pattern)
+ * Resolves, validates, and returns a fully merged service configuration object.
+ *
+ * @param cliOptions - Optional command-line options to influence configuration resolution
+ * @returns The complete, validated service configuration object with all context layers merged
  */
 export async function getCompleteServiceConfig(cliOptions?: ServiceOptions): Promise<ServiceConfig> {
   const context = await resolveServiceConfig(cliOptions);
