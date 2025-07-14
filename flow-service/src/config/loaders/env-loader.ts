@@ -36,8 +36,8 @@ export function loadEnvConfig(): ServiceConfigInput {
     }
   }
 
-  // Logging configuration
-  const loggingConfig: any = {};
+  // Logging configuration (mutable for construction)
+  const loggingConfig: Record<string, Record<string, string | boolean> | string> = {};
   let hasLoggingConfig = false;
 
   // Console logging
@@ -64,7 +64,7 @@ export function loadEnvConfig(): ServiceConfigInput {
   if (env.FLOW_FILE_LOG_ENABLED) {
     const enabled = parseBoolean(env.FLOW_FILE_LOG_ENABLED);
     if (enabled !== undefined) {
-      const fileChannel: any = {
+      const fileChannel: Record<string, string | boolean> = {
         "@type": "fsvc:LogChannelConfig",
         "fsvc:logChannelEnabled": enabled
       };
@@ -96,7 +96,7 @@ export function loadEnvConfig(): ServiceConfigInput {
   if (env.FLOW_SENTRY_ENABLED) {
     const enabled = parseBoolean(env.FLOW_SENTRY_ENABLED);
     if (enabled !== undefined) {
-      const sentryChannel: any = {
+      const sentryChannel: Record<string, string | boolean> = {
         "@type": "fsvc:LogChannelConfig",
         "fsvc:logChannelEnabled": enabled
       };
@@ -116,7 +116,7 @@ export function loadEnvConfig(): ServiceConfigInput {
   }
 
   // Contained services
-  const containedServices: any = {};
+  const containedServices: Record<string, boolean | string> = {};
   let hasContainedServices = false;
 
   if (env.FLOW_API_ENABLED) {
@@ -141,7 +141,7 @@ export function loadEnvConfig(): ServiceConfigInput {
   }
 
   // Node defaults
-  const nodeDefaults: any = {};
+  const nodeDefaults: Record<string, boolean | string | string[]> = {};
   let hasNodeDefaults = false;
 
   if (env.FLOW_DEFAULT_VERSIONING) {

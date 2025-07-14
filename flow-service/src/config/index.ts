@@ -70,12 +70,14 @@ export {
 // Service Configuration Resolution (Cascading Pattern)
 export {
   resolveServiceConfig,
-  mergeConfigs,
   getConfigValue,
   mergeConfigContext,
   validateServiceConfig,
   ServiceConfigAccessor
 } from './resolution/service-config-resolver.ts';
+
+// Shared Utilities
+export { mergeConfigs } from '../utils/merge-configs.ts';
 
 // Import the implementations for the helper functions
 import type { ServiceOptions, ServiceConfig } from './types.ts';

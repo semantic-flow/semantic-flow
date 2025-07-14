@@ -6,6 +6,7 @@
  */
 
 import type { ServiceConfig, NodeConfig, JSONLDContext } from './types.ts';
+import { mergeConfigs } from '../utils/merge-configs.ts';
 
 // Standard JSON-LD Context
 export const DEFAULT_CONTEXT: JSONLDContext = {
@@ -154,24 +155,4 @@ export function getEnvironmentDefaults(environment?: string): ServiceConfig {
 
   // Deep merge environment overrides with platform defaults
   return mergeConfigs(PLATFORM_SERVICE_DEFAULTS, envOverrides);
-}
-
-/**
- * Deep merge utility for configuration objects
- * Used for combining defaults with environment overrides
- */
-function mergeConfigs<T extends Record<string, any>>(base: T, override: Partial<T>): T {
-  const result = { ...base } as Record<string, any>;
-
-  for (const [key, value] of Object.entries(override)) {
-    if (value !== undefined && value !== null) {
-      if (typeof value === 'object' && !Array.isArray(value) && typeof result[key] === 'object' && !Array.isArray(result[key])) {
-        result[key] = mergeConfigs(result[key], value);
-      } else {
-        result[key] = value;
-      }
-    }
-  }
-
-  return result as T;
 }

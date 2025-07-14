@@ -184,16 +184,18 @@ export async function isConfigInheritanceEnabled(nodePath: string): Promise<bool
 /**
  * Validate JSON-LD structure
  */
-export function validateJSONLD(data: any): void {
+export function validateJSONLD(data: unknown): void {
   if (!data || typeof data !== 'object') {
     throw new ConfigError('Configuration must be a valid JSON object');
   }
 
-  if (!data["@type"]) {
+  const obj = data as Record<string, unknown>;
+  
+  if (!obj["@type"]) {
     throw new ConfigError('Configuration must have an "@type" property');
   }
 
-  if (!data["@context"]) {
+  if (!obj["@context"]) {
     throw new ConfigError('Configuration must have an "@context" property');
   }
 }

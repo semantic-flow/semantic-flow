@@ -10,6 +10,7 @@ import { loadEnvConfig, getServiceConfigPath } from '../loaders/env-loader.ts';
 import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
 import { PLATFORM_SERVICE_DEFAULTS, getEnvironmentDefaults } from '../defaults.ts';
 import { ConfigError } from '../types.ts';
+import { mergeConfigs } from '../../utils/merge-configs.ts';
 
 /**
  * Resolve service configuration using cascading configuration pattern
@@ -105,7 +106,7 @@ function convertCliOptionsToConfig(cliOptions: ServiceOptions): ServiceConfigInp
         "@type": "fsvc:LoggingConfig"
       };
     }
-    const loggingConfig = config["fsvc:hasLoggingConfig"] as any;
+    const loggingConfig = config["fsvc:hasLoggingConfig"] as Record<string, unknown>;
     loggingConfig["fsvc:hasSentryChannel"] = {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": cliOptions.sentryEnabled
@@ -113,30 +114,6 @@ function convertCliOptionsToConfig(cliOptions: ServiceOptions): ServiceConfigInp
   }
 
   return config;
-}
-
-/**
- * Deep merge utility for configuration objects (cascading pattern)
- * Later values override earlier values
- */
-export function mergeConfigs<T extends Record<string, any>>(base: T, override: Partial<T>): T {
-  const result = { ...base } as Record<string, any>;
-
-  for (const [key, value] of Object.entries(override)) {
-    if (value !== undefined && value !== null) {
-      if (typeof value === 'object' && !Array.isArray(value) &&
-        typeof result[key] === 'object' && !Array.isArray(result[key]) &&
-        result[key] !== null) {
-        // Deep merge objects
-        result[key] = mergeConfigs(result[key], value);
-      } else {
-        // Direct override for primitives, arrays, and null values
-        result[key] = value;
-      }
-    }
-  }
-
-  return result as T;
 }
 
 /**
@@ -159,7 +136,7 @@ export function getConfigValue<T>(
  * Use this when you need a complete config object instead of the side-by-side pattern
  */
 export function mergeConfigContext(context: ServiceConfigContext): typeof PLATFORM_SERVICE_DEFAULTS {
-  return mergeConfigs(context.defaultOptions, context.inputOptions as any);
+  return mergeConfigs(context.defaultOptions, context.inputOptions as Partial<typeof PLATFORM_SERVICE_DEFAULTS>);
 }
 
 /**
@@ -209,32 +186,38 @@ export class ServiceConfigAccessor {
 
   get consoleLogLevel(): string {
     const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] || this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    return loggingConfig["fsvc:hasConsoleChannel"]?.["fsvc:logLevel"] || "info";
+    const consoleChannel = loggingConfig?.["fsvc:hasConsoleChannel"];
+    return consoleChannel?.["fsvc:logLevel"] || "info";
   }
 
   get fileLogEnabled(): boolean {
     const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] || this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    return loggingConfig["fsvc:hasFileChannel"]?.["fsvc:logChannelEnabled"] || false;
+    const fileChannel = loggingConfig?.["fsvc:hasFileChannel"];
+    return fileChannel?.["fsvc:logChannelEnabled"] || false;
   }
 
   get fileLogLevel(): string {
     const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] || this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    return loggingConfig["fsvc:hasFileChannel"]?.["fsvc:logLevel"] || "warn";
+    const fileChannel = loggingConfig?.["fsvc:hasFileChannel"];
+    return fileChannel?.["fsvc:logLevel"] || "warn";
   }
 
   get sentryEnabled(): boolean {
     const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] || this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    return loggingConfig["fsvc:hasSentryChannel"]?.["fsvc:logChannelEnabled"] || false;
+    const sentryChannel = loggingConfig?.["fsvc:hasSentryChannel"];
+    return sentryChannel?.["fsvc:logChannelEnabled"] || false;
   }
 
   get sentryLogLevel(): string {
     const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] || this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    return loggingConfig["fsvc:hasSentryChannel"]?.["fsvc:logLevel"] || "error";
+    const sentryChannel = loggingConfig?.["fsvc:hasSentryChannel"];
+    return sentryChannel?.["fsvc:logLevel"] || "error";
   }
 
   get sentryDsn(): string | undefined {
     const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] || this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    return loggingConfig["fsvc:hasSentryChannel"]?.["fsvc:sentryDsn"];
+    const sentryChannel = loggingConfig?.["fsvc:hasSentryChannel"];
+    return sentryChannel?.["fsvc:sentryDsn"];
   }
 
   get apiEnabled(): boolean {
