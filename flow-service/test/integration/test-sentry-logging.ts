@@ -4,8 +4,8 @@
  * Test script to verify Sentry logging integration with log retention configuration
  */
 
-import { logger } from './src/utils/logger.ts';
-import { getCompleteServiceConfig } from './src/config/index.ts';
+import { logger } from '../../src/utils/logger.ts';
+import { getCompleteServiceConfig } from '../../src/config/index.ts';
 
 async function testSentryLogging() {
   console.log('🧪 Testing Sentry logging integration...\n');
@@ -14,7 +14,7 @@ async function testSentryLogging() {
     // Set environment variables for Sentry
     Deno.env.set('FLOW_SENTRY_ENABLED', 'true');
     Deno.env.set('FLOW_SENTRY_DSN', 'https://5b31ce060f1ccbf2d8cd83efa37f33e8@o4509659529150464.ingest.us.sentry.io/4509659530592256');
-    
+
     // Test 1: Load service configuration to verify Sentry is enabled
     console.log('📋 Test 1: Loading service configuration...');
     const config = await getCompleteServiceConfig();

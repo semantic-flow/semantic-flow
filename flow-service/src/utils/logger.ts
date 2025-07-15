@@ -155,14 +155,16 @@ let fileLogger: FileLogger | null = null;
 async function getFileLogger(): Promise<FileLogger | null> {
   if (!fileLogger) {
     try {
-      const config = await getCompleteServiceConfig();
-      const fileChannel = config["fsvc:hasLoggingConfig"]["fsvc:hasFileChannel"];
+      // Check environment variable first to avoid config dependency during logger initialization
+      const fileLogPath = Deno.env.get('FLOW_FILE_LOG_PATH');
+      const fileLogEnabled = Deno.env.get('FLOW_FILE_LOG_ENABLED');
 
-      if (fileChannel["fsvc:logChannelEnabled"] && fileChannel["fsvc:logFilePath"]) {
-        fileLogger = new FileLogger(fileChannel["fsvc:logFilePath"]);
+      if (fileLogEnabled === 'true' && fileLogPath) {
+        fileLogger = new FileLogger(fileLogPath);
         await fileLogger.rotateIfNeeded();
       }
     } catch (error) {
+      // Use console.error here to avoid circular dependency with handleCaughtError
       console.error(`Failed to initialize file logger: ${error}`);
     }
   }
@@ -257,53 +259,39 @@ async function writeToAllChannels(level: LogLevel, message: string, context?: Lo
       break;
   }
 
-  // Write to file if enabled
+  // Write to file if enabled - use fallback to avoid circular dependencies
   const fileLoggerInstance = await getFileLogger();
   if (fileLoggerInstance) {
     try {
       await fileLoggerInstance.rotateIfNeeded();
 
-      // Get file format configuration
-      const config = await getCompleteServiceConfig();
-      const fileChannel = config["fsvc:hasLoggingConfig"]["fsvc:hasFileChannel"];
-      const logFormat = fileChannel["fsvc:logFormat"] || "json"; // Default to json for backward compatibility
-
-      // Use appropriate formatter based on configuration
-      const fileFormatted = logFormat === "pretty"
-        ? formatPrettyMessage(level, message, context)
-        : formatStructuredMessage(level, message, context);
-
+      // Use JSON format as fallback to avoid config dependency loops
+      const fileFormatted = formatStructuredMessage(level, message, context);
       await fileLoggerInstance.writeToFile(fileFormatted);
     } catch (err) {
       console.error(`Failed to write to file log: ${err}`);
     }
   }
 
-  // Write to Sentry if enabled
+  // Write to Sentry if enabled - use basic check to avoid circular dependencies
   if (sentryInitialized) {
     try {
-      // Get Sentry channel configuration
-      const config = await getCompleteServiceConfig();
-      const sentryChannel = config["fsvc:hasLoggingConfig"]["fsvc:hasSentryChannel"];
-
-      if (sentryChannel["fsvc:logChannelEnabled"]) {
-        if (error) {
-          // Error reporting controlled by fsvc:logChannelEnabled
-          Sentry.captureException(error, {
-            level: level.toLowerCase() as any,
-            tags: {
-              source: 'flow-service',
-              component: context?.component,
-              operation: context?.operation
-            },
-            extra: { message, ...context },
-          });
-        } else if (sentryChannel["fsvc:sentryLoggingEnabled"] !== false) {
-          // Log message sending controlled by fsvc:sentryLoggingEnabled
-          Sentry.captureMessage(message, level.toLowerCase() as any);
-          if (context) {
-            Sentry.setContext(`${level.toLowerCase()}_context`, context);
-          }
+      if (error) {
+        // Error reporting
+        Sentry.captureException(error, {
+          level: level.toLowerCase() as any,
+          tags: {
+            source: 'flow-service',
+            component: context?.component,
+            operation: context?.operation
+          },
+          extra: { message, ...context },
+        });
+      } else {
+        // Log message sending
+        Sentry.captureMessage(message, level.toLowerCase() as any);
+        if (context) {
+          Sentry.setContext(`${level.toLowerCase()}_context`, context);
         }
       }
     } catch (err) {
@@ -324,16 +312,22 @@ export function initSentry(dsn?: string) {
 
   if (sentryEnabled && !sentryInitialized) {
     console.log(`🔧 DEBUG: Initializing Sentry...`)
-    Sentry.init({
-      dsn: targetDsn,
-      environment: isDevelopment ? 'development' : 'production',
-      debug: isDevelopment,
-      tracesSampleRate: isDevelopment ? 1.0 : 0.1,
-      // Enable logs to be sent to Sentry (experimental feature)
-      _experiments: { enableLogs: true },
-    })
-    sentryInitialized = true
-    console.log(`🔧 DEBUG: Sentry initialized successfully`)
+    try {
+      Sentry.init({
+        dsn: targetDsn,
+        environment: isDevelopment ? 'development' : 'production',
+        debug: isDevelopment,
+        tracesSampleRate: isDevelopment ? 1.0 : 0.1,
+        // Enable logs to be sent to Sentry (experimental feature)
+        _experiments: { enableLogs: true },
+      })
+      sentryInitialized = true
+      console.log(`🔧 DEBUG: Sentry initialized successfully`)
+    } catch (error) {
+      // Use console.error here to avoid circular dependency with handleCaughtError
+      console.error(`🔧 ERROR: Failed to initialize Sentry: ${error}`)
+      console.error(`🔧 ERROR: Sentry will remain disabled`)
+    }
   } else if (Deno.env.get('SENTRY_ENABLED') !== 'true') {
     console.log(`🔧 DEBUG: Sentry disabled - SENTRY_ENABLED is not 'true'`)
   } else if (!targetDsn) {

@@ -1,13 +1,11 @@
 # Enhanced Error Handling with handleCaughtError
 
-The `handleCaughtError` function provides comprehensive error handling that integrates with the structured logging system. It follows the weave application pattern and handles different error types appropriately.
+The `handleCaughtError` function provides comprehensive error handling that integrates with the structured logging system. It handles different error types appropriately.
 
 ## Usage
 
 ```typescript
 import { handleCaughtError } from './src/utils/logger.ts';
-// OR
-import { handleCaughtError } from './src/utils/errors.ts';
 ```
 
 ## Basic Usage

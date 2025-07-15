@@ -82,6 +82,7 @@ export { mergeConfigs } from '../utils/merge-configs.ts';
 // Import the implementations for the helper functions
 import type { ServiceOptions, ServiceConfig } from './types.ts';
 import { resolveServiceConfig, validateServiceConfig, mergeConfigContext, ServiceConfigAccessor } from './resolution/service-config-resolver.ts';
+import { handleCaughtError } from '../utils/logger.ts';
 
 /**
  * Resolves and validates the service configuration context, returning a `ServiceConfigAccessor` for side-by-side configuration access.
@@ -90,9 +91,14 @@ import { resolveServiceConfig, validateServiceConfig, mergeConfigContext, Servic
  * @returns An accessor for retrieving configuration values from the resolved context
  */
 export async function createServiceConfig(cliOptions?: ServiceOptions): Promise<ServiceConfigAccessor> {
-  const context = await resolveServiceConfig(cliOptions);
-  validateServiceConfig(context);
-  return new ServiceConfigAccessor(context);
+  try {
+    const context = await resolveServiceConfig(cliOptions);
+    validateServiceConfig(context);
+    return new ServiceConfigAccessor(context);
+  } catch (error) {
+    await handleCaughtError(error, `Failed to create service configuration`);
+    throw error;
+  }
 }
 
 /**
@@ -102,7 +108,12 @@ export async function createServiceConfig(cliOptions?: ServiceOptions): Promise<
  * @returns The complete, validated service configuration object with all context layers merged
  */
 export async function getCompleteServiceConfig(cliOptions?: ServiceOptions): Promise<ServiceConfig> {
-  const context = await resolveServiceConfig(cliOptions);
-  validateServiceConfig(context);
-  return mergeConfigContext(context);
+  try {
+    const context = await resolveServiceConfig(cliOptions);
+    validateServiceConfig(context);
+    return mergeConfigContext(context);
+  } catch (error) {
+    await handleCaughtError(error, `Failed to get complete service configuration`);
+    throw error;
+  }
 }

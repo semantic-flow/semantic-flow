@@ -4,8 +4,8 @@
  * Test script to verify Sentry initialization and logging
  */
 
-import { logger, initSentry } from './src/utils/logger.ts';
-import { getCompleteServiceConfig } from './src/config/index.ts';
+import { logger, initSentry } from '../../src/utils/logger.ts';
+import { getCompleteServiceConfig } from '../../src/config/index.ts';
 
 async function testSentryInit() {
   console.log('🧪 Testing Sentry initialization and logging...\n');

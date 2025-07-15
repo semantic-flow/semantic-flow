@@ -4,12 +4,25 @@ import { health } from './src/routes/health.ts'
 import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
 import { createServiceConfig } from './src/config/index.ts'
 import { logStartupConfiguration, logStartupUrls } from './src/utils/startup-logger.ts'
+import { handleCaughtError } from './src/utils/logger.ts'
 
 // Initialize configuration system
-const config = await createServiceConfig()
+let config;
+try {
+  config = await createServiceConfig()
+} catch (error) {
+  await handleCaughtError(error, 'Failed to initialize service configuration');
+  console.error('❌ Service startup failed due to configuration error. Exiting...');
+  Deno.exit(1);
+}
 
 // Log service startup with configuration info
-logStartupConfiguration(config)
+try {
+  logStartupConfiguration(config)
+} catch (error) {
+  await handleCaughtError(error, 'Failed to log startup configuration');
+  console.error('⚠️  Configuration logging failed, but continuing startup...');
+}
 
 const app = new OpenAPIHono()
 
@@ -43,7 +56,14 @@ app.get('/docs', Scalar({
   layout: 'classic'
 }))
 
-const markdown = await createMarkdownFromOpenApi(JSON.stringify(content))
+let markdown;
+try {
+  markdown = await createMarkdownFromOpenApi(JSON.stringify(content))
+} catch (error) {
+  await handleCaughtError(error, 'Failed to generate markdown documentation');
+  console.error('⚠️  Markdown generation failed, but continuing startup...');
+  markdown = '# API Documentation\n\nDocumentation generation failed.';
+}
 
 app.get('/llms.txt', (c) => {
   return c.text(markdown)
@@ -54,9 +74,20 @@ app.route('/api', health)
 
 
 // Startup logging
-logStartupUrls(config)
+try {
+  logStartupUrls(config)
+} catch (error) {
+  await handleCaughtError(error, 'Failed to log startup URLs');
+  console.error('⚠️  URL logging failed, but continuing startup...');
+}
 
-Deno.serve({
-  port: config.port,
-  hostname: config.host
-}, app.fetch)
+try {
+  Deno.serve({
+    port: config.port,
+    hostname: config.host
+  }, app.fetch)
+} catch (error) {
+  await handleCaughtError(error, 'Failed to start HTTP server');
+  console.error('❌ Server startup failed. Exiting...');
+  Deno.exit(1);
+}

@@ -7,6 +7,7 @@
 
 import type { ServiceConfigInput, NodeConfigInput } from '../types.ts';
 import { ConfigError } from '../types.ts';
+import { handleCaughtError } from '../../utils/logger.ts';
 
 /**
  * Loads a service configuration from a JSON-LD file at the specified path.
@@ -34,13 +35,16 @@ export async function loadServiceConfig(configPath: string): Promise<ServiceConf
     }
 
     if (error instanceof SyntaxError) {
+      await handleCaughtError(error, `Invalid JSON in config file ${configPath}`);
       throw new ConfigError(`Invalid JSON in config file ${configPath}: ${error.message}`, error);
     }
 
     if (error instanceof ConfigError) {
+      await handleCaughtError(error, `Configuration error loading service config from ${configPath}`);
       throw error;
     }
 
+    await handleCaughtError(error, `Failed to load service config from ${configPath}`);
     const errorMessage = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? error : undefined;
     throw new ConfigError(`Failed to load service config from ${configPath}: ${errorMessage}`, cause);
@@ -75,13 +79,16 @@ export async function loadNodeConfig(nodePath: string): Promise<NodeConfigInput 
     }
 
     if (error instanceof SyntaxError) {
+      await handleCaughtError(error, `Invalid JSON in node config at ${configPath}`);
       throw new ConfigError(`Invalid JSON in node config at ${configPath}: ${error.message}`, error);
     }
 
     if (error instanceof ConfigError) {
+      await handleCaughtError(error, `Configuration error loading node config from ${configPath}`);
       throw error;
     }
 
+    await handleCaughtError(error, `Failed to load node config from ${configPath}`);
     const errorMessage = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? error : undefined;
     throw new ConfigError(`Failed to load node config from ${configPath}: ${errorMessage}`, cause);
@@ -105,6 +112,7 @@ export async function saveServiceConfig(configPath: string, config: ServiceConfi
     const configContent = JSON.stringify(config, null, 2);
     await Deno.writeTextFile(configPath, configContent);
   } catch (error) {
+    await handleCaughtError(error, `Failed to save service config to ${configPath}`);
     const errorMessage = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? error : undefined;
     throw new ConfigError(`Failed to save service config to ${configPath}: ${errorMessage}`, cause);
@@ -130,6 +138,7 @@ export async function saveNodeConfig(nodePath: string, config: NodeConfigInput):
     const configContent = JSON.stringify(config, null, 2);
     await Deno.writeTextFile(configPath, configContent);
   } catch (error) {
+    await handleCaughtError(error, `Failed to save node config to ${configPath}`);
     const errorMessage = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? error : undefined;
     throw new ConfigError(`Failed to save node config to ${configPath}: ${errorMessage}`, cause);

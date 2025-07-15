@@ -11,6 +11,7 @@ import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
 import { PLATFORM_SERVICE_DEFAULTS, getEnvironmentDefaults } from '../defaults.ts';
 import { ConfigError } from '../types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';
+import { handleCaughtError } from '../../utils/logger.ts';
 
 /**
  * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.
@@ -56,9 +57,11 @@ export async function resolveServiceConfig(cliOptions?: ServiceOptions): Promise
     };
   } catch (error) {
     if (error instanceof ConfigError) {
+      await handleCaughtError(error, `Service configuration resolution failed`);
       throw error;
     }
 
+    await handleCaughtError(error, `Failed to resolve service configuration`);
     const errorMessage = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? error : undefined;
     throw new ConfigError(`Failed to resolve service configuration: ${errorMessage}`, cause);

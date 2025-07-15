@@ -5,9 +5,9 @@
  * This demonstrates the comprehensive error handling capabilities
  */
 
-import { handleCaughtError } from './src/utils/logger.ts';
-import { FlowServiceError, ValidationError, ConfigurationError } from './src/utils/errors.ts';
-import { ConfigError, ConfigValidationError } from './src/config/types.ts';
+import { handleCaughtError } from '../../src/utils/logger.ts';
+import { FlowServiceError, ValidationError, ConfigurationError } from '../../src/utils/errors.ts';
+import { ConfigError, ConfigValidationError } from '../../src/config/types.ts';
 
 console.log('🧪 Testing handleCaughtError function...\n');
 
