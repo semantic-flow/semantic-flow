@@ -21,7 +21,7 @@ type LogLevel = keyof typeof LogLevels
 // Structured logging interfaces
 export interface LogContext {
   // Operation tracking
-  operation?: 'scan' | 'weave' | 'validate' | 'config-resolve' | 'api-request' | 'startup';
+  operation?: 'scan' | 'weave' | 'validate' | 'config-resolve' | 'api-request' | 'startup' | 'error-handling';
   requestId?: string;
 
   // Mesh/Node context
@@ -189,6 +189,26 @@ function formatStructuredMessage(level: LogLevel, message: string, context?: Log
   return JSON.stringify(baseEntry);
 }
 
+function formatPrettyMessage(level: LogLevel, message: string, context?: LogContext): string {
+  const timestamp = new Date().toISOString();
+  const levelPadded = level.padEnd(5);
+
+  let contextStr = '';
+  if (context && Object.keys(context).length > 0) {
+    const parts = [];
+    if (context.operation) parts.push(`op=${context.operation}`);
+    if (context.meshPath) parts.push(`mesh=${context.meshPath}`);
+    if (context.duration) parts.push(`${context.duration}ms`);
+    if (context.nodeCount) parts.push(`${context.nodeCount} nodes`);
+    if (context.configSource) parts.push(`source=${context.configSource}`);
+    if (context.component) parts.push(`[${context.component}]`);
+
+    contextStr = parts.length > 0 ? ` (${parts.join(', ')})` : '';
+  }
+
+  return `[${timestamp}] ${levelPadded} ${message}${contextStr}`;
+}
+
 function formatConsoleMessage(level: LogLevel, message: string, context?: LogContext): string {
   const timestamp = new Date().toISOString();
   const prefix = `[${timestamp}] ${level.padEnd(5)}`;
@@ -242,7 +262,17 @@ async function writeToAllChannels(level: LogLevel, message: string, context?: Lo
   if (fileLoggerInstance) {
     try {
       await fileLoggerInstance.rotateIfNeeded();
-      const fileFormatted = formatStructuredMessage(level, message, context);
+
+      // Get file format configuration
+      const config = await getCompleteServiceConfig();
+      const fileChannel = config["fsvc:hasLoggingConfig"]["fsvc:hasFileChannel"];
+      const logFormat = fileChannel["fsvc:logFormat"] || "json"; // Default to json for backward compatibility
+
+      // Use appropriate formatter based on configuration
+      const fileFormatted = logFormat === "pretty"
+        ? formatPrettyMessage(level, message, context)
+        : formatStructuredMessage(level, message, context);
+
       await fileLoggerInstance.writeToFile(fileFormatted);
     } catch (err) {
       console.error(`Failed to write to file log: ${err}`);
@@ -252,20 +282,28 @@ async function writeToAllChannels(level: LogLevel, message: string, context?: Lo
   // Write to Sentry if enabled
   if (sentryInitialized) {
     try {
-      if (error) {
-        Sentry.captureException(error, {
-          level: level.toLowerCase() as any,
-          tags: {
-            source: 'flow-service',
-            component: context?.component,
-            operation: context?.operation
-          },
-          extra: { message, ...context },
-        });
-      } else {
-        Sentry.captureMessage(message, level.toLowerCase() as any);
-        if (context) {
-          Sentry.setContext(`${level.toLowerCase()}_context`, context);
+      // Get Sentry channel configuration
+      const config = await getCompleteServiceConfig();
+      const sentryChannel = config["fsvc:hasLoggingConfig"]["fsvc:hasSentryChannel"];
+
+      if (sentryChannel["fsvc:logChannelEnabled"]) {
+        if (error) {
+          // Error reporting controlled by fsvc:logChannelEnabled
+          Sentry.captureException(error, {
+            level: level.toLowerCase() as any,
+            tags: {
+              source: 'flow-service',
+              component: context?.component,
+              operation: context?.operation
+            },
+            extra: { message, ...context },
+          });
+        } else if (sentryChannel["fsvc:sentryLoggingEnabled"] !== false) {
+          // Log message sending controlled by fsvc:sentryLoggingEnabled
+          Sentry.captureMessage(message, level.toLowerCase() as any);
+          if (context) {
+            Sentry.setContext(`${level.toLowerCase()}_context`, context);
+          }
         }
       }
     } catch (err) {
@@ -436,6 +474,183 @@ export async function handleError(
       error: String(error),
       ...safeSpread(meta),
     })
+  }
+}
+/**
+ * Comprehensive error handler following weave application pattern.
+ * Handles different error types with detailed logging including stack traces, causes, and context.
+ *
+ * @param e - The caught error of unknown type
+ * @param customMessage - Optional custom message to prefix error details
+ */
+export async function handleCaughtError(e: unknown, customMessage?: string): Promise<void> {
+  // Format error message with context if provided
+  const formatErrorMsg = (errorType: string, msg: string) => {
+    if (customMessage) {
+      return `${customMessage} ${errorType}: ${msg}`;
+    }
+    return `${errorType}: ${msg}`;
+  };
+
+  // Log detailed error information
+  const logDetailedError = async (error: Error, type = "Error") => {
+    await logger.error(formatErrorMsg(type, error.message), error, {
+      errorType: type,
+      errorName: error.name,
+      customMessage
+    });
+
+    // Log stack trace if available
+    if (error.stack) {
+      await logger.debug("Stack trace:", {
+        stack: error.stack,
+        operation: 'error-handling'
+      });
+    }
+
+    // Log cause if available
+    if (error.cause) {
+      await logger.debug("Caused by:", {
+        cause: Deno.inspect(error.cause, { colors: false }),
+        operation: 'error-handling'
+      });
+    }
+
+    // Log additional error details
+    await logger.debug("Error details:", {
+      errorDetails: Deno.inspect(error, { colors: false }),
+      operation: 'error-handling'
+    });
+  };
+
+  // Handle specific error types
+  try {
+    if (e instanceof Error) {
+      // Check for custom Flow Service error types first
+      if (e.name === 'FlowServiceError') {
+        const fsError = e as any; // Type assertion for FlowServiceError properties
+        await logger.error(formatErrorMsg("FlowServiceError", e.message), e, {
+          errorType: "FlowServiceError",
+          errorCode: fsError.code,
+          errorContext: fsError.context,
+          customMessage
+        });
+
+        if (e.stack) {
+          await logger.debug("FlowServiceError stack trace:", {
+            stack: e.stack,
+            operation: 'error-handling'
+          });
+        }
+
+        if (fsError.context) {
+          await logger.debug("FlowServiceError context:", {
+            context: Deno.inspect(fsError.context, { colors: false }),
+            operation: 'error-handling'
+          });
+        }
+      }
+      else if (e.name === 'ValidationError') {
+        const valError = e as any; // Type assertion for ValidationError properties
+        await logger.error(formatErrorMsg("ValidationError", e.message), e, {
+          errorType: "ValidationError",
+          errorCode: valError.code,
+          field: valError.field,
+          errorContext: valError.context,
+          customMessage
+        });
+
+        if (e.stack) {
+          await logger.debug("ValidationError stack trace:", {
+            stack: e.stack,
+            operation: 'error-handling'
+          });
+        }
+      }
+      else if (e.name === 'ConfigurationError' || e.name === 'ConfigError' || e.name === 'ConfigValidationError') {
+        const configError = e as any; // Type assertion for config error properties
+        await logger.error(formatErrorMsg("ConfigurationError", e.message), e, {
+          errorType: e.name,
+          errorCode: configError.code,
+          errors: configError.errors, // For ConfigValidationError
+          errorContext: configError.context,
+          customMessage
+        });
+
+        if (e.stack) {
+          await logger.debug("ConfigurationError stack trace:", {
+            stack: e.stack,
+            operation: 'error-handling'
+          });
+        }
+
+        if (configError.errors) {
+          await logger.debug("Configuration validation errors:", {
+            validationErrors: configError.errors,
+            operation: 'error-handling'
+          });
+        }
+      }
+      else if (e.name === 'TypeError') {
+        await logDetailedError(e, "TypeError");
+      }
+      else if (e.name === 'ReferenceError') {
+        await logDetailedError(e, "ReferenceError");
+      }
+      else if (e.name === 'SyntaxError') {
+        await logDetailedError(e, "SyntaxError");
+      }
+      else if (e.name === 'RangeError') {
+        await logDetailedError(e, "RangeError");
+      }
+      else {
+        // Generic Error handling
+        await logDetailedError(e, "Error");
+      }
+    } else if (typeof e === 'string') {
+      // Handle string errors
+      await logger.error(formatErrorMsg("StringError", e), undefined, {
+        errorType: "StringError",
+        errorValue: e,
+        customMessage
+      });
+    } else if (typeof e === 'number') {
+      // Handle numeric errors
+      await logger.error(formatErrorMsg("NumericError", String(e)), undefined, {
+        errorType: "NumericError",
+        errorValue: e,
+        customMessage
+      });
+    } else if (e === null) {
+      // Handle null errors
+      await logger.error(formatErrorMsg("NullError", "null value thrown"), undefined, {
+        errorType: "NullError",
+        customMessage
+      });
+    } else if (e === undefined) {
+      // Handle undefined errors
+      await logger.error(formatErrorMsg("UndefinedError", "undefined value thrown"), undefined, {
+        errorType: "UndefinedError",
+        customMessage
+      });
+    } else {
+      // Handle any other unknown error types
+      await logger.error(formatErrorMsg("UnknownError", "Unknown error type"), undefined, {
+        errorType: "UnknownError",
+        errorValue: Deno.inspect(e, { colors: false }),
+        customMessage
+      });
+
+      // Log detailed inspection of unknown error
+      await logger.debug("Unknown error details:", {
+        unknownError: Deno.inspect(e, { colors: false, depth: 3 }),
+        operation: 'error-handling'
+      });
+    }
+  } catch (loggingError) {
+    // Fallback error handling if logging itself fails
+    console.error('Failed to log error properly:', loggingError);
+    console.error('Original error was:', e);
   }
 }
 

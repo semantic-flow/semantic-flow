@@ -53,6 +53,7 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": false,
       "fsvc:logLevel": "warn",
+      "fsvc:logFormat": "pretty",
       "fsvc:logFilePath": "./logs/flow-service.log",
       "fsvc:logRetentionDays": 30,
       "fsvc:logMaxFiles": 10,
@@ -62,7 +63,8 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
     "fsvc:hasSentryChannel": {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": false,
-      "fsvc:logLevel": "error"
+      "fsvc:logLevel": "error",
+      "fsvc:sentryLoggingEnabled": true
     }
   },
   "fsvc:hasContainedServices": {
@@ -104,6 +106,7 @@ export const DEVELOPMENT_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": true,
       "fsvc:logLevel": "info",
+      "fsvc:logFormat": "pretty",
       "fsvc:logFilePath": "./logs/flow-service-dev.log",
       "fsvc:logRetentionDays": 7,
       "fsvc:logMaxFiles": 5,
@@ -113,7 +116,8 @@ export const DEVELOPMENT_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
     "fsvc:hasSentryChannel": {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": true,  // Disable Sentry in development by default
-      "fsvc:logLevel": "warn"
+      "fsvc:logLevel": "warn",
+      "fsvc:sentryLoggingEnabled": true
     }
   }
 };
@@ -131,6 +135,7 @@ export const PRODUCTION_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": true,
       "fsvc:logLevel": "warn",
+      "fsvc:logFormat": "pretty",
       "fsvc:logFilePath": "./logs/flow-service.log",
       "fsvc:logRetentionDays": 90,
       "fsvc:logMaxFiles": 20,
@@ -140,7 +145,8 @@ export const PRODUCTION_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
     "fsvc:hasSentryChannel": {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": true,  // Enable Sentry in production
-      "fsvc:logLevel": "error"
+      "fsvc:logLevel": "error",
+      "fsvc:sentryLoggingEnabled": true
     }
   }
 };

@@ -22,8 +22,10 @@ export interface LogChannelConfig {
   readonly "@type": "fsvc:LogChannelConfig";
   readonly "fsvc:logChannelEnabled": boolean;
   readonly "fsvc:logLevel": "debug" | "info" | "warn" | "error";
+  readonly "fsvc:logFormat"?: "json" | "pretty";
   readonly "fsvc:logFilePath"?: string;
   readonly "fsvc:sentryDsn"?: string;
+  readonly "fsvc:sentryLoggingEnabled"?: boolean;
   readonly "fsvc:logRetentionDays"?: number;
   readonly "fsvc:logMaxFiles"?: number;
   readonly "fsvc:logMaxFileSize"?: number;
@@ -129,6 +131,7 @@ export interface EnvironmentConfig {
   readonly FLOW_LOG_LEVEL?: string;
   readonly FLOW_SENTRY_ENABLED?: string;
   readonly FLOW_SENTRY_DSN?: string;
+  readonly FLOW_SENTRY_LOGGING_ENABLED?: string;
   readonly FLOW_FILE_LOG_ENABLED?: string;
   readonly FLOW_FILE_LOG_LEVEL?: string;
   readonly FLOW_FILE_LOG_PATH?: string;

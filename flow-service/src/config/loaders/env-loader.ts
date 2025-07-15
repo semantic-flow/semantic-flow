@@ -138,6 +138,13 @@ export function loadEnvConfig(): ServiceConfigInput {
         sentryChannel["fsvc:sentryDsn"] = env.FLOW_SENTRY_DSN;
       }
 
+      if (env.FLOW_SENTRY_LOGGING_ENABLED) {
+        const loggingEnabled = parseBoolean(env.FLOW_SENTRY_LOGGING_ENABLED);
+        if (loggingEnabled !== undefined) {
+          sentryChannel["fsvc:sentryLoggingEnabled"] = loggingEnabled;
+        }
+      }
+
       loggingConfig["fsvc:hasSentryChannel"] = sentryChannel;
       hasLoggingConfig = true;
     }
@@ -215,6 +222,7 @@ function getEnvironmentVariables(): EnvironmentConfig {
     FLOW_LOG_LEVEL: Deno.env.get("FLOW_LOG_LEVEL"),
     FLOW_SENTRY_ENABLED: Deno.env.get("FLOW_SENTRY_ENABLED"),
     FLOW_SENTRY_DSN: Deno.env.get("FLOW_SENTRY_DSN"),
+    FLOW_SENTRY_LOGGING_ENABLED: Deno.env.get("FLOW_SENTRY_LOGGING_ENABLED"),
     FLOW_FILE_LOG_ENABLED: Deno.env.get("FLOW_FILE_LOG_ENABLED"),
     FLOW_FILE_LOG_LEVEL: Deno.env.get("FLOW_FILE_LOG_LEVEL"),
     FLOW_FILE_LOG_PATH: Deno.env.get("FLOW_FILE_LOG_PATH"),
