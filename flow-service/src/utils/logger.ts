@@ -1,5 +1,4 @@
 import * as Sentry from 'npm:@sentry/deno';
-import { getCompleteServiceConfig } from '../config/index.ts';
 import { dirname } from 'https://deno.land/std@0.208.0/path/mod.ts';
 import { ensureDir } from 'https://deno.land/std@0.208.0/fs/mod.ts';
 
@@ -191,25 +190,6 @@ function formatStructuredMessage(level: LogLevel, message: string, context?: Log
   return JSON.stringify(baseEntry);
 }
 
-function formatPrettyMessage(level: LogLevel, message: string, context?: LogContext): string {
-  const timestamp = new Date().toISOString();
-  const levelPadded = level.padEnd(5);
-
-  let contextStr = '';
-  if (context && Object.keys(context).length > 0) {
-    const parts = [];
-    if (context.operation) parts.push(`op=${context.operation}`);
-    if (context.meshPath) parts.push(`mesh=${context.meshPath}`);
-    if (context.duration) parts.push(`${context.duration}ms`);
-    if (context.nodeCount) parts.push(`${context.nodeCount} nodes`);
-    if (context.configSource) parts.push(`source=${context.configSource}`);
-    if (context.component) parts.push(`[${context.component}]`);
-
-    contextStr = parts.length > 0 ? ` (${parts.join(', ')})` : '';
-  }
-
-  return `[${timestamp}] ${levelPadded} ${message}${contextStr}`;
-}
 
 function formatConsoleMessage(level: LogLevel, message: string, context?: LogContext): string {
   const timestamp = new Date().toISOString();
@@ -279,7 +259,7 @@ async function writeToAllChannels(level: LogLevel, message: string, context?: Lo
       if (error) {
         // Error reporting
         Sentry.captureException(error, {
-          level: level.toLowerCase() as any,
+          level: level.toLowerCase() as 'debug' | 'info' | 'warning' | 'error' | 'fatal',
           tags: {
             source: 'flow-service',
             component: context?.component,
@@ -289,7 +269,7 @@ async function writeToAllChannels(level: LogLevel, message: string, context?: Lo
         });
       } else {
         // Log message sending
-        Sentry.captureMessage(message, level.toLowerCase() as any);
+        Sentry.captureMessage(message, level.toLowerCase() as 'debug' | 'info' | 'warning' | 'error' | 'fatal');
         if (context) {
           Sentry.setContext(`${level.toLowerCase()}_context`, context);
         }
@@ -358,22 +338,6 @@ function shouldLog(level: LogLevel): boolean {
   return LogLevels[level] >= currentLevel
 }
 
-function formatMessage(level: LogLevel, message: string, meta?: Record<string, unknown>): string {
-  const timestamp = new Date().toISOString()
-  const prefix = `[${timestamp}] ${level.padEnd(5)}`
-
-  if (isDevelopment) {
-    const coloredLevel = level === 'ERROR' || level === 'CRITICAL' ? colorize('red', level) :
-      level === 'WARN' ? colorize('yellow', level) :
-        level === 'DEBUG' ? colorize('blue', level) :
-          colorize('green', level)
-
-    const coloredPrefix = colorize('gray', `[${timestamp}]`) + ` ${coloredLevel.padEnd(5)}`
-    return meta ? `${coloredPrefix} ${message} ${Deno.inspect(meta, { colors: true })}` : `${coloredPrefix} ${message}`
-  }
-
-  return meta ? `${prefix} ${message} ${JSON.stringify(meta)}` : `${prefix} ${message}`
-}
 
 function safeSpread(obj?: unknown): Record<string, unknown> {
   if (!obj || typeof obj !== 'object') return {}
@@ -522,7 +486,7 @@ export async function handleCaughtError(e: unknown, customMessage?: string): Pro
     if (e instanceof Error) {
       // Check for custom Flow Service error types first
       if (e.name === 'FlowServiceError') {
-        const fsError = e as any; // Type assertion for FlowServiceError properties
+        const fsError = e as Error & { code?: string; context?: unknown };
         await logger.error(formatErrorMsg("FlowServiceError", e.message), e, {
           errorType: "FlowServiceError",
           errorCode: fsError.code,
@@ -545,7 +509,7 @@ export async function handleCaughtError(e: unknown, customMessage?: string): Pro
         }
       }
       else if (e.name === 'ValidationError') {
-        const valError = e as any; // Type assertion for ValidationError properties
+        const valError = e as Error & { code?: string; field?: string; context?: unknown };
         await logger.error(formatErrorMsg("ValidationError", e.message), e, {
           errorType: "ValidationError",
           errorCode: valError.code,
@@ -562,7 +526,7 @@ export async function handleCaughtError(e: unknown, customMessage?: string): Pro
         }
       }
       else if (e.name === 'ConfigurationError' || e.name === 'ConfigError' || e.name === 'ConfigValidationError') {
-        const configError = e as any; // Type assertion for config error properties
+        const configError = e as Error & { code?: string; errors?: string[]; context?: unknown };
         await logger.error(formatErrorMsg("ConfigurationError", e.message), e, {
           errorType: e.name,
           errorCode: configError.code,

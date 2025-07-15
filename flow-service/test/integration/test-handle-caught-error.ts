@@ -7,7 +7,7 @@
 
 import { handleCaughtError } from '../../src/utils/logger.ts';
 import { FlowServiceError, ValidationError, ConfigurationError } from '../../src/utils/errors.ts';
-import { ConfigError, ConfigValidationError } from '../../src/config/types.ts';
+import { ConfigValidationError } from '../../src/config/types.ts';
 
 console.log('🧪 Testing handleCaughtError function...\n');
 
@@ -85,7 +85,7 @@ try {
 
 console.log('\n=== Test 9: Undefined Error ===');
 try {
-  throw undefined;
+  throw null;
 } catch (e) {
   await handleCaughtError(e, 'Undefined error case');
 }
