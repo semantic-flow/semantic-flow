@@ -1,5 +1,6 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
 import { logger } from '../utils/logger.ts'
+import { getUptimeInfo } from '../utils/uptime.ts'
 
 const health = new OpenAPIHono()
 
@@ -7,7 +8,12 @@ const HealthResponse = z.object({
   status: z.string(),
   timestamp: z.string(),
   service: z.string(),
-  version: z.string()
+  version: z.string(),
+  uptime: z.object({
+    startTime: z.string(),
+    uptimeSeconds: z.number(),
+    uptimeFormatted: z.string()
+  })
 })
 
 const healthRoute = createRoute({
@@ -34,11 +40,14 @@ health.openapi(healthRoute, (c) => {
     ip: c.req.header('x-forwarded-for') || 'unknown'
   })
 
+  const uptimeInfo = getUptimeInfo()
+  
   const response = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     service: 'flow-service',
-    version: '1.0.0'
+    version: '1.0.0',
+    uptime: uptimeInfo
   }
 
   logger.info('Health check completed', { status: response.status })
