@@ -2,14 +2,27 @@ import { OpenAPIHono } from '@hono/zod-openapi'
 import { Scalar } from '@scalar/hono-api-reference'
 import { health } from './src/routes/health.ts'
 import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
-import { logger, initSentry } from './src/utils/logger.ts'
+import { createServiceConfig } from './src/config/index.ts'
+import { logStartupConfiguration, logStartupUrls } from './src/utils/startup-logger.ts'
+import { handleCaughtError } from './src/utils/logger.ts'
 
+// Initialize configuration system
+let config;
+try {
+  config = await createServiceConfig()
+} catch (error) {
+  await handleCaughtError(error, 'Failed to initialize service configuration');
+  console.error('❌ Service startup failed due to configuration error. Exiting...');
+  Deno.exit(1);
+}
 
-// Initialize Sentry with your DSN
-initSentry()
-
-// Log service startup
-logger.info("Flow Service initializing", { version: "0.1.0" })
+// Log service startup with configuration info
+try {
+  logStartupConfiguration(config)
+} catch (error) {
+  await handleCaughtError(error, 'Failed to log startup configuration');
+  console.error('⚠️  Configuration logging failed, but continuing startup...');
+}
 
 const app = new OpenAPIHono()
 
@@ -27,8 +40,8 @@ const content = {
   },
   servers: [
     {
-      url: 'http://localhost:8000',
-      description: 'Local server'
+      url: `http://${config.host}:${config.port}`,
+      description: 'Configured server'
     }
   ]
 }
@@ -43,7 +56,14 @@ app.get('/docs', Scalar({
   layout: 'classic'
 }))
 
-const markdown = await createMarkdownFromOpenApi(JSON.stringify(content))
+let markdown;
+try {
+  markdown = await createMarkdownFromOpenApi(JSON.stringify(content))
+} catch (error) {
+  await handleCaughtError(error, 'Failed to generate markdown documentation');
+  console.error('⚠️  Markdown generation failed, but continuing startup...');
+  markdown = '# API Documentation\n\nDocumentation generation failed.';
+}
 
 app.get('/llms.txt', (c) => {
   return c.text(markdown)
@@ -54,11 +74,20 @@ app.route('/api', health)
 
 
 // Startup logging
-logger.info('🚀 Flow Service starting...')
-logger.info('📍 Root: http://localhost:8000/')
-logger.info('❤️ Health check: http://localhost:8000/api/health')
-logger.info('📚 API documentation: http://localhost:8000/docs')
-logger.info('📋 OpenAPI spec: http://localhost:8000/openapi.json')
-logger.info('📄 LLM-friendly docs: http://localhost:8000/llms.txt')
+try {
+  logStartupUrls(config)
+} catch (error) {
+  await handleCaughtError(error, 'Failed to log startup URLs');
+  console.error('⚠️  URL logging failed, but continuing startup...');
+}
 
-Deno.serve(app.fetch)
+try {
+  Deno.serve({
+    port: config.port,
+    hostname: config.host
+  }, app.fetch)
+} catch (error) {
+  await handleCaughtError(error, 'Failed to start HTTP server');
+  console.error('❌ Server startup failed. Exiting...');
+  Deno.exit(1);
+}
