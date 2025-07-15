@@ -13,11 +13,15 @@ async function testSentryInit() {
   try {
     // Set environment variables for Sentry
     Deno.env.set('FLOW_SENTRY_ENABLED', 'true');
-    Deno.env.set('FLOW_SENTRY_DSN', 'https://5b31ce060f1ccbf2d8cd83efa37f33e8@o4509659529150464.ingest.us.sentry.io/4509659530592256');
-
-    // Also set the old environment variables that the logger expects
-    Deno.env.set('SENTRY_ENABLED', 'true');
-    Deno.env.set('SENTRY_DSN', 'https://5b31ce060f1ccbf2d8cd83efa37f33e8@o4509659529150464.ingest.us.sentry.io/4509659530592256');
+    
+    // Get DSN from environment (should be loaded from .env file)
+    const sentryDsn = Deno.env.get('FLOW_SENTRY_DSN');
+    if (!sentryDsn) {
+      throw new Error('FLOW_SENTRY_DSN not found in environment. Please check your .env file.');
+    }
+    
+    // Ensure the DSN is set in the environment for this test
+    Deno.env.set('FLOW_SENTRY_DSN', sentryDsn);
 
     console.log('📋 Step 1: Loading service configuration...');
     const config = await getCompleteServiceConfig();

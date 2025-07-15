@@ -5,8 +5,8 @@
  */
 
 // Disable Sentry for this test
-Deno.env.set('SENTRY_ENABLED', 'false');
-Deno.env.set('DENO_ENV', 'development');
+Deno.env.set('FLOW_SENTRY_ENABLED', 'false');
+Deno.env.set('FLOW_ENV', 'development');
 
 import { logger } from './src/utils/logger.ts';
 
@@ -48,7 +48,7 @@ try {
   console.log('─'.repeat(80));
 
   // Check if logs are in pretty format
-  if (logContent.includes('[2025-') && !logContent.startsWith('{"timestamp"')) {
+  if (/\[\d{4}-\d{2}-\d{2}/.test(logContent) && !logContent.startsWith('{"timestamp"')) {
     console.log('✅ SUCCESS: Logs are in pretty format!');
   } else {
     console.log('❌ ISSUE: Logs are still in JSON format');

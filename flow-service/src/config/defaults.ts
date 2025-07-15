@@ -35,6 +35,32 @@ export const PLATFORM_NODE_DEFAULTS: NodeConfig = {
   "node:stylesheetPath": "/_assets/css/default-resource-page.css"
 };
 
+/**
+ * Service-specific Node Configuration Defaults
+ *
+ * This configuration extends the platform defaults with service-specific overrides.
+ * The main differences from PLATFORM_NODE_DEFAULTS:
+ * - Template path is relative to service root (no leading slash)
+ * - Excludes resource page generation settings (handled at service level)
+ * - Omits @id to avoid conflicts in service context
+ */
+export const SERVICE_NODE_DEFAULTS: Omit<NodeConfig, "@id" | "node:generateResourcePages" | "node:stylesheetPath"> = {
+  "@context": DEFAULT_CONTEXT,
+  "@type": "node:NodeConfig",
+  "node:versioningEnabled": true,
+  "node:configInheritanceEnabled": true,
+  "node:distributionFormats": [
+    "application/trig",
+    "application/ld+json"
+  ],
+  "node:templateMappings": {
+    "@type": "node:TemplateMapping",
+    "node:resourcePage": "templates/default-resource.html"  // Service-relative path
+  },
+  "node:generateUnifiedDataset": false,
+  "node:generateAggregatedDataset": false
+};
+
 // Platform Service Configuration Defaults
 export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
   "@context": DEFAULT_CONTEXT,
@@ -75,22 +101,8 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
     "fsvc:staticServerEnabled": true,
     "fsvc:apiDocsEnabled": true
   },
-  "fsvc:nodeDefaults": {
-    "@context": DEFAULT_CONTEXT,
-    "@type": "node:NodeConfig",
-    "node:versioningEnabled": true,
-    "node:distributionFormats": [
-      "application/trig",
-      "application/ld+json"
-    ],
-    "node:templateMappings": {
-      "@type": "node:TemplateMapping",
-      "node:resourcePage": "templates/default-resource.html"
-    },
-    "node:configInheritanceEnabled": true,
-    "node:generateUnifiedDataset": false,
-    "node:generateAggregatedDataset": false
-  }
+  // Reference the service-specific node defaults to avoid duplication
+  "fsvc:nodeDefaults": SERVICE_NODE_DEFAULTS
 };
 
 // Development Environment Overrides
@@ -115,7 +127,7 @@ export const DEVELOPMENT_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
     },
     "fsvc:hasSentryChannel": {
       "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": true,  // Disable Sentry in development by default
+      "fsvc:logChannelEnabled": true,
       "fsvc:logLevel": "warn",
       "fsvc:sentryLoggingEnabled": true
     }
@@ -169,8 +181,6 @@ export function getEnvironmentDefaults(environment?: string): ServiceConfig {
     case "prod":
       envOverrides = PRODUCTION_SERVICE_OVERRIDES;
       break;
-    case "development":
-    case "dev":
     default:
       envOverrides = DEVELOPMENT_SERVICE_OVERRIDES;
       break;

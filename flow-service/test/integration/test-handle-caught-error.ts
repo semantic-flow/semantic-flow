@@ -83,12 +83,6 @@ try {
   await handleCaughtError(e, 'Null error case');
 }
 
-console.log('\n=== Test 9: Undefined Error ===');
-try {
-  throw null;
-} catch (e) {
-  await handleCaughtError(e, 'Undefined error case');
-}
 
 console.log('\n=== Test 10: Complex Object Error ===');
 try {

@@ -47,7 +47,7 @@ export async function resolveServiceConfig(cliOptions?: ServiceOptions): Promise
     }
 
     // 5. Get environment-specific defaults
-    const environment = Deno.env.get("DENO_ENV") || "development";
+    const environment = Deno.env.get("FLOW_ENV") || "development";
     const defaultOptions = getEnvironmentDefaults(environment);
 
     // 6. Return side-by-side context (no merge)
@@ -184,7 +184,7 @@ export function validateServiceConfig(context: ServiceConfigContext): void {
 
   // Validate Sentry configuration if enabled
   const loggingConfig = context.inputOptions["fsvc:hasLoggingConfig"] || context.defaultOptions["fsvc:hasLoggingConfig"];
-  const sentryChannel = loggingConfig["fsvc:hasSentryChannel"];
+  const sentryChannel = loggingConfig?.["fsvc:hasSentryChannel"];
 
   if (sentryChannel && sentryChannel["fsvc:logChannelEnabled"]) {
     const sentryDsn = sentryChannel["fsvc:sentryDsn"];

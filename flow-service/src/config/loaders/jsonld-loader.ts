@@ -8,6 +8,8 @@
 import type { ServiceConfigInput, NodeConfigInput } from '../types.ts';
 import { ConfigError } from '../types.ts';
 import { handleCaughtError } from '../../utils/logger.ts';
+import { getNodeConfigPath } from '../../../../flow-core/src/mesh-constants.ts';
+import { dirname } from 'https://deno.land/std@0.208.0/path/mod.ts';
 
 /**
  * Loads a service configuration from a JSON-LD file at the specified path.
@@ -103,10 +105,8 @@ export async function loadNodeConfig(nodePath: string): Promise<NodeConfigInput 
 export async function saveServiceConfig(configPath: string, config: ServiceConfigInput): Promise<void> {
   try {
     // Ensure the directory exists
-    const dir = configPath.substring(0, configPath.lastIndexOf('/'));
-    if (dir) {
-      await Deno.mkdir(dir, { recursive: true });
-    }
+    const dir = dirname(configPath);
+    await Deno.mkdir(dir, { recursive: true });
 
     // Format JSON with proper indentation
     const configContent = JSON.stringify(config, null, 2);
@@ -129,10 +129,8 @@ export async function saveNodeConfig(nodePath: string, config: NodeConfigInput):
 
   try {
     // Ensure the directory exists
-    const dir = configPath.substring(0, configPath.lastIndexOf('/'));
-    if (dir) {
-      await Deno.mkdir(dir, { recursive: true });
-    }
+    const dir = dirname(configPath);
+    await Deno.mkdir(dir, { recursive: true });
 
     // Format JSON with proper indentation
     const configContent = JSON.stringify(config, null, 2);
@@ -145,18 +143,6 @@ export async function saveNodeConfig(nodePath: string, config: NodeConfigInput):
   }
 }
 
-/**
- * Returns the configuration file path for a given node directory.
- *
- * Appends `/_config-component` to the provided node path to construct the config file location.
- *
- * @param nodePath - The file system path to the node directory
- * @returns The full path to the node's configuration file
- */
-function getNodeConfigPath(nodePath: string): string {
-  // Node configs are stored as _config-component within the node directory
-  return `${nodePath}/_config-component`;
-}
 
 /**
  * Determines whether a configuration file exists at the specified path.
@@ -230,7 +216,7 @@ export function validateJSONLD(data: unknown): void {
   }
 
   const obj = data as Record<string, unknown>;
-  
+
   if (!obj["@type"]) {
     throw new ConfigError('Configuration must have an "@type" property');
   }

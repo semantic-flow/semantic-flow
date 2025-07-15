@@ -3,8 +3,8 @@ import { dirname } from 'https://deno.land/std@0.208.0/path/mod.ts';
 import { ensureDir } from 'https://deno.land/std@0.208.0/fs/mod.ts';
 
 // Environment-based configuration
-const isDevelopment = Deno.env.get('DENO_ENV') !== 'production'
-const logLevel = Deno.env.get('LOG_LEVEL') || (isDevelopment ? 'DEBUG' : 'INFO')
+const isDevelopment = Deno.env.get('FLOW_ENV') !== 'production'
+const logLevel = Deno.env.get('FLOW_LOG_LEVEL') || (isDevelopment ? 'DEBUG' : 'INFO')
 
 // Log levels (inspired by your weave implementation)
 export const LogLevels = {
@@ -60,6 +60,7 @@ export interface StructuredLogger {
   info(message: string, context?: LogContext): Promise<void>;
   warn(message: string, context?: LogContext): Promise<void>;
   error(message: string, error?: Error, context?: LogContext): Promise<void>;
+  critical(message: string, error?: Error, context?: LogContext): Promise<void>;
 
   // Contextual logger factories
   withContext(baseContext: LogContext): StructuredLogger;
@@ -70,6 +71,7 @@ class FileLogger {
   private logFile: string;
   private isWriting = false;
   private writeQueue: string[] = [];
+  private readonly maxQueueSize = 10000; // Configurable limit
 
   constructor(logFilePath: string) {
     this.logFile = logFilePath;
@@ -85,6 +87,10 @@ class FileLogger {
   }
 
   async writeToFile(content: string): Promise<void> {
+    if (this.writeQueue.length >= this.maxQueueSize) {
+      console.error(`Log queue full (${this.maxQueueSize} items), dropping oldest entries`);
+      this.writeQueue = this.writeQueue.slice(-Math.floor(this.maxQueueSize / 2));
+    }
     this.writeQueue.push(content);
     if (!this.isWriting) {
       await this.processWriteQueue();
@@ -171,7 +177,7 @@ async function getFileLogger(): Promise<FileLogger | null> {
 }
 
 // Initialize Sentry (only in production or when explicitly configured)
-const sentryDsn = Deno.env.get('SENTRY_DSN')
+const sentryDsn = Deno.env.get('FLOW_SENTRY_DSN')
 let sentryInitialized = false
 
 // Formatters for structured logging
@@ -183,7 +189,7 @@ function formatStructuredMessage(level: LogLevel, message: string, context?: Log
     message,
     service: 'flow-service',
     version: Deno.env.get('FLOW_VERSION'),
-    environment: Deno.env.get('DENO_ENV') || 'development',
+    environment: Deno.env.get('FLOW_ENV') || 'development',
     ...context
   };
 
@@ -282,16 +288,12 @@ async function writeToAllChannels(level: LogLevel, message: string, context?: Lo
 
 export function initSentry(dsn?: string) {
   const targetDsn = dsn || sentryDsn
-  const sentryEnabled = Deno.env.get('SENTRY_ENABLED') === 'true' && !!targetDsn
+  const sentryEnabled = Deno.env.get('FLOW_SENTRY_ENABLED') === 'true' && !!targetDsn
 
-  console.log(`🔧 DEBUG: SENTRY_ENABLED: ${Deno.env.get('SENTRY_ENABLED')}`)
-  console.log(`🔧 DEBUG: Sentry DSN: ${targetDsn ? 'present' : 'missing'}`)
-  console.log(`🔧 DEBUG: Sentry enabled: ${sentryEnabled}`)
-  console.log(`🔧 DEBUG: Environment: ${isDevelopment ? 'development' : 'production'}`)
-  console.log(`🔧 DEBUG: Sentry already initialized: ${sentryInitialized}`)
+  console.log(`🔧 Sentry enabled in config: ${sentryEnabled}`)
 
   if (sentryEnabled && !sentryInitialized) {
-    console.log(`🔧 DEBUG: Initializing Sentry...`)
+    console.log(`🔧 Initializing Sentry...`)
     try {
       Sentry.init({
         dsn: targetDsn,
@@ -308,12 +310,12 @@ export function initSentry(dsn?: string) {
       console.error(`🔧 ERROR: Failed to initialize Sentry: ${error}`)
       console.error(`🔧 ERROR: Sentry will remain disabled`)
     }
-  } else if (Deno.env.get('SENTRY_ENABLED') !== 'true') {
-    console.log(`🔧 DEBUG: Sentry disabled - SENTRY_ENABLED is not 'true'`)
+  } else if (Deno.env.get('FLOW_SENTRY_ENABLED') !== 'true') {
+    console.log(`🔧 Sentry disabled - FLOW_SENTRY_ENABLED is not 'true'`)
   } else if (!targetDsn) {
-    console.log(`🔧 DEBUG: Sentry disabled - no DSN provided`)
+    console.log(`🔧 Sentry disabled - no DSN provided`)
   } else {
-    console.log(`🔧 DEBUG: Sentry already initialized, skipping`)
+    console.log(`🔧 Sentry already initialized, skipping`)
   }
 }
 
@@ -385,32 +387,6 @@ class StructuredLoggerImpl implements StructuredLogger {
 // Create main logger instance
 export const logger = new StructuredLoggerImpl();
 
-// Backward compatibility - export legacy interface
-export const legacyLogger = {
-  debug(message: string, meta?: Record<string, unknown>) {
-    logger.debug(message, meta as LogContext);
-  },
-
-  info(message: string, meta?: Record<string, unknown>) {
-    logger.info(message, meta as LogContext);
-  },
-
-  warn(message: string, meta?: Record<string, unknown>) {
-    logger.warn(message, meta as LogContext);
-  },
-
-  error(message: string, error?: Error | unknown, meta?: Record<string, unknown>) {
-    const errorObj = error instanceof Error ? error : undefined;
-    const context = error instanceof Error ? meta as LogContext : { error, ...meta } as LogContext;
-    logger.error(message, errorObj, context);
-  },
-
-  critical(message: string, error?: Error | unknown, meta?: Record<string, unknown>) {
-    const errorObj = error instanceof Error ? error : undefined;
-    const context = error instanceof Error ? meta as LogContext : { error, ...meta } as LogContext;
-    logger.critical(message, errorObj, context);
-  },
-};
 
 // Enhanced error handler (inspired by your weave handleCaughtError)
 export async function handleError(
