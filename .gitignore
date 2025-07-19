@@ -1,1 +1,10 @@
-.env
+node_modules
+.dendron.*
+build
+seeds
+pods/service-connections
+ontology
+sflo-dendron-notes
+sflow-platform
+test-ns
+.roo/mcp.json

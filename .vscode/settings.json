@@ -1,0 +1,5 @@
+{
+    "terminal.integrated.cwd": "${workspaceFolder}",
+    "files.eol": "\n",
+    "files.insertFinalNewline": true
+}
