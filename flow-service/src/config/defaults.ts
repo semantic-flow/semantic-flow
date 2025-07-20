@@ -11,28 +11,31 @@ import { mergeConfigs } from '../utils/merge-configs.ts';
 // Standard JSON-LD Context
 export const DEFAULT_CONTEXT: JSONLDContext = {
   fsvc: "https://semantic-flow.github.io/ontology/flow-service/",
-  node: "https://semantic-flow.github.io/ontology/node-config/"
+  mesh: "https://semantic-flow.github.io/ontology/mesh/",
+  node: "https://semantic-flow.github.io/ontology/node/",
+  flow: "https://semantic-flow.github.io/ontology/flow/",
+  conf: "https://semantic-flow.github.io/ontology/config-flow/"
 };
 
 // Platform Node Configuration Defaults
 export const PLATFORM_NODE_DEFAULTS: NodeConfig = {
   "@context": DEFAULT_CONTEXT,
-  "@type": "node:NodeConfig",
-  "@id": "node:defaultConfig",
-  "node:versioningEnabled": true,
-  "node:configInheritanceEnabled": true,
-  "node:distributionFormats": [
+  "@type": "conf:NodeConfig",
+  "@id": "conf:defaultConfig",
+  "conf:versioningEnabled": true,
+  "conf:configInheritanceEnabled": true,
+  "conf:distributionFormats": [
     "application/trig",
     "application/ld+json"
   ],
-  "node:templateMappings": {
-    "@type": "node:TemplateMapping",
-    "node:resourcePage": "/_assets/templates/default-resource-page.html"
+  "conf:templateMappings": {
+    "@type": "conf:TemplateMapping",
+    "conf:resourcePage": "/_assets/templates/default-resource-page.html"
   },
-  "node:generateUnifiedDataset": false,
-  "node:generateAggregatedDataset": false,
-  "node:generateResourcePages": true,
-  "node:stylesheetPath": "/_assets/css/default-resource-page.css"
+  "conf:generateUnifiedDataset": false,
+  "conf:generateAggregatedDataset": false,
+  "conf:generateResourcePages": true,
+  "conf:stylesheetPath": "/_assets/css/default-resource-page.css"
 };
 
 /**
@@ -44,21 +47,21 @@ export const PLATFORM_NODE_DEFAULTS: NodeConfig = {
  * - Excludes resource page generation settings (handled at service level)
  * - Omits @id to avoid conflicts in service context
  */
-export const SERVICE_NODE_DEFAULTS: Omit<NodeConfig, "@id" | "node:generateResourcePages" | "node:stylesheetPath"> = {
+export const SERVICE_NODE_DEFAULTS: Omit<NodeConfig, "@id" | "conf:generateResourcePages" | "conf:stylesheetPath"> = {
   "@context": DEFAULT_CONTEXT,
-  "@type": "node:NodeConfig",
-  "node:versioningEnabled": true,
-  "node:configInheritanceEnabled": true,
-  "node:distributionFormats": [
+  "@type": "conf:NodeConfig",
+  "conf:versioningEnabled": true,
+  "conf:configInheritanceEnabled": true,
+  "conf:distributionFormats": [
     "application/trig",
     "application/ld+json"
   ],
-  "node:templateMappings": {
-    "@type": "node:TemplateMapping",
-    "node:resourcePage": "templates/default-resource.html"  // Service-relative path
+  "conf:templateMappings": {
+    "@type": "conf:TemplateMapping",
+    "conf:resourcePage": "templates/default-resource.html"  // Service-relative path
   },
-  "node:generateUnifiedDataset": false,
-  "node:generateAggregatedDataset": false
+  "conf:generateUnifiedDataset": false,
+  "conf:generateAggregatedDataset": false
 };
 
 // Platform Service Configuration Defaults

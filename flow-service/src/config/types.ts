@@ -8,7 +8,10 @@
 // JSON-LD Context and Type Definitions
 export interface JSONLDContext {
   readonly fsvc: "https://semantic-flow.github.io/ontology/flow-service/";
-  readonly node: "https://semantic-flow.github.io/ontology/node-config/";
+  readonly mesh: "https://semantic-flow.github.io/ontology/mesh/";
+  readonly node: "https://semantic-flow.github.io/ontology/node/";
+  readonly flow: "https://semantic-flow.github.io/ontology/flow/";
+  readonly conf: "https://semantic-flow.github.io/ontology/config-flow/";
 }
 
 export interface JSONLDBase {
@@ -51,20 +54,20 @@ export interface ContainedServicesConfig {
 
 // Node Configuration Types (for service defaults)
 export interface TemplateMapping {
-  readonly "@type": "node:TemplateMapping";
-  readonly "node:resourcePage": string;
+  readonly "@type": "conf:TemplateMapping";
+  readonly "conf:resourcePage": string;
 }
 
 export interface NodeConfig extends JSONLDBase {
-  readonly "@type": "node:NodeConfig";
-  readonly "node:versioningEnabled": boolean;
-  readonly "node:distributionFormats": string[];
-  readonly "node:templateMappings"?: TemplateMapping;
-  readonly "node:configInheritanceEnabled": boolean;
-  readonly "node:generateUnifiedDataset": boolean;
-  readonly "node:generateAggregatedDataset": boolean;
-  readonly "node:generateResourcePages"?: boolean;
-  readonly "node:stylesheetPath"?: string;
+  readonly "@type": "conf:NodeConfig";
+  readonly "conf:versioningEnabled": boolean;
+  readonly "conf:distributionFormats": string[];
+  readonly "conf:templateMappings"?: TemplateMapping;
+  readonly "conf:configInheritanceEnabled": boolean;
+  readonly "conf:generateUnifiedDataset": boolean;
+  readonly "conf:generateAggregatedDataset": boolean;
+  readonly "conf:generateResourcePages"?: boolean;
+  readonly "conf:stylesheetPath"?: string;
 }
 
 // Complete Service Configuration
@@ -90,15 +93,15 @@ export interface ServiceConfigInput extends Partial<JSONLDBase> {
 }
 
 export interface NodeConfigInput extends Partial<JSONLDBase> {
-  "@type"?: "node:NodeConfig";
-  "node:versioningEnabled"?: boolean;
-  "node:distributionFormats"?: string[];
-  "node:templateMappings"?: Partial<TemplateMapping>;
-  "node:configInheritanceEnabled"?: boolean;
-  "node:generateUnifiedDataset"?: boolean;
-  "node:generateAggregatedDataset"?: boolean;
-  "node:generateResourcePages"?: boolean;
-  "node:stylesheetPath"?: string;
+  "@type"?: "conf:NodeConfig";
+  "conf:versioningEnabled"?: boolean;
+  "conf:distributionFormats"?: string[];
+  "conf:templateMappings"?: Partial<TemplateMapping>;
+  "conf:configInheritanceEnabled"?: boolean;
+  "conf:generateUnifiedDataset"?: boolean;
+  "conf:generateAggregatedDataset"?: boolean;
+  "conf:generateResourcePages"?: boolean;
+  "conf:stylesheetPath"?: string;
 }
 
 // Configuration Context Types (Side-by-Side Pattern)
@@ -217,5 +220,5 @@ export function getSentryEnabled(context: ServiceConfigContext): boolean {
  * @returns `true` if versioning is enabled; otherwise, `false`
  */
 export function getVersioningEnabled(context: NodeConfigContext): boolean {
-  return context.inputOptions["node:versioningEnabled"] ?? context.defaultOptions["node:versioningEnabled"];
+  return context.inputOptions["conf:versioningEnabled"] ?? context.defaultOptions["conf:versioningEnabled"];
 }

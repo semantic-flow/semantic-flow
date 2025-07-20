@@ -187,7 +187,7 @@ export function loadEnvConfig(): ServiceConfigInput {
   if (env.FLOW_DEFAULT_VERSIONING) {
     const enabled = parseBoolean(env.FLOW_DEFAULT_VERSIONING);
     if (enabled !== undefined) {
-      nodeDefaults["node:versioningEnabled"] = enabled;
+      nodeDefaults["conf:versioningEnabled"] = enabled;
       hasNodeDefaults = true;
     }
   }
@@ -195,13 +195,13 @@ export function loadEnvConfig(): ServiceConfigInput {
   if (env.FLOW_DEFAULT_FORMATS) {
     const formats = env.FLOW_DEFAULT_FORMATS.split(',').map(f => f.trim()).filter(f => f);
     if (formats.length > 0) {
-      nodeDefaults["node:distributionFormats"] = formats;
+      nodeDefaults["conf:distributionFormats"] = formats;
       hasNodeDefaults = true;
     }
   }
 
   if (hasNodeDefaults) {
-    nodeDefaults["@type"] = "node:NodeConfig";
+    nodeDefaults["@type"] = "conf:NodeConfig";
     configInput["fsvc:nodeDefaults"] = nodeDefaults;
   }
 

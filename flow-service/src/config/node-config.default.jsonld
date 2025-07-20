@@ -1,21 +1,24 @@
 {
   "@context": {
-    "node": "https://semantic-flow.github.io/ontology/node-config/"
+    "mesh": "https://semantic-flow.github.io/ontology/mesh/",
+    "node": "https://semantic-flow.github.io/ontology/node/",
+    "flow": "https://semantic-flow.github.io/ontology/flow/",
+    "conf": "https://semantic-flow.github.io/ontology/config-flow/"
   },
-  "@type": "node:NodeConfig",
-  "@id": "node:defaultConfig",
-  "node:versioningEnabled": true,
-  "node:configInheritanceEnabled": true,
-  "node:distributionFormats": [
+  "@type": "flow:ConfigDistribution",
+  "@id": "conf:defaultNodeConfig",
+  "conf:versioningEnabled": true,
+  "conf:configInheritanceEnabled": true,
+  "conf:distributionFormats": [
     "application/trig",
     "application/ld+json"
   ],
-  "node:hasTemplateMapping": {
-    "@type": "node:TemplateMapping",
-    "node:resourcePage": "/_assets/templates/default-resource-page.html"
+  "conf:hasTemplateMapping": {
+    "@type": "conf:TemplateMapping",
+    "conf:resourcePage": "/_assets/templates/default-resource-page.html"
   },
-  "node:generateUnifiedDataset": false,
-  "node:generateAggregatedDataset": false,
-  "node:generateResourcePages": true,
-  "node:stylesheetPath": "/_assets/css/default-resource-page.css"
+  "conf:generateUnifiedDataset": false,
+  "conf:generateAggregatedDataset": false,
+  "conf:generateResourcePages": true,
+  "conf:stylesheetPath": "/_assets/css/default-resource-page.css"
 }

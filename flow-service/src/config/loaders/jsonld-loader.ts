@@ -56,7 +56,7 @@ export async function loadServiceConfig(configPath: string): Promise<ServiceConf
 /**
  * Loads a node configuration from a JSON-LD file at the specified node path.
  *
- * Reads and parses the node configuration file, validating that its `@type` is `"node:NodeConfig"`. Returns the parsed configuration object, or `null` if the file does not exist. Throws `ConfigError` if the file contains invalid JSON, has an incorrect type, or on other failures.
+ * Reads and parses the node configuration file, validating that its `@type` is `"flow:ConfigDistribution"`. Returns the parsed configuration object, or `null` if the file does not exist. Throws `ConfigError` if the file contains invalid JSON, has an incorrect type, or on other failures.
  *
  * @param nodePath - The directory path of the node whose configuration should be loaded
  * @returns The parsed node configuration object, or `null` if the configuration file does not exist
@@ -69,8 +69,8 @@ export async function loadNodeConfig(nodePath: string): Promise<NodeConfigInput 
     const parsedConfig = JSON.parse(configContent);
 
     // Basic validation - ensure it's a node config
-    if (parsedConfig["@type"] !== "node:NodeConfig") {
-      throw new ConfigError(`Invalid node config type: expected "node:NodeConfig", got "${parsedConfig["@type"]}"`);
+    if (parsedConfig["@type"] !== "flow:ConfigDistribution") {
+      throw new ConfigError(`Invalid node config type: expected "flow:ConfigDistribution", got "${parsedConfig["@type"]}"`);
     }
 
     return parsedConfig as NodeConfigInput;
@@ -183,7 +183,7 @@ export function getNodeHierarchy(nodePath: string): string[] {
 /**
  * Determines whether configuration inheritance is enabled for the specified node.
  *
- * Loads the node's configuration and checks the "node:configInheritanceEnabled" property. Returns its boolean value if present; otherwise, defaults to `true`. If the configuration cannot be loaded, also defaults to `true`.
+ * Loads the node's configuration and checks the "conf:configInheritanceEnabled" property. Returns its boolean value if present; otherwise, defaults to `true`. If the configuration cannot be loaded, also defaults to `true`.
  *
  * @param nodePath - The file system path to the node directory
  * @returns `true` if config inheritance is enabled or unspecified; `false` if explicitly disabled
@@ -193,8 +193,8 @@ export async function isConfigInheritanceEnabled(nodePath: string): Promise<bool
     const nodeConfig = await loadNodeConfig(nodePath);
 
     // If the node has explicit inheritance setting, use it
-    if (nodeConfig?.["node:configInheritanceEnabled"] !== undefined) {
-      return nodeConfig["node:configInheritanceEnabled"];
+    if (nodeConfig?.["conf:configInheritanceEnabled"] !== undefined) {
+      return nodeConfig["conf:configInheritanceEnabled"];
     }
 
     // Default to true if not specified
