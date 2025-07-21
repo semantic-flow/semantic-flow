@@ -8,3 +8,4 @@ sflo-dendron-notes
 sflow-platform
 test-ns
 .roo/mcp.json
+.env
