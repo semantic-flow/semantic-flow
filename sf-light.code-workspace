@@ -14,7 +14,8 @@
     }
   ],
   "settings": {
-    "dendron.rootDir": "sflo-dendron-notes",
+    "workbench.colorTheme": "Quiet Light",
+    "dendron.rootDir": ".",
     "files.autoSave": "onFocusChange",
     "pasteImage.path": "${currentFileDir}/assets/images",
     "pasteImage.prefix": "/",

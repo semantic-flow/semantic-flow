@@ -15,7 +15,7 @@
   ],
   "conf:hasTemplateMapping": {
     "@type": "conf:TemplateMapping",
-    "conf:resourcePage": "/_assets/templates/default-resource-page.html"
+    "conf:hasResourcePageTemplate": "/_assets/templates/default-resource-page.html"
   },
   "conf:generateUnifiedDataset": false,
   "conf:generateAggregatedDataset": false,

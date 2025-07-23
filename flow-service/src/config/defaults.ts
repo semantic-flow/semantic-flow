@@ -30,7 +30,7 @@ export const PLATFORM_NODE_DEFAULTS: NodeConfig = {
   ],
   "conf:templateMappings": {
     "@type": "conf:TemplateMapping",
-    "conf:resourcePage": "/_assets/templates/default-resource-page.html"
+    "conf:hasResourcePageTemplate": "/_assets/templates/default-resource-page.html"
   },
   "conf:generateUnifiedDataset": false,
   "conf:generateAggregatedDataset": false,
@@ -58,7 +58,7 @@ export const SERVICE_NODE_DEFAULTS: Omit<NodeConfig, "@id" | "conf:generateResou
   ],
   "conf:templateMappings": {
     "@type": "conf:TemplateMapping",
-    "conf:resourcePage": "templates/default-resource.html"  // Service-relative path
+    "conf:hasResourcePageTemplate": "templates/default-resource.html"  // Service-relative path
   },
   "conf:generateUnifiedDataset": false,
   "conf:generateAggregatedDataset": false

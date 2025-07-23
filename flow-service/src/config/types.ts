@@ -55,7 +55,7 @@ export interface ContainedServicesConfig {
 // Node Configuration Types (for service defaults)
 export interface TemplateMapping {
   readonly "@type": "conf:TemplateMapping";
-  readonly "conf:resourcePage": string;
+  readonly "conf:hasResourcePageTemplate": string;
 }
 
 export interface NodeConfig extends JSONLDBase {
