@@ -105,7 +105,10 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
     "fsvc:apiDocsEnabled": true
   },
   // Reference the service-specific node defaults to avoid duplication
-  "fsvc:nodeDefaults": SERVICE_NODE_DEFAULTS
+  "fsvc:nodeDefaults": SERVICE_NODE_DEFAULTS,
+  "fsvc:defaultAttributedTo": {
+    "@id": "https://orcid.org/0000-0002-1825-0097"
+  }
 };
 
 // Development Environment Overrides

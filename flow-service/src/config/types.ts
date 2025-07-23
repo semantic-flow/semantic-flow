@@ -68,6 +68,7 @@ export interface NodeConfig extends JSONLDBase {
   readonly "conf:generateAggregatedDataset": boolean;
   readonly "conf:generateResourcePages"?: boolean;
   readonly "conf:stylesheetPath"?: string;
+  readonly "conf:attributedTo"?: string;
 }
 
 // Complete Service Configuration
@@ -80,6 +81,12 @@ export interface ServiceConfig extends JSONLDBase {
   readonly "fsvc:hasContainedServices": ContainedServicesConfig;
   readonly "fsvc:nodeDefaults": NodeConfig;
   readonly "fsvc:defaultDelegationChain"?: DelegationChain;
+  readonly "fsvc:defaultAttributedTo"?: AttributedTo;
+}
+
+// Attribution Configuration
+export interface AttributedTo {
+  readonly "@id": string;
 }
 
 // Delegation Chain Configuration
@@ -106,6 +113,7 @@ export interface ServiceConfigInput extends Partial<JSONLDBase> {
   "fsvc:hasContainedServices"?: Partial<ContainedServicesConfig>;
   "fsvc:nodeDefaults"?: Partial<NodeConfig>;
   "fsvc:defaultDelegationChain"?: Partial<DelegationChain>;
+  "fsvc:defaultAttributedTo"?: Partial<AttributedTo>;
 }
 
 export interface NodeConfigInput extends Partial<JSONLDBase> {
@@ -118,6 +126,7 @@ export interface NodeConfigInput extends Partial<JSONLDBase> {
   "conf:generateAggregatedDataset"?: boolean;
   "conf:generateResourcePages"?: boolean;
   "conf:stylesheetPath"?: string;
+  "conf:attributedTo"?: string;
 }
 
 // Configuration Context Types (Side-by-Side Pattern)

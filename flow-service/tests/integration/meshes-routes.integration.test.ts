@@ -18,6 +18,9 @@ const mockConfig = new ServiceConfigAccessor({
           }
         }
       ]
+    },
+    "fsvc:defaultAttributedTo": {
+      "@id": "https://example.com/test-attributor"
     }
   },
   defaultOptions: PLATFORM_SERVICE_DEFAULTS,
@@ -77,11 +80,50 @@ Deno.test('Mesh Management API', async (t) => {
 
     // Verify the content of the snapshot file
     assertEquals(snapshotData['@graph'][0]['@type'], 'meta:NodeCreation');
+    assertEquals(snapshotData['@graph'][0]['prov:wasAssociatedWith']['@id'], 'https://example.com/test-attributor');
     assertEquals(snapshotData['@graph'][1]['@type'], 'mesh:Node');
     assertEquals(snapshotData['@graph'][1]['node:hasSlug'], testMeshName);
     assertEquals(snapshotData['@graph'][2]['@type'], 'node:Handle');
+    assertEquals(snapshotData['@graph'][3]['prov:wasAttributedTo']['@id'], 'https://example.com/test-attributor');
     assertEquals(snapshotData['@graph'][4]['dcat:distribution']['dcat:downloadURL'], snapshotFileName);
     assertEquals(snapshotData['@graph'][3]['meta:delegationChain']['@type'], 'meta:DelegationChain');
+  });
+
+  await t.step('POST /api/meshes/{meshName}/nodes - should use node-specific attribution', async () => {
+    // Create a config file with a different attribution
+    const subNodePath = `${testMeshPath}/sub-node`;
+    const nodeConfigDir = `${subNodePath}/_config-flow`;
+    await Deno.mkdir(nodeConfigDir, { recursive: true });
+    const nodeConfigFile = `${nodeConfigDir}/flow-config.jsonld`;
+    const nodeConfigContent = {
+      "@context": {
+        "conf": "https://semantic-flow.github.io/ontology/config-flow/"
+      },
+      "@type": "flow:ConfigDistribution",
+      "conf:attributedTo": "https://orcid.org/0000-0001-2345-6789"
+    };
+    await Deno.writeTextFile(nodeConfigFile, JSON.stringify(nodeConfigContent));
+
+    const req = new Request(`http://localhost/api/meshes/${testMeshName}/nodes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path: '/sub-node',
+        nodeType: 'Namespace',
+        initialData: { title: 'Test Sub Node' },
+      }),
+    });
+    const res = await app.request(req);
+    assertEquals(res.status, 201);
+
+    const body = await res.json();
+    const snapshotFilePath = body.filesCreated.find((f: string) => f.endsWith('.jsonld'));
+    const snapshotFile = await Deno.readTextFile(snapshotFilePath);
+    const snapshotData = JSON.parse(snapshotFile);
+
+    // Verify the content of the snapshot file uses the node-specific attribution
+    assertEquals(snapshotData['@graph'][0]['prov:wasAssociatedWith']['@id'], 'https://orcid.org/0000-0001-2345-6789');
+    assertEquals(snapshotData['@graph'][3]['prov:wasAttributedTo']['@id'], 'https://orcid.org/0000-0001-2345-6789');
   });
 
   await t.step('teardown: remove test mesh directory', async () => {

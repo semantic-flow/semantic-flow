@@ -5,7 +5,7 @@
  * Merges CLI options → Environment variables → Config file → Platform defaults
  */
 
-import type { DelegationChain, ServiceConfigContext, ServiceConfigInput, ServiceOptions, LogLevel } from '../types.ts';
+import type { AttributedTo, DelegationChain, ServiceConfigContext, ServiceConfigInput, ServiceOptions, LogLevel } from '../types.ts';
 import { loadEnvConfig, getServiceConfigPath } from '../loaders/env-loader.ts';
 import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
 import { PLATFORM_SERVICE_DEFAULTS, getEnvironmentDefaults } from '../defaults.ts';
@@ -265,5 +265,9 @@ export class ServiceConfigAccessor {
 
   get defaultDelegationChain(): DelegationChain | undefined {
     return getConfigValue<DelegationChain | undefined>(this.context, "fsvc:defaultDelegationChain", "fsvc:defaultDelegationChain");
+  }
+
+  get defaultAttributedTo(): AttributedTo | undefined {
+    return getConfigValue<AttributedTo | undefined>(this.context, "fsvc:defaultAttributedTo", "fsvc:defaultAttributedTo");
   }
 }

@@ -4,7 +4,8 @@ import { ValidationError } from '../utils/errors.ts';
 import { MESH_CONSTANTS } from '../../../flow-core/src/mesh-constants.ts';
 import { join } from 'jsr:@std/path';
 import { ServiceConfigAccessor } from '../config/index.ts';
-import { Context } from '@hono/hono';
+import { loadNodeConfig } from '../config/loaders/jsonld-loader.ts';
+//import { Context } from '@hono/hono';
 
 export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono => {
   const meshes = new OpenAPIHono();
@@ -218,6 +219,12 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     const snapshotFileName = `${slug}_meta_next.jsonld`;
     const snapshotFilePath = join(metaFlowDir, snapshotFileName);
 
+    // Load node-specific configuration to check for attribution override
+    const nodeConfig = await loadNodeConfig(physicalPath);
+    const attributedTo = nodeConfig?.['conf:attributedTo']
+      ? { "@id": nodeConfig['conf:attributedTo'] }
+      : config.defaultAttributedTo;
+
     const snapshotContent = {
       "@context": {
         "owl": "http://www.w3.org/2002/07/owl#",
@@ -240,9 +247,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
           "dcterms:description": `Creation of the ${slug} ${nodeType} node.`,
           "prov:startedAtTime": new Date().toISOString(),
           "prov:endedAtTime": new Date().toISOString(),
-          "prov:wasAssociatedWith": {
-            "@id": "https://orcid.org/0000-0002-1825-0097"
-          }
+          "prov:wasAssociatedWith": attributedTo
         },
         {
           "@id": `../../${slug}/_handle/`,
@@ -266,7 +271,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
           "@type": "meta:ProvenanceContext",
           "meta:forActivity": { "@id": "#meta-flow-v1-activity" },
           "meta:forSnapshot": { "@id": "#meta-flow-v1-snapshot" },
-          "prov:wasAttributedTo": { "@id": "https://orcid.org/0000-0002-1825-0097" },
+          "prov:wasAttributedTo": attributedTo,
           "meta:delegationChain": config.defaultDelegationChain
         },
         {

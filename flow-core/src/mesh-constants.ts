@@ -29,5 +29,5 @@ export const MESH_CONSTANTS = {
 
 // Usage throughout codebase
 export function getNodeConfigPath(nodePath: string): string {
-  return `${nodePath}/${MESH_CONSTANTS.CONFIG_FLOW_DIR}`;
+  return `${nodePath}/${MESH_CONSTANTS.CONFIG_FLOW_DIR}/${MESH_CONSTANTS.CONFIG_FILE}`;
 }
