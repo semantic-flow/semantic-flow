@@ -1,9 +1,8 @@
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { OpenAPIHono } from 'npm:@hono/zod-openapi';
+import { OpenAPIHono } from '@hono/zod-openapi';
 import { createMeshesRoutes } from '../../src/routes/meshes.ts';
 import { ServiceConfigAccessor } from '../../src/config/index.ts';
 import { PLATFORM_SERVICE_DEFAULTS } from '../../src/config/defaults.ts';
-import { DelegationChain } from '../../src/config/types.ts';
 
 const app = new OpenAPIHono();
 const mockConfig = new ServiceConfigAccessor({

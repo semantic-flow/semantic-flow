@@ -1,9 +1,10 @@
-import { OpenAPIHono, createRoute, z } from 'npm:@hono/zod-openapi';
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { logger } from '../utils/logger.ts';
-import { FlowServiceError, ValidationError } from '../utils/errors.ts';
+import { ValidationError } from '../utils/errors.ts';
 import { MESH_CONSTANTS } from '../../../flow-core/src/mesh-constants.ts';
 import { join } from 'jsr:@std/path';
 import { ServiceConfigAccessor } from '../config/index.ts';
+import { Context } from '@hono/hono';
 
 export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono => {
   const meshes = new OpenAPIHono();
@@ -42,7 +43,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     nodeType: z.enum(['Namespace', 'Reference', 'Dataset']).openapi({
       description: 'The type of node to create.',
     }),
-    initialData: z.record(z.unknown()).openapi({
+    initialData: z.record(z.string(), z.unknown()).openapi({
       description: 'An object containing the initial metadata for the node.',
       example: { title: "djradon's primary semantic mesh" },
     }),
