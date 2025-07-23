@@ -7,9 +7,9 @@
     "@sentry/deno": "npm:@sentry/deno@^8.0.0"
   },
   "tasks": {
-    "start": "deno run --allow-net --allow-env --allow-read --env-file main.ts",
-    "dev": "deno run --allow-net --allow-env --allow-read --env-file --watch main.ts",
-    "debug": "deno run --allow-net --allow-env --allow-read --env-file --inspect-brk=0.0.0.0:9229 main.ts"
+    "start": "deno run --allow-net --allow-env --allow-read --allow-write --env-file main.ts",
+    "dev": "deno run --allow-net --allow-env --allow-read --allow-write --env-file --watch main.ts",
+    "debug": "deno run --allow-net --allow-env --allow-read --allow-write --env-file --inspect-brk=0.0.0.0:9229 main.ts"
   },
   "compilerOptions": {
     "jsx": "precompile",

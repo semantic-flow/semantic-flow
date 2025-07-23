@@ -2,6 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@hono/hono@^4.8.4": "4.8.4",
+    "jsr:@std/path@*": "1.1.0",
     "npm:@hono/zod-openapi@0.18": "0.18.4_hono@4.8.4_zod@3.25.76",
     "npm:@scalar/hono-api-reference@0.5": "0.5.184_hono@4.8.4",
     "npm:@scalar/hono-api-reference@~0.9.10": "0.9.10_hono@4.8.4",
@@ -13,6 +14,9 @@
   "jsr": {
     "@hono/hono@4.8.4": {
       "integrity": "dabc0ea1185040fc1e89abfe29906d9e3dd425a4c40f903f9ead78c48917da06"
+    },
+    "@std/path@1.1.0": {
+      "integrity": "ddc94f8e3c275627281cbc23341df6b8bcc874d70374f75fec2533521e3d6886"
     }
   },
   "npm": {
