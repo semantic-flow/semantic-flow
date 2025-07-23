@@ -79,6 +79,21 @@ export interface ServiceConfig extends JSONLDBase {
   readonly "fsvc:hasLoggingConfig": LoggingConfig;
   readonly "fsvc:hasContainedServices": ContainedServicesConfig;
   readonly "fsvc:nodeDefaults": NodeConfig;
+  readonly "fsvc:defaultDelegationChain"?: DelegationChain;
+}
+
+// Delegation Chain Configuration
+export interface DelegationStep {
+  readonly "@type": "meta:DelegationStep";
+  readonly "meta:stepOrder": number;
+  readonly "prov:agent": {
+    readonly "@id": string;
+  };
+}
+
+export interface DelegationChain {
+  readonly "@type": "meta:DelegationChain";
+  readonly "meta:hasStep": DelegationStep[];
 }
 
 // Partial Types for Sparse Input Configuration (mutable for construction)
@@ -90,6 +105,7 @@ export interface ServiceConfigInput extends Partial<JSONLDBase> {
   "fsvc:hasLoggingConfig"?: Partial<LoggingConfig>;
   "fsvc:hasContainedServices"?: Partial<ContainedServicesConfig>;
   "fsvc:nodeDefaults"?: Partial<NodeConfig>;
+  "fsvc:defaultDelegationChain"?: Partial<DelegationChain>;
 }
 
 export interface NodeConfigInput extends Partial<JSONLDBase> {

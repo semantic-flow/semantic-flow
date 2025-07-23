@@ -71,8 +71,9 @@ app.get('/llms.txt', (c) => {
 
 // Mount health routes
 app.route('/api', health)
-import { meshes } from './src/routes/meshes.ts'
-app.route('/api', meshes)
+import { createMeshesRoutes } from './src/routes/meshes.ts';
+const meshes = createMeshesRoutes(config);
+app.route('/api', meshes);
 
 
 // Startup logging

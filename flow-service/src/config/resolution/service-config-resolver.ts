@@ -5,7 +5,7 @@
  * Merges CLI options → Environment variables → Config file → Platform defaults
  */
 
-import type { ServiceConfigContext, ServiceConfigInput, ServiceOptions, LogLevel } from '../types.ts';
+import type { DelegationChain, ServiceConfigContext, ServiceConfigInput, ServiceOptions, LogLevel } from '../types.ts';
 import { loadEnvConfig, getServiceConfigPath } from '../loaders/env-loader.ts';
 import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
 import { PLATFORM_SERVICE_DEFAULTS, getEnvironmentDefaults } from '../defaults.ts';
@@ -261,5 +261,9 @@ export class ServiceConfigAccessor {
   get queryWidgetEnabled(): boolean {
     const containedServices = this.context.inputOptions["fsvc:hasContainedServices"] || this.context.defaultOptions["fsvc:hasContainedServices"];
     return containedServices["fsvc:queryWidgetEnabled"] ?? true;
+  }
+
+  get defaultDelegationChain(): DelegationChain | undefined {
+    return getConfigValue<DelegationChain | undefined>(this.context, "fsvc:defaultDelegationChain", "fsvc:defaultDelegationChain");
   }
 }

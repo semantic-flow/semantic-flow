@@ -1,8 +1,29 @@
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { OpenAPIHono } from '@hono/zod-openapi';
-import { meshes } from '../../src/routes/meshes.ts';
+import { OpenAPIHono } from 'npm:@hono/zod-openapi';
+import { createMeshesRoutes } from '../../src/routes/meshes.ts';
+import { ServiceConfigAccessor } from '../../src/config/index.ts';
+import { PLATFORM_SERVICE_DEFAULTS } from '../../src/config/defaults.ts';
+import { DelegationChain } from '../../src/config/types.ts';
 
 const app = new OpenAPIHono();
+const mockConfig = new ServiceConfigAccessor({
+  inputOptions: {
+    "fsvc:defaultDelegationChain": {
+      "@type": "meta:DelegationChain",
+      "meta:hasStep": [
+        {
+          "@type": "meta:DelegationStep",
+          "meta:stepOrder": 1,
+          "prov:agent": {
+            "@id": "https://example.com/agents/test-agent"
+          }
+        }
+      ]
+    }
+  },
+  defaultOptions: PLATFORM_SERVICE_DEFAULTS,
+});
+const meshes = createMeshesRoutes(mockConfig);
 app.route('/api', meshes);
 
 Deno.test('Mesh Management API', async (t) => {
@@ -44,10 +65,24 @@ Deno.test('Mesh Management API', async (t) => {
     assert(body.filesCreated.length > 0);
     const handleDir = await Deno.stat(`${testMeshPath}/_handle`);
     assert(handleDir.isDirectory);
-    const metaFlowDir = await Deno.stat(`${testMeshPath}/_meta-flow`);
+    const metaFlowDir = await Deno.stat(`${testMeshPath}/_meta-flow/_next`);
     assert(metaFlowDir.isDirectory);
     const assetsDir = await Deno.stat(`${testMeshPath}/_assets`);
     assert(assetsDir.isDirectory);
+
+    // Verify the snapshot file was created
+    const snapshotFileName = `${testMeshName}_meta_next.jsonld`;
+    const snapshotFilePath = `${testMeshPath}/_meta-flow/_next/${snapshotFileName}`;
+    const snapshotFile = await Deno.readTextFile(snapshotFilePath);
+    const snapshotData = JSON.parse(snapshotFile);
+
+    // Verify the content of the snapshot file
+    assertEquals(snapshotData['@graph'][0]['@type'], 'meta:NodeCreation');
+    assertEquals(snapshotData['@graph'][1]['@type'], 'mesh:Node');
+    assertEquals(snapshotData['@graph'][1]['node:hasSlug'], testMeshName);
+    assertEquals(snapshotData['@graph'][2]['@type'], 'node:Handle');
+    assertEquals(snapshotData['@graph'][4]['dcat:distribution']['dcat:downloadURL'], snapshotFileName);
+    assertEquals(snapshotData['@graph'][3]['meta:delegationChain']['@type'], 'meta:DelegationChain');
   });
 
   await t.step('teardown: remove test mesh directory', async () => {
