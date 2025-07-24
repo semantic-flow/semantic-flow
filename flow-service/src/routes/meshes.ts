@@ -12,6 +12,12 @@ const initializeMeshRegistry = (config: ServiceConfigAccessor, meshRegistry: Rec
   if (meshPaths && Array.isArray(meshPaths)) {
     for (const meshPath of meshPaths) {
       const meshName = basename(meshPath);
+
+      if (meshRegistry[meshName]) {
+        logger.warn(`Mesh name collision detected: '${meshName}' already exists at path '${meshRegistry[meshName]}'. Skipping '${meshPath}'.`);
+        continue;
+      }
+
       meshRegistry[meshName] = meshPath;
       logger.info(`Discovered mesh '${meshName}' from configuration at path: ${meshPath}`);
     }
@@ -100,11 +106,30 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
         content: {
           'application/json': {
             schema: MeshRegistrationResponse,
+            meshes.openapi(registerMeshRoute, async (c) => {
+              const { name, path } = c.req.valid('json');
+
+              // Prevent accidental overwrite of an existing registration
+              if (meshRegistry[name]) {
+                throw new ValidationError(
+                  `Mesh '${name}' is already registered at path: ${meshRegistry[name]}`
+                );
+              }
+
+              logger.info(`Attempting to register mesh '${name}' at path: ${path}`);
+
+              // … all existing validations: path exists, is directory,
+              //    check for mesh signature (handle or meta-flow dirs), etc. …
+
+              // Update registry after all validations pass
+              meshRegistry[name] = path;
+
+              let message = `Mesh '${name}' registered successfully.`;
+
+              // … build and return the hypermedia response …
+            });
           },
-        },
-      },
-    },
-  });
+        });
 
   meshes.openapi(registerMeshRoute, async (c) => {
     const { name, path } = c.req.valid('json');
@@ -240,12 +265,16 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
 
     await Deno.mkdir(metaFlowDir, { recursive: true });
     filesCreated.push(metaFlowDir);
-
-    // Generate and write the metadata snapshot
-    const slug = physicalPath.split('/').pop() || meshName;
-    const snapshotFileName = `${slug}_meta_next.jsonld`;
-    const snapshotFilePath = join(metaFlowDir, snapshotFileName);
-
+    // Load node-specific configuration to check for attribution override
+    let nodeConfig;
+    try {
+      nodeConfig = await loadNodeConfig(physicalPath);
+    } catch (error) {
+      logger.warn(`Failed to load node config from ${physicalPath}: ${error.message}`);
+    }
+    const attributedTo = nodeConfig?.['conf:defaultAttribution']
+      ? { "@id": nodeConfig['conf:defaultAttribution'] }
+      : config.defaultAttributedTo;
     // Load node-specific configuration to check for attribution override
     const nodeConfig = await loadNodeConfig(physicalPath);
     const attributedTo = nodeConfig?.['conf:defaultAttribution']
