@@ -49,6 +49,23 @@ Deno.test('Mesh Management API', async (t) => {
     assert(body.links.some((link: { rel: string; }) => link.rel === 'create-root-node'));
   });
 
+  await t.step('POST /api/meshes - should return 400 for invalid path', async () => {
+    const invalidMeshName = 'invalid-mesh';
+    const invalidMeshPath = './non-existent-path';
+    const req = new Request('http://localhost/api/meshes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: invalidMeshName, path: invalidMeshPath }),
+    });
+    const res = await app.request(req);
+    assertEquals(res.status, 400);
+    const contentType = res.headers.get('Content-Type');
+    assert(contentType && contentType.startsWith('application/json'), `Expected application/json but got ${contentType}`);
+    const body = await res.json();
+    assertEquals(body.error, 'Validation Error');
+    assertEquals(body.message, `Path '${invalidMeshPath}' does not exist.`);
+  });
+
   await t.step('POST /api/meshes/{meshName}/nodes - should create a root node', async () => {
     const req = new Request(`http://localhost/api/meshes/${testMeshName}/nodes`, {
       method: 'POST',
