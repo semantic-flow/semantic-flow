@@ -2,14 +2,26 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { logger } from '../utils/logger.ts';
 import { ValidationError } from '../utils/errors.ts';
 import { MESH_CONSTANTS } from '../../../flow-core/src/mesh-constants.ts';
-import { join } from 'jsr:@std/path';
+import { join, basename } from 'jsr:@std/path';
 import { ServiceConfigAccessor } from '../config/index.ts';
 import { loadNodeConfig } from '../config/loaders/jsonld-loader.ts';
 //import { Context } from '@hono/hono';
 
+const initializeMeshRegistry = (config: ServiceConfigAccessor, meshRegistry: Record<string, string>) => {
+  const meshPaths = config.meshPaths;
+  if (meshPaths && Array.isArray(meshPaths)) {
+    for (const meshPath of meshPaths) {
+      const meshName = basename(meshPath);
+      meshRegistry[meshName] = meshPath;
+      logger.info(`Discovered mesh '${meshName}' from configuration at path: ${meshPath}`);
+    }
+  }
+};
+
 export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono => {
   const meshes = new OpenAPIHono();
   const meshRegistry: Record<string, string> = {};
+  initializeMeshRegistry(config, meshRegistry);
 
   // Schemas for Mesh Registration (POST /api/meshes)
   const MeshRegistrationRequest = z.object({
@@ -62,6 +74,10 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     links: z.array(LinkObject),
   });
 
+  const ErrorResponse = z.object({
+    error: z.string(),
+    message: z.string(),
+  });
 
   // Route for Mesh Registration
   const registerMeshRoute = createRoute({
@@ -183,6 +199,14 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
           },
         },
       },
+      404: {
+        description: 'Mesh not found.',
+        content: {
+          'application/json': {
+            schema: ErrorResponse,
+          },
+        },
+      },
     },
   });
 
@@ -192,7 +216,10 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
 
     const meshRootPath = meshRegistry[meshName];
     if (!meshRootPath) {
-      throw new ValidationError(`Mesh '${meshName}' not found.`);
+      return c.json({
+        error: "Not Found",
+        message: `Mesh '${meshName}' not found.`
+      }, 404);
     }
 
     const isRootNode = path === '/' || path === '';
@@ -221,8 +248,8 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
 
     // Load node-specific configuration to check for attribution override
     const nodeConfig = await loadNodeConfig(physicalPath);
-    const attributedTo = nodeConfig?.['conf:attributedTo']
-      ? { "@id": nodeConfig['conf:attributedTo'] }
+    const attributedTo = nodeConfig?.['conf:defaultAttribution']
+      ? { "@id": nodeConfig['conf:defaultAttribution'] }
       : config.defaultAttributedTo;
 
     const snapshotContent = {

@@ -68,7 +68,7 @@ export interface NodeConfig extends JSONLDBase {
   readonly "conf:generateAggregatedDataset": boolean;
   readonly "conf:generateResourcePages"?: boolean;
   readonly "conf:stylesheetPath"?: string;
-  readonly "conf:attributedTo"?: string;
+  readonly "conf:defaultAttribution"?: string;
 }
 
 // Complete Service Configuration
@@ -126,7 +126,7 @@ export interface NodeConfigInput extends Partial<JSONLDBase> {
   "conf:generateAggregatedDataset"?: boolean;
   "conf:generateResourcePages"?: boolean;
   "conf:stylesheetPath"?: string;
-  "conf:attributedTo"?: string;
+  "conf:defaultAttribution"?: string;
 }
 
 // Configuration Context Types (Side-by-Side Pattern)

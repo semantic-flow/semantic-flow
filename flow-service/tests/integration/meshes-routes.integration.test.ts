@@ -100,7 +100,7 @@ Deno.test('Mesh Management API', async (t) => {
         "conf": "https://semantic-flow.github.io/ontology/config-flow/"
       },
       "@type": "flow:ConfigDistribution",
-      "conf:attributedTo": "https://orcid.org/0000-0001-2345-6789"
+      "conf:defaultAttribution": "https://orcid.org/0000-0001-2345-6789"
     };
     await Deno.writeTextFile(nodeConfigFile, JSON.stringify(nodeConfigContent));
 
