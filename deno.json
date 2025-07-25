@@ -1,5 +1,14 @@
 {
+  "compilerOptions": {
+    "lib": [
+      "deno.ns",
+      "dom",
+      "dom.iterable"
+    ]
+  },
   "imports": {
-    "@scalar/openapi-to-markdown": "npm:@scalar/openapi-to-markdown@^0.2.20"
+    "@hono/hono": "jsr:@hono/hono@^4.8.5",
+    "@hono/zod-openapi": "npm:@hono/zod-openapi@^1.0.2",
+    "@scalar/openapi-to-markdown": "npm:@scalar/openapi-to-markdown@^0.2.23"
   }
 }

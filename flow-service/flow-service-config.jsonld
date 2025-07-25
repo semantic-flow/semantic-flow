@@ -13,9 +13,12 @@
   "@id": "fsvc:defaultConfig",
   "fsvc:port": 8080,
   "fsvc:meshPaths": [
-    "../../test-ns/"
+    "../test-ns/"
   ],
   "fsvc:defaultLicense": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "fsvc:defaultAttributedTo": {
+    "@id": "https://orcid.org/0000-0002-1825-0097"
+  },
   "fsvc:defaultRightsHolder": {
     "@id": "http://djradon.github.io/ns/djradon",
     "@type": "prov:Person"

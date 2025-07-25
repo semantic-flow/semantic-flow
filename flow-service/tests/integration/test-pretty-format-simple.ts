@@ -8,7 +8,7 @@
 Deno.env.set('FLOW_SENTRY_ENABLED', 'false');
 Deno.env.set('FLOW_ENV', 'development');
 
-import { logger } from './src/utils/logger.ts';
+import { logger } from '../../src/utils/logger.ts';
 
 console.log('🧪 Testing pretty file logging format (Sentry disabled)...\n');
 

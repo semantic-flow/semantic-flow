@@ -2,14 +2,15 @@
   "imports": {
     "@hono/hono": "jsr:@hono/hono@^4.8.4",
     "@hono/zod-openapi": "npm:@hono/zod-openapi@^0.18.0",
+    "hono/testing": "jsr:@hono/hono@^4.8.4/testing",
     "@scalar/hono-api-reference": "npm:@scalar/hono-api-reference@^0.9.10",
     "@scalar/openapi-to-markdown": "npm:@scalar/openapi-to-markdown",
     "@sentry/deno": "npm:@sentry/deno@^8.0.0"
   },
   "tasks": {
-    "start": "deno run --allow-net --allow-env --allow-read --env-file main.ts",
-    "dev": "deno run --allow-net --allow-env --allow-read --env-file --watch main.ts",
-    "debug": "deno run --allow-net --allow-env --allow-read --env-file --inspect-brk=0.0.0.0:9229 main.ts"
+    "start": "deno run --allow-net --allow-env --allow-read --allow-write --env-file main.ts",
+    "dev": "deno run --allow-net --allow-env --allow-read --allow-write --env-file --watch main.ts",
+    "debug": "deno run --allow-net --allow-env --allow-read --allow-write --env-file --inspect-brk=0.0.0.0:9229 main.ts"
   },
   "compilerOptions": {
     "jsx": "precompile",

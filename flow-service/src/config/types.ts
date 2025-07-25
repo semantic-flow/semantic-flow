@@ -68,6 +68,7 @@ export interface NodeConfig extends JSONLDBase {
   readonly "conf:generateAggregatedDataset": boolean;
   readonly "conf:generateResourcePages"?: boolean;
   readonly "conf:stylesheetPath"?: string;
+  readonly "conf:defaultAttribution"?: string;
 }
 
 // Complete Service Configuration
@@ -79,6 +80,27 @@ export interface ServiceConfig extends JSONLDBase {
   readonly "fsvc:hasLoggingConfig": LoggingConfig;
   readonly "fsvc:hasContainedServices": ContainedServicesConfig;
   readonly "fsvc:nodeDefaults": NodeConfig;
+  readonly "fsvc:defaultDelegationChain"?: DelegationChain;
+  readonly "fsvc:defaultAttributedTo"?: AttributedTo;
+}
+
+// Attribution Configuration
+export interface AttributedTo {
+  readonly "@id": string;
+}
+
+// Delegation Chain Configuration
+export interface DelegationStep {
+  readonly "@type": "meta:DelegationStep";
+  readonly "meta:stepOrder": number;
+  readonly "prov:agent": {
+    readonly "@id": string;
+  };
+}
+
+export interface DelegationChain {
+  readonly "@type": "meta:DelegationChain";
+  readonly "meta:hasStep": DelegationStep[];
 }
 
 // Partial Types for Sparse Input Configuration (mutable for construction)
@@ -90,6 +112,8 @@ export interface ServiceConfigInput extends Partial<JSONLDBase> {
   "fsvc:hasLoggingConfig"?: Partial<LoggingConfig>;
   "fsvc:hasContainedServices"?: Partial<ContainedServicesConfig>;
   "fsvc:nodeDefaults"?: Partial<NodeConfig>;
+  "fsvc:defaultDelegationChain"?: Partial<DelegationChain>;
+  "fsvc:defaultAttributedTo"?: Partial<AttributedTo>;
 }
 
 export interface NodeConfigInput extends Partial<JSONLDBase> {
@@ -102,6 +126,7 @@ export interface NodeConfigInput extends Partial<JSONLDBase> {
   "conf:generateAggregatedDataset"?: boolean;
   "conf:generateResourcePages"?: boolean;
   "conf:stylesheetPath"?: string;
+  "conf:defaultAttribution"?: string;
 }
 
 // Configuration Context Types (Side-by-Side Pattern)
