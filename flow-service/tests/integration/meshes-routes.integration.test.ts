@@ -49,7 +49,7 @@ Deno.test('Mesh Management API', async (t) => {
     assert(body.links.some((link: { rel: string; }) => link.rel === 'create-root-node'));
   });
 
-  await t.step('POST /api/meshes - should return 400 for invalid path', async () => {
+  await t.step('POST /api/meshes - should return 404 for non-existent path', async () => {
     const invalidMeshName = 'invalid-mesh';
     const invalidMeshPath = './non-existent-path';
     const req = new Request('http://localhost/api/meshes', {
@@ -58,11 +58,11 @@ Deno.test('Mesh Management API', async (t) => {
       body: JSON.stringify({ name: invalidMeshName, path: invalidMeshPath }),
     });
     const res = await app.request(req);
-    assertEquals(res.status, 400);
+    assertEquals(res.status, 404);
     const contentType = res.headers.get('Content-Type');
     assert(contentType && contentType.startsWith('application/json'), `Expected application/json but got ${contentType}`);
     const body = await res.json();
-    assertEquals(body.error, 'Validation Error');
+    assertEquals(body.error, 'Not Found');
     assertEquals(body.message, `Path '${invalidMeshPath}' does not exist.`);
   });
 
@@ -90,7 +90,7 @@ Deno.test('Mesh Management API', async (t) => {
     assert(assetsDir.isDirectory);
 
     // Verify the snapshot file was created
-    const snapshotFileName = `${testMeshName}_meta_next.jsonld`;
+    const snapshotFileName = `meta-flow.jsonld`;
     const snapshotFilePath = `${testMeshPath}/_meta-flow/_next/${snapshotFileName}`;
     const snapshotFile = await Deno.readTextFile(snapshotFilePath);
     const snapshotData = JSON.parse(snapshotFile);
