@@ -1,6 +1,5 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { logger } from '../utils/logger.ts';
-import { ValidationError } from '../utils/errors.ts';
 import { MESH_CONSTANTS } from '../../../flow-core/src/mesh-constants.ts';
 import { join, basename } from 'jsr:@std/path';
 import { ServiceConfigAccessor } from '../config/index.ts';
@@ -39,24 +38,24 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
       description: 'The file system path to the mesh repository.',
       example: './test-ns',
     }),
-  })
+  });
 
   const LinkObject = z.object({
     rel: z.string(),
     href: z.string(),
     method: z.string().optional(),
     title: z.string().optional(),
-  })
+  });
 
   const MeshRegistrationResponse = z.object({
     message: z.string(),
     links: z.array(LinkObject),
-  })
+  });
 
   // Schemas for Node Creation (POST /api/meshes/{meshName}/nodes)
   const NodeCreationRequest = z.object({
     path: z.string().openapi({
-      description: "The relative path for the new node. For the root node, use `/` or an empty string. The API will return `/{meshName}/` as its path.",
+      description: "The relative path for the new node. For a root node, use `/` or an empty string; the API will return `/{meshName}/` as its path.",
       example: '/',
     }),
     nodeType: z.enum(['Namespace', 'Reference', 'Dataset']).openapi({
@@ -106,46 +105,57 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
         content: {
           'application/json': {
             schema: MeshRegistrationResponse,
-            meshes.openapi(registerMeshRoute, async (c) => {
-              const { name, path } = c.req.valid('json');
-
-              // Prevent accidental overwrite of an existing registration
-              if (meshRegistry[name]) {
-                throw new ValidationError(
-                  `Mesh '${name}' is already registered at path: ${meshRegistry[name]}`
-                );
-              }
-
-              logger.info(`Attempting to register mesh '${name}' at path: ${path}`);
-
-              // … all existing validations: path exists, is directory,
-              //    check for mesh signature (handle or meta-flow dirs), etc. …
-
-              // Update registry after all validations pass
-              meshRegistry[name] = path;
-
-              let message = `Mesh '${name}' registered successfully.`;
-
-              // … build and return the hypermedia response …
-            });
           },
-        });
+        },
+      },
+      400: {
+        description: 'Bad request due to invalid input or mesh already exists.',
+        content: {
+          'application/json': {
+            schema: ErrorResponse,
+          },
+        },
+      },
+      404: {
+        description: 'The specified path to the mesh does not exist.',
+        content: {
+          'application/json': {
+            schema: ErrorResponse,
+          },
+        },
+      },
+    },
+  });
 
   meshes.openapi(registerMeshRoute, async (c) => {
     const { name, path } = c.req.valid('json');
-    meshRegistry[name] = path;
+
+    if (meshRegistry[name]) {
+      return c.json({
+        error: 'Bad Request',
+        message: `Mesh '${name}' is already registered at path: ${meshRegistry[name]}`,
+      }, 400);
+    }
+
     logger.info(`Attempting to register mesh '${name}' at path: ${path}`);
 
     try {
       const stats = await Deno.stat(path);
       if (!stats.isDirectory) {
-        throw new ValidationError(`Path '${path}' is not a directory.`);
+        // Return a 400 error for validation issues, consistent with other checks
+        return c.json({
+          error: 'Bad Request',
+          message: `Path '${path}' is not a directory.`,
+        }, 400);
       }
     } catch (error) {
       if (error instanceof Deno.errors.NotFound) {
-        throw new ValidationError(`Path '${path}' does not exist.`);
+        return c.json({
+          error: 'Not Found',
+          message: `Path '${path}' does not exist.`,
+        }, 404);
       }
-      throw error;
+      throw error; // Re-throw other errors for the global handler
     }
 
     const handlePath = join(path, MESH_CONSTANTS.HANDLE_DIR);
@@ -156,9 +166,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
       await Deno.stat(handlePath);
       meshSignatureFound = true;
     } catch (error) {
-      if (!(error instanceof Deno.errors.NotFound)) {
-        throw error;
-      }
+      if (!(error instanceof Deno.errors.NotFound)) throw error;
     }
 
     if (!meshSignatureFound) {
@@ -166,9 +174,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
         await Deno.stat(metaFlowPath);
         meshSignatureFound = true;
       } catch (error) {
-        if (!(error instanceof Deno.errors.NotFound)) {
-          throw error;
-        }
+        if (!(error instanceof Deno.errors.NotFound)) throw error;
       }
     }
 
@@ -178,7 +184,6 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     ];
 
     let message = `Mesh '${name}' registered successfully.`;
-
     if (!meshSignatureFound) {
       message += ' No mesh signature detected.';
       links.push({
@@ -189,9 +194,10 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
       });
     }
 
-    const response = { message, links };
+    // Update registry after all validations pass
+    meshRegistry[name] = path;
 
-    return c.json(response, 201);
+    return c.json({ message, links }, 201);
   });
 
   // Route for Node Creation
@@ -256,9 +262,12 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     // This is a simplified implementation for now
     // It does not yet handle different node types or initialData
     const filesCreated: string[] = [];
+    const slug = basename(path.replace(/\/$/, '')) || basename(meshRootPath);
+    const snapshotFileName = 'meta-flow.jsonld';
 
     const handleDir = join(physicalPath, MESH_CONSTANTS.HANDLE_DIR);
     const metaFlowDir = join(physicalPath, MESH_CONSTANTS.META_FLOW_DIR, MESH_CONSTANTS.NEXT_SNAPSHOT_DIR);
+    const snapshotFilePath = join(metaFlowDir, snapshotFileName);
 
     await Deno.mkdir(handleDir, { recursive: true });
     filesCreated.push(handleDir);
@@ -270,16 +279,18 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     try {
       nodeConfig = await loadNodeConfig(physicalPath);
     } catch (error) {
-      logger.warn(`Failed to load node config from ${physicalPath}: ${error.message}`);
+      if (error instanceof Error) {
+        logger.warn(`Failed to load node config from ${physicalPath}: ${error.message}`);
+      } else {
+        logger.warn(`Failed to load node config from ${physicalPath}: ${String(error)}`);
+      }
     }
     const attributedTo = nodeConfig?.['conf:defaultAttribution']
       ? { "@id": nodeConfig['conf:defaultAttribution'] }
       : config.defaultAttributedTo;
-    // Load node-specific configuration to check for attribution override
-    const nodeConfig = await loadNodeConfig(physicalPath);
-    const attributedTo = nodeConfig?.['conf:defaultAttribution']
-      ? { "@id": nodeConfig['conf:defaultAttribution'] }
-      : config.defaultAttributedTo;
+
+    const title = typeof initialData.title === 'string' ? initialData.title : 'N/A';
+    const description = typeof initialData.description === 'string' ? initialData.description : `Node created for ${slug}`;
 
     const snapshotContent = {
       "@context": {
@@ -299,7 +310,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
         {
           "@id": "#meta-flow-v1-activity",
           "@type": "meta:NodeCreation",
-          "dcterms:title": `${initialData.title} Node Creation`,
+          "dcterms:title": `${title} Node Creation`,
           "dcterms:description": `Creation of the ${slug} ${nodeType} node.`,
           "prov:startedAtTime": new Date().toISOString(),
           "prov:endedAtTime": new Date().toISOString(),
@@ -309,14 +320,14 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
           "@id": `../../${slug}/_handle/`,
           "@type": "mesh:Node",
           "node:hasSlug": slug,
-          "dcterms:title": initialData.title,
-          "dcterms:description": initialData.description
+          "dcterms:title": title,
+          "dcterms:description": description
         },
         {
           "@id": `../../${slug}/_handle/#`,
           "@type": "node:Handle",
           "mesh:relativeIdentifier": `../../${slug}/_handle/`,
-          "dcterms:title": `${initialData.title} Handle`,
+          "dcterms:title": `${title} Handle`,
           "dcterms:description": `Handle for the ${slug} ${nodeType} node.`,
           "node:isHandleFor": {
             "@id": `../../${slug}/_handle/`
@@ -333,7 +344,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
         {
           "@id": "#meta-flow-v1-snapshot",
           "@type": "flow:VersionSnapshot",
-          "dcterms:title": `${initialData.title} Metadata Snapshot`,
+          "dcterms:title": `${title} Metadata Snapshot`,
           "dcterms:description": `Initial metadata snapshot for the ${slug} node.`,
           "dcterms:created": new Date().toISOString(),
           "prov:wasGeneratedBy": { "@id": "#meta-flow-v1-activity" },
@@ -341,7 +352,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
             "@id": "#meta-flow-v1-distribution",
             "@type": "dcat:Distribution",
             "dcterms:format": "application/ld+json",
-            "dcterms:title": `${initialData.title} Metadata Distribution`,
+            "dcterms:title": `${title} Metadata Distribution`,
             "dcat:downloadURL": snapshotFileName
           }
         }

@@ -1,7 +1,6 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { logger } from '../utils/logger.ts';
 import { getUptimeInfo } from '../utils/uptime.ts';
-import { Context } from 'jsr:@hono/hono';
 
 const health = new OpenAPIHono();
 
