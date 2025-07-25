@@ -1,1 +1,8 @@
-On every new task, read the .ai-guidance.md file in the workspace root. It mentions two other guidance files and a bunch of ontology files. Make sure those are in the context when you start the task.
+On every new task, first read the file `.ai-guidance.md` at the workspace root.
+
+That file references:
+1. `sflo-dendron-notes/sflo.contributors.general-guidance.md`
+2. `sflo-dendron-notes/sflo.contributors.djradon.ai-guidance.md`
+3. All ontologies under the `ontology/` folder
+
+Ensure the content of these resources is loaded into your context before you begin work.
