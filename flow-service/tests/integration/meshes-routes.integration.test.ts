@@ -83,6 +83,8 @@ Deno.test('Mesh Management API', async (t) => {
     const body = await res.json();
     assertEquals(body.nodePath, `/${testMeshName}/`);
     assert(body.filesCreated.length > 0);
+    assert(body.links, 'Response should include HATEOAS links');
+    assert(Array.isArray(body.links), 'Links should be an array');
     const handleDir = await Deno.stat(`${testMeshPath}/_handle`);
     assert(handleDir.isDirectory);
     const metaFlowDir = await Deno.stat(`${testMeshPath}/_meta-flow/_next`);
@@ -95,6 +97,24 @@ Deno.test('Mesh Management API', async (t) => {
     const snapshotData = JSON.parse(snapshotFile);
     assert(snapshotData['@graph'][0]['@type'] === 'meta:NodeCreation');
     assert(snapshotData['@graph'][0]['prov:wasAssociatedWith']['@id'] === 'https://example.com/test-attributor');
+  });
+
+  await t.step('POST /api/meshes/{meshName}/nodes - should return 409 when node already exists', async () => {
+    const req = new Request(`http://localhost/api/meshes/${testMeshName}/nodes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        apiNodePath: '',
+        nodeType: 'Namespace',
+        initialData: { title: 'Test Root Node' },
+        options: { copyDefaultAssets: true },
+      }),
+    });
+    const res = await app.request(req);
+    assertEquals(res.status, 409);
+    const body = await res.json();
+    assertEquals(body.error, 'Conflict');
+    assert(body.message.includes('Node already exists'));
   });
 
 

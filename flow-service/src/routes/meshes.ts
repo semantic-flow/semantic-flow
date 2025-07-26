@@ -17,17 +17,25 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
   const MeshRegistrationRequest = z.object({
     name: z.string().openapi({
       description: 'The logical name for the mesh.',
-      example: 'test-ns',
+      example: 'ns',
     }),
     parentPath: z.string().openapi({
       description: "The file system path to the mesh's parent directory.",
-      example: './meshes',
+      example: '../meshes',
     }),
   });
 
 
+  const LinkObject = z.object({
+    rel: z.string(),
+    href: z.string(),
+    method: z.string().optional(),
+    title: z.string().optional(),
+  });
+
   const MeshRegistrationResponse = z.object({
     message: z.string(),
+    links: z.array(LinkObject),
   });
 
   // Schemas for Node Creation (POST /api/meshes/{meshName}/nodes)
@@ -58,6 +66,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     message: z.string(),
     nodePath: z.string(),
     filesCreated: z.array(z.string()),
+    links: z.array(LinkObject),
   });
 
   const ErrorResponse = z.object({
@@ -70,7 +79,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     method: 'post',
     path: '/meshes',
     tags: ['Mesh Management'],
-    summary: 'Register a new mesh',
+    summary: 'Register an existing mesh',
     request: {
       body: {
         content: {
@@ -160,15 +169,26 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
       }
     }
 
+    const links: (z.infer<typeof LinkObject>)[] = [
+      { rel: 'self', href: `/api/meshes/${name}` },
+      { rel: 'nodes', href: `/api/meshes/${name}/nodes` },
+    ];
+
     let message = `Mesh '${name}' registered successfully.`;
     if (!meshSignatureFound) {
       message += ' No mesh signature detected.';
+      links.push({
+        rel: 'create-root-node',
+        href: `/api/meshes/${name}/nodes`,
+        method: 'POST',
+        title: 'Initialize this mesh by creating a root node',
+      });
     }
 
     // Update registry after all validations pass
     meshRegistry[name] = parentPath;
 
-    return c.json({ message }, 201);
+    return c.json({ message, links }, 201);
   });
 
   // Route for Node Creation
@@ -201,6 +221,14 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
           },
         },
       },
+      409: {
+        description: 'Node already exists.',
+        content: {
+          'application/json': {
+            schema: ErrorResponse,
+          },
+        },
+      },
       404: {
         description: 'Mesh not found.',
         content: {
@@ -230,14 +258,40 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
 
     logger.info(`Attempting to create node in mesh '${meshName}' at path '${fileSystemNodePath}' (physical: ${meshParentPath})`);
 
+    const slug = apiNodePath.split(MESH.API_IDENTIFIER_PATH_SEPARATOR).pop() || meshName;
+
+    // Check for node existence - fail if either _handle or _meta-flow directories exist
+    const handleDir = join(meshParentPath, getHandlePath(slug));
+    const metaFlowDir = join(meshParentPath, getMetaFlowPath(slug));
+
+    let nodeExists = false;
+    try {
+      await Deno.stat(handleDir);
+      nodeExists = true;
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    }
+
+    if (!nodeExists) {
+      try {
+        await Deno.stat(metaFlowDir);
+        nodeExists = true;
+      } catch (error) {
+        if (!(error instanceof Deno.errors.NotFound)) throw error;
+      }
+    }
+
+    if (nodeExists) {
+      return c.json({
+        error: 'Conflict',
+        message: `Node already exists at path '${responsePath}' in mesh '${meshName}'.`
+      }, 409);
+    }
+
     // This is a simplified implementation for now
     // It does not yet handle different node types or initialData
     const filesCreated: string[] = [];
-    const slug = apiNodePath.split(MESH.API_IDENTIFIER_PATH_SEPARATOR).pop() || meshName;
-
-    const handleDir = join(meshParentPath, getHandlePath(slug));
     const assetsDir = join(meshParentPath, getAssetsPath(slug));
-    const metaFlowDir = join(meshParentPath, getMetaFlowPath(slug));
     const currentMetaDistPath = join(meshParentPath, getCurrentMetaDistPath(slug));
     const nextMetaDistPath = join(meshParentPath, getNextMetaDistPath(slug));
 
@@ -279,10 +333,16 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
       ? `Node created successfully at mesh root (${meshName})`
       : `Node created successfully at path '${fileSystemNodePath}' in mesh '${meshName}'.`;
 
+    const links: (z.infer<typeof LinkObject>)[] = [
+      { rel: 'self', href: `/api/meshes/${meshName}/nodes${responsePath}` },
+      { rel: 'mesh', href: `/api/meshes/${meshName}` },
+    ];
+
     const response = {
       message,
       nodePath: responsePath,
       filesCreated,
+      links,
     };
 
     return c.json(response, 201);

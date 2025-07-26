@@ -1,0 +1,94 @@
+{
+  "@context": {
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "meta": "https://semantic-flow.github.io/ontology/meta-flow/",
+    "mesh": "https://semantic-flow.github.io/ontology/mesh/",
+    "node": "https://semantic-flow.github.io/ontology/node/",
+    "flow": "https://semantic-flow.github.io/ontology/flow/"
+  },
+  "@graph": [
+    {
+      "@id": "#meta-flow-v1-activity",
+      "@type": "meta:NodeCreation",
+      "dcterms:title": "djradon's primary semantic mesh Node Creation",
+      "dcterms:description": "Creation of the test-ns Namespace node.",
+      "prov:startedAtTime": "2025-07-26T18:55:13.544Z",
+      "prov:endedAtTime": "2025-07-26T18:55:13.544Z",
+      "prov:wasAssociatedWith": {
+        "@id": "https://orcid.org/0000-0002-1825-0097"
+      }
+    },
+    {
+      "@id": "../../test-ns/_handle/",
+      "@type": "mesh:Node",
+      "node:hasSlug": "test-ns",
+      "dcterms:title": "djradon's primary semantic mesh",
+      "dcterms:description": "Node created for test-ns"
+    },
+    {
+      "@id": "../../test-ns/_handle/#",
+      "@type": "node:Handle",
+      "mesh:relativeIdentifier": "../../test-ns/_handle/",
+      "dcterms:title": "djradon's primary semantic mesh Handle",
+      "dcterms:description": "Handle for the test-ns Namespace node.",
+      "node:isHandleFor": {
+        "@id": "../../test-ns/_handle/"
+      }
+    },
+    {
+      "@id": "#meta-flow-v1-context",
+      "@type": "meta:ProvenanceContext",
+      "meta:forActivity": {
+        "@id": "#meta-flow-v1-activity"
+      },
+      "meta:forSnapshot": {
+        "@id": "#meta-flow-v1-snapshot"
+      },
+      "prov:wasAttributedTo": {
+        "@id": "https://orcid.org/0000-0002-1825-0097"
+      },
+      "meta:delegationChain": {
+        "@type": "meta:DelegationChain",
+        "meta:hasStep": [
+          {
+            "@type": "meta:DelegationStep",
+            "meta:stepOrder": 1,
+            "prov:agent": {
+              "@id": "https://spectacular-voyage.github.io/ns/spectacular-voyage"
+            }
+          },
+          {
+            "@type": "meta:DelegationStep",
+            "meta:stepOrder": 2,
+            "prov:agent": {
+              "@id": "http://djradon.github.io/ns/djradon"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "@id": "#meta-flow-v1-snapshot",
+      "@type": "flow:VersionSnapshot",
+      "dcterms:title": "djradon's primary semantic mesh Metadata Snapshot",
+      "dcterms:description": "Initial metadata snapshot for the test-ns node.",
+      "dcterms:created": "2025-07-26T18:55:13.544Z",
+      "prov:wasGeneratedBy": {
+        "@id": "#meta-flow-v1-activity"
+      },
+      "dcat:distribution": {
+        "@id": "#meta-flow-v1-distribution",
+        "@type": "dcat:Distribution",
+        "dcterms:format": "application/ld+json",
+        "dcterms:title": "djradon's primary semantic mesh Metadata Distribution",
+        "dcat:downloadURL": "meta-flow.jsonld"
+      }
+    }
+  ]
+}

@@ -41,7 +41,7 @@ const content = {
   },
   servers: [
     {
-      url: `/`,
+      url: `http://${config.host}:${config.port}`,
       description: 'Configured server'
     }
   ]
