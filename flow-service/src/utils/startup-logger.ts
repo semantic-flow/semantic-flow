@@ -28,9 +28,12 @@ export function logStartupConfiguration(config: ServiceConfigAccessor): void {
   console.log(`   Console Logging: ${config.consoleLogLevel}`);
   console.log(`   File Logging: ${config.fileLogEnabled ? config.fileLogLevel : 'disabled'}`);
   console.log(`   Sentry Logging: ${config.sentryEnabled ? config.sentryLogLevel : 'disabled'}`);
-  console.log(`   API: ${config.apiEnabled ? 'enabled' : 'disabled'}`);
-  console.log(`   SPARQL Endpoint: ${config.sparqlEnabled ? 'enabled' : 'disabled'}`);
-  console.log(`   SPARQL GUI: ${config.queryWidgetEnabled ? 'enabled' : 'disabled'}`);
+  const enabledServices = [];
+  if (config.apiEnabled) enabledServices.push('API');
+  if (config.sparqlEnabled) enabledServices.push('SPARQL Endpoint');
+  if (config.queryWidgetEnabled) enabledServices.push('SPARQL GUI');
+
+  console.log(`   Services: ${enabledServices.length > 0 ? enabledServices.join(', ') : 'none'}`);
 }
 
 /**

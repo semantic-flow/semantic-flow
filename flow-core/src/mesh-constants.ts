@@ -18,6 +18,10 @@ export const MESH_CONSTANTS = {
   README_FILE: "README.md",
   CHANGELOG_FILE: "CHANGELOG.md",
 
+  // Miscellaneous
+
+  API_IDENTIFIER_PATH_SEPARATOR: "~",
+
   // Ontology namespaces
   MESH_ONTOLOGY: "https://semantic-flow.github.io/ontology/mesh/",
   NODE_ONTOLOGY: "https://semantic-flow.github.io/ontology/node/",

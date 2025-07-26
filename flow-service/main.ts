@@ -72,8 +72,13 @@ app.get('/llms.txt', (c) => {
 // Mount health routes
 app.route('/api', health);
 import { createMeshesRoutes } from './src/routes/meshes.ts';
+import { createWeaveRoutes } from './src/routes/weave.ts';
+
 const meshes = createMeshesRoutes(config);
+const weave = createWeaveRoutes(config);
+
 app.route('/api', meshes);
+app.route('/api', weave);
 
 
 // Startup logging
