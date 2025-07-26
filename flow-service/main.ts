@@ -5,6 +5,7 @@ import { createMarkdownFromOpenApi } from 'npm:@scalar/openapi-to-markdown';
 import { createServiceConfig } from './src/config/index.ts';
 import { logStartupConfiguration, logStartupUrls } from './src/utils/startup-logger.ts';
 import { handleCaughtError } from './src/utils/logger.ts';
+import { MESH } from '../flow-core/src/mesh-constants.ts';
 
 // Initialize configuration system
 let config;
@@ -40,7 +41,7 @@ const content = {
   },
   servers: [
     {
-      url: `http://${config.host}:${config.port}`,
+      url: `/`,
       description: 'Configured server'
     }
   ]
@@ -49,7 +50,7 @@ const content = {
 app.doc('/openapi.json', content);
 
 // Scalar API documentation
-app.get('/docs', apiReference({
+app.get(MESH.API_PORTAL_ROUTE, apiReference({
   spec: { url: '/openapi.json' },
   pageTitle: 'Semantic Flow Service API',
   theme: 'default',

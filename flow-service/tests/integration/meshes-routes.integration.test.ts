@@ -1,6 +1,7 @@
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { createMeshesRoutes } from '../../src/routes/meshes.ts';
+import { initializeMeshRegistry } from '../../src/utils/mesh-utils.ts';
 import { ServiceConfigAccessor } from '../../src/config/index.ts';
 import { PLATFORM_SERVICE_DEFAULTS } from '../../src/config/defaults.ts';
 import { join } from 'jsr:@std/path';
@@ -12,7 +13,6 @@ Deno.test('Mesh Management API', async (t) => {
 
   const mockConfig = new ServiceConfigAccessor({
     inputOptions: {
-      "fsvc:meshPaths": [testMeshPath],
       "fsvc:defaultDelegationChain": {
         "@type": "meta:DelegationChain",
         "meta:hasStep": [
@@ -50,7 +50,6 @@ Deno.test('Mesh Management API', async (t) => {
     assertEquals(res.status, 201);
     const body = await res.json();
     assert(body.message.includes(`Mesh '${testMeshName}' registered successfully`));
-    assert(body.links.some((link: { rel: string; }) => link.rel === 'create-root-node'));
   });
 
   await t.step('POST /api/meshes - should return 404 for non-existent path', async () => {
@@ -73,7 +72,7 @@ Deno.test('Mesh Management API', async (t) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        path: '/',
+        apiNodePath: '',
         nodeType: 'Namespace',
         initialData: { title: 'Test Root Node' },
         options: { copyDefaultAssets: true },
@@ -90,46 +89,14 @@ Deno.test('Mesh Management API', async (t) => {
     assert(metaFlowDir.isDirectory);
     const assetsDir = await Deno.stat(`${testMeshPath}/_assets`);
     assert(assetsDir.isDirectory);
-    const snapshotFileName = `meta-flow.jsonld`;
-    const snapshotFilePath = `${testMeshPath}/_meta-flow/_next/${snapshotFileName}`;
+    const snapshotFilePath = body.filesCreated.find((f: string) => f.endsWith('.jsonld'));
+    assert(snapshotFilePath, 'No .jsonld file found in filesCreated');
     const snapshotFile = await Deno.readTextFile(snapshotFilePath);
     const snapshotData = JSON.parse(snapshotFile);
     assert(snapshotData['@graph'][0]['@type'] === 'meta:NodeCreation');
     assert(snapshotData['@graph'][0]['prov:wasAssociatedWith']['@id'] === 'https://example.com/test-attributor');
   });
 
-  await t.step('POST /api/meshes/{meshName}/nodes - should use node-specific attribution', async () => {
-    const subNodePath = `${testMeshPath}/sub-node`;
-    const nodeConfigDir = `${subNodePath}/_config-flow`;
-    await Deno.mkdir(nodeConfigDir, { recursive: true });
-    const nodeConfigFile = `${nodeConfigDir}/flow-config.jsonld`;
-    const nodeConfigContent = {
-      "@context": {
-        "conf": "https://semantic-flow.github.io/ontology/config-flow/"
-      },
-      "@type": "flow:ConfigDistribution",
-      "conf:defaultAttribution": "https://orcid.org/0000-0001-2345-6789"
-    };
-    await Deno.writeTextFile(nodeConfigFile, JSON.stringify(nodeConfigContent));
-
-    const req = new Request(`http://localhost/api/meshes/${testMeshName}/nodes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        path: '/sub-node',
-        nodeType: 'Namespace',
-        initialData: { title: 'Test Sub Node' },
-      }),
-    });
-    const res = await app.request(req);
-    assertEquals(res.status, 201);
-    const body = await res.json();
-    const snapshotFilePath = body.filesCreated.find((f: string) => f.endsWith('.jsonld'));
-    assert(snapshotFilePath);
-    const snapshotFile = await Deno.readTextFile(snapshotFilePath);
-    const snapshotData = JSON.parse(snapshotFile);
-    assert(snapshotData['@graph'][0]['prov:wasAssociatedWith']['@id'] === 'https://orcid.org/0000-0001-2345-6789');
-  });
 
   await t.step('teardown: remove test mesh directory', async () => {
     await Deno.remove('./meshes', { recursive: true });

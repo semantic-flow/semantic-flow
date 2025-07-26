@@ -5,6 +5,7 @@
  */
 
 import type { ServiceConfigAccessor } from '../config/resolution/service-config-resolver.ts';
+import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 
 /**
  * Logs the service startup configuration details with a timestamp in US locale.
@@ -45,5 +46,5 @@ export function logStartupUrls(config: ServiceConfigAccessor): void {
   const baseUrl = `http://${config.host}:${config.port}`;
 
   console.log(`📍 Root: ${baseUrl}/`);
-  console.log(`📚 API documentation: ${baseUrl}/docs`);
+  console.log(`📚 API documentation: ${baseUrl}${MESH.API_PORTAL_ROUTE}`);
 }

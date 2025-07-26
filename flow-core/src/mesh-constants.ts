@@ -3,6 +3,7 @@ const CONFIG = "config";
 const META = "meta";
 const REF = "ref";
 const DATA = "data";
+
 const NEXT = "next";
 const CURRENT = "current";
 
@@ -23,7 +24,7 @@ export const MESH = {
   REF_FLOW_DIR: "_" + REF + "-flow",
   DATA_FLOW_DIR: "_" + DATA + "-flow",
 
-  NEXT_SNAPSHOT_DIR: NEXT,
+  NEXT_SNAPSHOT_DIR: "_" + NEXT,
   CURRENT_SNAPSHOT_DIR: "_" + CURRENT,
   VERSION_SNAPSHOT_PREFIX: "_v",
 
@@ -37,6 +38,7 @@ export const MESH = {
   // Miscellaneous
 
   API_IDENTIFIER_PATH_SEPARATOR: "~",
+  API_PORTAL_ROUTE: "/api-docs",
 
   // Ontology namespaces
   MESH_ONTOLOGY: "https://semantic-flow.github.io/ontology/mesh/",
