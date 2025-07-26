@@ -49,6 +49,15 @@ export const MESH = {
 
 // Usage throughout codebase
 
+
+export function getHandlePath(nodePath: string): string {
+  return `${nodePath}/${MESH.HANDLE_DIR}/`;
+}
+
+export function getAssetsPath(nodePath: string): string {
+  return `${nodePath}/${MESH.ASSETS_DIR}/`;
+}
+
 // config
 export function getConfigFlowPath(nodePath: string): string {
   return `${nodePath}/${MESH.CONFIG_FLOW_DIR}/`;

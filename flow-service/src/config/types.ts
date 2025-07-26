@@ -87,6 +87,7 @@ export interface ServiceConfig extends JSONLDBase {
 // Attribution Configuration
 export interface AttributedTo {
   readonly "@id": string;
+  [key: string]: unknown;
 }
 
 // Delegation Chain Configuration

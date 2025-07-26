@@ -1,12 +1,18 @@
-import { superoak } from "https://deno.land/x/superoak@4.7.0/mod.ts";
+import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { OpenAPIHono } from '@hono/zod-openapi';
 import { createMeshesRoutes } from '../../src/routes/meshes.ts';
 import { ServiceConfigAccessor } from '../../src/config/index.ts';
 import { PLATFORM_SERVICE_DEFAULTS } from '../../src/config/defaults.ts';
-import { OpenAPIHono } from '@hono/zod-openapi';
+import { join } from 'jsr:@std/path';
 
 Deno.test('Mesh Management API', async (t) => {
+  const testMeshName = 'test-ns-for-testing';
+  const testMeshParentPath = './meshes';
+  const testMeshPath = `${testMeshParentPath}/${testMeshName}`;
+
   const mockConfig = new ServiceConfigAccessor({
     inputOptions: {
+      "fsvc:meshPaths": [testMeshPath],
       "fsvc:defaultDelegationChain": {
         "@type": "meta:DelegationChain",
         "meta:hasStep": [
@@ -30,91 +36,66 @@ Deno.test('Mesh Management API', async (t) => {
   const meshes = createMeshesRoutes(mockConfig);
   app.route('/api', meshes);
 
-  const testMeshName = 'test-ns-for-testing';
-  const testMeshPath = `./${testMeshName}`;
-
   await t.step('setup: create test mesh directory', async () => {
     await Deno.mkdir(testMeshPath, { recursive: true });
   });
 
   await t.step('POST /api/meshes - should register a new mesh', async () => {
-    const request = await superoak(app);
-    await request.post('/api/meshes')
-      .send({ name: testMeshName, path: testMeshPath })
-      .set('Content-Type', 'application/json')
-      .expect(201)
-      .expect('Content-Type', /json/)
-      .expect((res: { body: { message: string; links: Array<{ rel: string }> } }) => {
-        if (!res.body.message.includes(`Mesh '${testMeshName}' registered successfully`)) {
-          throw new Error('Expected success message');
-        }
-        if (!res.body.links.some(link => link.rel === 'create-root-node')) {
-          throw new Error('Expected create-root-node link');
-        }
-      });
+    const req = new Request('http://localhost/api/meshes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: testMeshName, parentPath: testMeshParentPath }),
+    });
+    const res = await app.request(req);
+    assertEquals(res.status, 201);
+    const body = await res.json();
+    assert(body.message.includes(`Mesh '${testMeshName}' registered successfully`));
+    assert(body.links.some((link: { rel: string; }) => link.rel === 'create-root-node'));
   });
 
   await t.step('POST /api/meshes - should return 404 for non-existent path', async () => {
     const invalidMeshName = 'invalid-mesh';
-    const invalidMeshPath = './non-existent-path';
-    const request = await superoak(app);
-    await request.post('/api/meshes')
-      .send({ name: invalidMeshName, path: invalidMeshPath })
-      .set('Content-Type', 'application/json')
-      .expect(404)
-      .expect('Content-Type', /json/)
-      .expect((res: { body: { error: string; message: string } }) => {
-        if (res.body.error !== 'Not Found') {
-          throw new Error('Expected Not Found error');
-        }
-        if (res.body.message !== `Path '${invalidMeshPath}' does not exist.`) {
-          throw new Error('Expected correct error message');
-        }
-      });
+    const invalidMeshParentPath = './non-existent-path';
+    const req = new Request('http://localhost/api/meshes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: invalidMeshName, parentPath: invalidMeshParentPath }),
+    });
+    const res = await app.request(req);
+    assertEquals(res.status, 404);
+    const body = await res.json();
+    assertEquals(body.error, 'Not Found');
+    assertEquals(body.message, `Path '${join(invalidMeshParentPath, invalidMeshName)}' does not exist.`);
   });
 
   await t.step('POST /api/meshes/{meshName}/nodes - should create a root node', async () => {
-    const request = await superoak(app);
-    await request.post(`/api/meshes/${testMeshName}/nodes`)
-      .send({
+    const req = new Request(`http://localhost/api/meshes/${testMeshName}/nodes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         path: '/',
         nodeType: 'Namespace',
         initialData: { title: 'Test Root Node' },
         options: { copyDefaultAssets: true },
-      })
-      .set('Content-Type', 'application/json')
-      .expect(201)
-      .expect('Content-Type', /json/)
-      .expect(async (res: { body: { nodePath: string; filesCreated: string[] } }) => {
-        if (res.body.nodePath !== `/${testMeshName}/`) {
-          throw new Error('Node path mismatch');
-        }
-        if (res.body.filesCreated.length === 0) {
-          throw new Error('Expected files to be created');
-        }
-        const handleDir = await Deno.stat(`${testMeshPath}/_handle`);
-        if (!handleDir.isDirectory) {
-          throw new Error('_handle directory missing');
-        }
-        const metaFlowDir = await Deno.stat(`${testMeshPath}/_meta-flow/_next`);
-        if (!metaFlowDir.isDirectory) {
-          throw new Error('_meta-flow/_next directory missing');
-        }
-        const assetsDir = await Deno.stat(`${testMeshPath}/_assets`);
-        if (!assetsDir.isDirectory) {
-          throw new Error('_assets directory missing');
-        }
-        const snapshotFileName = `meta-flow.jsonld`;
-        const snapshotFilePath = `${testMeshPath}/_meta-flow/_next/${snapshotFileName}`;
-        const snapshotFile = await Deno.readTextFile(snapshotFilePath);
-        const snapshotData = JSON.parse(snapshotFile);
-        if (snapshotData['@graph'][0]['@type'] !== 'meta:NodeCreation') {
-          throw new Error('Snapshot file content invalid');
-        }
-        if (snapshotData['@graph'][0]['prov:wasAssociatedWith']['@id'] !== 'https://example.com/test-attributor') {
-          throw new Error('Snapshot attribution mismatch');
-        }
-      });
+      }),
+    });
+    const res = await app.request(req);
+    assertEquals(res.status, 201);
+    const body = await res.json();
+    assertEquals(body.nodePath, `/${testMeshName}/`);
+    assert(body.filesCreated.length > 0);
+    const handleDir = await Deno.stat(`${testMeshPath}/_handle`);
+    assert(handleDir.isDirectory);
+    const metaFlowDir = await Deno.stat(`${testMeshPath}/_meta-flow/_next`);
+    assert(metaFlowDir.isDirectory);
+    const assetsDir = await Deno.stat(`${testMeshPath}/_assets`);
+    assert(assetsDir.isDirectory);
+    const snapshotFileName = `meta-flow.jsonld`;
+    const snapshotFilePath = `${testMeshPath}/_meta-flow/_next/${snapshotFileName}`;
+    const snapshotFile = await Deno.readTextFile(snapshotFilePath);
+    const snapshotData = JSON.parse(snapshotFile);
+    assert(snapshotData['@graph'][0]['@type'] === 'meta:NodeCreation');
+    assert(snapshotData['@graph'][0]['prov:wasAssociatedWith']['@id'] === 'https://example.com/test-attributor');
   });
 
   await t.step('POST /api/meshes/{meshName}/nodes - should use node-specific attribution', async () => {
@@ -131,30 +112,26 @@ Deno.test('Mesh Management API', async (t) => {
     };
     await Deno.writeTextFile(nodeConfigFile, JSON.stringify(nodeConfigContent));
 
-    const request = await superoak(app);
-    await request.post(`/api/meshes/${testMeshName}/nodes`)
-      .send({
+    const req = new Request(`http://localhost/api/meshes/${testMeshName}/nodes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         path: '/sub-node',
         nodeType: 'Namespace',
         initialData: { title: 'Test Sub Node' },
-      })
-      .set('Content-Type', 'application/json')
-      .expect(201)
-      .expect('Content-Type', /json/)
-      .expect(async (res: { body: { filesCreated: string[] } }) => {
-        const snapshotFilePath = res.body.filesCreated.find(f => f.endsWith('.jsonld'));
-        if (!snapshotFilePath) {
-          throw new Error('Snapshot file path missing');
-        }
-        const snapshotFile = await Deno.readTextFile(snapshotFilePath);
-        const snapshotData = JSON.parse(snapshotFile);
-        if (snapshotData['@graph'][0]['prov:wasAssociatedWith']['@id'] !== 'https://orcid.org/0000-0001-2345-6789') {
-          throw new Error('Snapshot attribution mismatch');
-        }
-      });
+      }),
+    });
+    const res = await app.request(req);
+    assertEquals(res.status, 201);
+    const body = await res.json();
+    const snapshotFilePath = body.filesCreated.find((f: string) => f.endsWith('.jsonld'));
+    assert(snapshotFilePath);
+    const snapshotFile = await Deno.readTextFile(snapshotFilePath);
+    const snapshotData = JSON.parse(snapshotFile);
+    assert(snapshotData['@graph'][0]['prov:wasAssociatedWith']['@id'] === 'https://orcid.org/0000-0001-2345-6789');
   });
 
   await t.step('teardown: remove test mesh directory', async () => {
-    await Deno.remove(testMeshPath, { recursive: true });
+    await Deno.remove('./meshes', { recursive: true });
   });
 });
