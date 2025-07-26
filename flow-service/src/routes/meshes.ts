@@ -1,6 +1,6 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { logger } from '../utils/logger.ts';
-import { MESH_CONSTANTS } from '../../../flow-core/src/mesh-constants.ts';
+import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 import { join, basename } from 'jsr:@std/path';
 import { ServiceConfigAccessor } from '../config/index.ts';
 import { loadNodeConfig } from '../config/loaders/jsonld-loader.ts';
@@ -158,8 +158,8 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
       throw error; // Re-throw other errors for the global handler
     }
 
-    const handlePath = join(path, MESH_CONSTANTS.HANDLE_DIR);
-    const metaFlowPath = join(path, MESH_CONSTANTS.META_FLOW_DIR);
+    const handlePath = join(path, MESH.HANDLE_DIR);
+    const metaFlowPath = join(path, MESH.META_FLOW_DIR);
     let meshSignatureFound = false;
 
     try {
@@ -265,8 +265,8 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     const slug = basename(path.replace(/\/$/, '')) || basename(meshRootPath);
     const snapshotFileName = 'meta-flow.jsonld';
 
-    const handleDir = join(physicalPath, MESH_CONSTANTS.HANDLE_DIR);
-    const metaFlowDir = join(physicalPath, MESH_CONSTANTS.META_FLOW_DIR, MESH_CONSTANTS.NEXT_SNAPSHOT_DIR);
+    const handleDir = join(physicalPath, MESH.HANDLE_DIR);
+    const metaFlowDir = join(physicalPath, MESH.META_FLOW_DIR, MESH.NEXT_SNAPSHOT_DIR);
     const snapshotFilePath = join(metaFlowDir, snapshotFileName);
 
     await Deno.mkdir(handleDir, { recursive: true });
@@ -308,15 +308,6 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
       },
       "@graph": [
         {
-          "@id": "#meta-flow-v1-activity",
-          "@type": "meta:NodeCreation",
-          "dcterms:title": `${title} Node Creation`,
-          "dcterms:description": `Creation of the ${slug} ${nodeType} node.`,
-          "prov:startedAtTime": new Date().toISOString(),
-          "prov:endedAtTime": new Date().toISOString(),
-          "prov:wasAssociatedWith": attributedTo
-        },
-        {
           "@id": `../../${slug}/_handle/`,
           "@type": "mesh:Node",
           "node:hasSlug": slug,
@@ -332,6 +323,15 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
           "node:isHandleFor": {
             "@id": `../../${slug}/_handle/`
           }
+        },
+        {
+          "@id": "#creation-activity",
+          "@type": "meta:NodeCreation",
+          "dcterms:title": `${title} Node Creation`,
+          "dcterms:description": `Creation of the ${slug} ${nodeType} node.`,
+          "prov:startedAtTime": new Date().toISOString(),
+          "prov:endedAtTime": new Date().toISOString(),
+          "prov:wasAssociatedWith": attributedTo
         },
         {
           "@id": "#meta-flow-v1-context",
@@ -363,7 +363,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     filesCreated.push(snapshotFilePath);
 
     if (options?.copyDefaultAssets) {
-      const assetsDir = join(physicalPath, MESH_CONSTANTS.ASSETS_COMPONENT_DIR);
+      const assetsDir = join(physicalPath, MESH.ASSETS_DIR);
       await Deno.mkdir(assetsDir, { recursive: true });
       filesCreated.push(assetsDir);
     }

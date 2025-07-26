@@ -1,18 +1,18 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { logger } from '../utils/logger.ts';
-import { MESH_CONSTANTS } from '../../../flow-core/src/mesh-constants.ts';
+import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 import { ServiceConfigAccessor } from '../config/index.ts';
 
 // Utility function to validate node specifier using QName rules (simplified regex for example)
 const isValidNodeSpecifier = (specifier: string): boolean => {
   // QName characters: letters, digits, underscore, hyphen, dot, and the separator "~"
-  const qnameRegex = new RegExp(`^[\\w.-]+(${MESH_CONSTANTS.API_IDENTIFIER_PATH_SEPARATOR}[\\w.-]+)*$`);
+  const qnameRegex = new RegExp(`^[\\w.-]+(${MESH.API_IDENTIFIER_PATH_SEPARATOR}[\\w.-]+)*$`);
   return qnameRegex.test(specifier);
 };
 
 // Parse node specifier into segments
 const parseNodeSpecifier = (specifier: string): string[] => {
-  return specifier.split(MESH_CONSTANTS.API_IDENTIFIER_PATH_SEPARATOR);
+  return specifier.split(MESH.API_IDENTIFIER_PATH_SEPARATOR);
 };
 
 export const createWeaveRoutes = (config: ServiceConfigAccessor): OpenAPIHono => {
@@ -21,8 +21,8 @@ export const createWeaveRoutes = (config: ServiceConfigAccessor): OpenAPIHono =>
   // Schema for the node specifier parameter
   const NodeSpecifierParam = z.object({
     nodeSpecifier: z.string().openapi({
-      description: `The node specifier string using '${MESH_CONSTANTS.API_IDENTIFIER_PATH_SEPARATOR}' as separator, including root node.`,
-      example: `test-ns${MESH_CONSTANTS.API_IDENTIFIER_PATH_SEPARATOR}djradon${MESH_CONSTANTS.API_IDENTIFIER_PATH_SEPARATOR}underbrush`,
+      description: `The node specifier string using '${MESH.API_IDENTIFIER_PATH_SEPARATOR}' as separator, including root node.`,
+      example: `test-ns${MESH.API_IDENTIFIER_PATH_SEPARATOR}djradon${MESH.API_IDENTIFIER_PATH_SEPARATOR}underbrush`,
     }),
   });
 
@@ -79,7 +79,7 @@ export const createWeaveRoutes = (config: ServiceConfigAccessor): OpenAPIHono =>
     if (!isValidNodeSpecifier(nodeSpecifier)) {
       return c.json({
         error: 'Bad Request',
-        message: `Invalid node specifier '${nodeSpecifier}'. Must use valid QName characters and '${MESH_CONSTANTS.API_IDENTIFIER_PATH_SEPARATOR}' as separator.`,
+        message: `Invalid node specifier '${nodeSpecifier}'. Must use valid QName characters and '${MESH.API_IDENTIFIER_PATH_SEPARATOR}' as separator.`,
       }, 400);
     }
 
