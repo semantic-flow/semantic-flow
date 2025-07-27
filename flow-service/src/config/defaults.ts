@@ -31,7 +31,7 @@ export const PLATFORM_NODE_DEFAULTS: NodeConfig = {
   'conf:templateMappings': {
     '@type': 'conf:TemplateMapping',
     'conf:hasResourcePageTemplate':
-      '/_assets/templates/default-resource-page.html',
+      '/_assets/_templates/default-resource-page.html',
   },
   'conf:generateUnifiedDataset': false,
   'conf:generateAggregatedDataset': false,
@@ -44,7 +44,6 @@ export const PLATFORM_NODE_DEFAULTS: NodeConfig = {
  *
  * This configuration extends the platform defaults with service-specific overrides.
  * The main differences from PLATFORM_NODE_DEFAULTS:
- * - Template path is relative to service root (no leading slash)
  * - Excludes resource page generation settings (handled at service level)
  * - Omits @id to avoid conflicts in service context
  */
@@ -62,7 +61,7 @@ export const SERVICE_NODE_DEFAULTS: Omit<
   ],
   'conf:templateMappings': {
     '@type': 'conf:TemplateMapping',
-    'conf:hasResourcePageTemplate': 'templates/default-resource.html', // Service-relative path
+    'conf:hasResourcePageTemplate': '/_assets/_templates/default-resource-page.html', // Service-relative path
   },
   'conf:generateUnifiedDataset': false,
   'conf:generateAggregatedDataset': false,
@@ -110,9 +109,6 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
   },
   // Reference the service-specific node defaults to avoid duplication
   'fsvc:nodeDefaults': SERVICE_NODE_DEFAULTS,
-  'fsvc:defaultAttributedTo': {
-    '@id': 'https://orcid.org/0000-0002-1825-0097',
-  },
 };
 
 // Development Environment Overrides
