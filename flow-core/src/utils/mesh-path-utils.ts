@@ -2,11 +2,10 @@
  * Utility functions for mesh path operations
  */
 
-import { MESH } from '../mesh-constants.ts';
-import { getLastPathSegment } from './path-utils.ts';
+import { MESH } from "../mesh-constants.ts";
+import { getLastPathSegment } from "./path-utils.ts";
 
 // Usage throughout codebase
-
 
 export function getHandlePath(nodePath: string): string {
   return `${nodePath}/${MESH.HANDLE_DIR}/`;
@@ -27,7 +26,9 @@ export function getCurrentConfigSnapshotPath(nodePath: string): string {
 
 export function getCurrentConfigDistPath(nodePath: string): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getCurrentConfigSnapshotPath(nodePath)}${lastSegment}_${MESH.CONFIG}_${MESH.CURRENT}.jsonld`;
+  return `${
+    getCurrentConfigSnapshotPath(nodePath)
+  }${lastSegment}_${MESH.CONFIG}_${MESH.CURRENT}.jsonld`;
 }
 
 export function getNextConfigSnapshotPath(nodePath: string): string {
@@ -36,16 +37,28 @@ export function getNextConfigSnapshotPath(nodePath: string): string {
 
 export function getNextConfigDistPath(nodePath: string): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getNextConfigSnapshotPath(nodePath)}${lastSegment}_${MESH.CONFIG}_${MESH.NEXT}.jsonld`;
+  return `${
+    getNextConfigSnapshotPath(nodePath)
+  }${lastSegment}_${MESH.CONFIG}_${MESH.NEXT}.jsonld`;
 }
 
-export function getVersionConfigSnapshotPath(nodePath: string, version: number): string {
-  return `${getConfigFlowPath(nodePath)}/${MESH.VERSION_SNAPSHOT_PREFIX}${version}/`;
+export function getVersionConfigSnapshotPath(
+  nodePath: string,
+  version: number,
+): string {
+  return `${
+    getConfigFlowPath(nodePath)
+  }/${MESH.VERSION_SNAPSHOT_PREFIX}${version}/`;
 }
 
-export function getVersionConfigDistPath(nodePath: string, version: number): string {
+export function getVersionConfigDistPath(
+  nodePath: string,
+  version: number,
+): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getVersionConfigSnapshotPath(nodePath, version)}${lastSegment}_${MESH.CONFIG}_${MESH.VERSION_SNAPSHOT_PREFIX}${version}.jsonld`;
+  return `${
+    getVersionConfigSnapshotPath(nodePath, version)
+  }${lastSegment}_${MESH.CONFIG}_${MESH.VERSION_SNAPSHOT_PREFIX}${version}.jsonld`;
 }
 
 // meta
@@ -59,7 +72,9 @@ export function getCurrentMetaSnapshotPath(nodePath: string): string {
 
 export function getCurrentMetaDistPath(nodePath: string): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getCurrentMetaSnapshotPath(nodePath)}${lastSegment}_${MESH.META}_${MESH.CURRENT}.jsonld`;
+  return `${
+    getCurrentMetaSnapshotPath(nodePath)
+  }${lastSegment}_${MESH.META}_${MESH.CURRENT}.jsonld`;
 }
 
 export function getNextMetaSnapshotPath(nodePath: string): string {
@@ -68,16 +83,28 @@ export function getNextMetaSnapshotPath(nodePath: string): string {
 
 export function getNextMetaDistPath(nodePath: string): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getNextMetaSnapshotPath(nodePath)}${lastSegment}_${MESH.META}_${MESH.NEXT}.jsonld`;
+  return `${
+    getNextMetaSnapshotPath(nodePath)
+  }${lastSegment}_${MESH.META}_${MESH.NEXT}.jsonld`;
 }
 
-export function getVersionMetaSnapshotPath(nodePath: string, version: number): string {
-  return `${getMetaFlowPath(nodePath)}/${MESH.VERSION_SNAPSHOT_PREFIX}${version}/`;
+export function getVersionMetaSnapshotPath(
+  nodePath: string,
+  version: number,
+): string {
+  return `${
+    getMetaFlowPath(nodePath)
+  }/${MESH.VERSION_SNAPSHOT_PREFIX}${version}/`;
 }
 
-export function getVersionMetaDistPath(nodePath: string, version: number): string {
+export function getVersionMetaDistPath(
+  nodePath: string,
+  version: number,
+): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getVersionMetaSnapshotPath(nodePath, version)}${lastSegment}_${MESH.META}_${MESH.VERSION_SNAPSHOT_PREFIX}${version}.jsonld`;
+  return `${
+    getVersionMetaSnapshotPath(nodePath, version)
+  }${lastSegment}_${MESH.META}_${MESH.VERSION_SNAPSHOT_PREFIX}${version}.jsonld`;
 }
 
 // REF
@@ -91,7 +118,9 @@ export function getCurrentRefSnapshotPath(nodePath: string): string {
 
 export function getCurrentRefDistPath(nodePath: string): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getCurrentRefSnapshotPath(nodePath)}${lastSegment}_${MESH.REF}_${MESH.CURRENT}.jsonld`;
+  return `${
+    getCurrentRefSnapshotPath(nodePath)
+  }${lastSegment}_${MESH.REF}_${MESH.CURRENT}.jsonld`;
 }
 
 export function getNextRefSnapshotPath(nodePath: string): string {
@@ -100,16 +129,28 @@ export function getNextRefSnapshotPath(nodePath: string): string {
 
 export function getNextRefDistPath(nodePath: string): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getNextRefSnapshotPath(nodePath)}${lastSegment}_${MESH.REF}_${MESH.NEXT}.jsonld`;
+  return `${
+    getNextRefSnapshotPath(nodePath)
+  }${lastSegment}_${MESH.REF}_${MESH.NEXT}.jsonld`;
 }
 
-export function getVersionRefSnapshotPath(nodePath: string, version: number): string {
-  return `${getRefFlowPath(nodePath)}/${MESH.VERSION_SNAPSHOT_PREFIX}${version}/`;
+export function getVersionRefSnapshotPath(
+  nodePath: string,
+  version: number,
+): string {
+  return `${
+    getRefFlowPath(nodePath)
+  }/${MESH.VERSION_SNAPSHOT_PREFIX}${version}/`;
 }
 
-export function getVersionRefDistPath(nodePath: string, version: number): string {
+export function getVersionRefDistPath(
+  nodePath: string,
+  version: number,
+): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getVersionRefSnapshotPath(nodePath, version)}${lastSegment}_${MESH.REF}_${MESH.VERSION_SNAPSHOT_PREFIX}${version}.jsonld`;
+  return `${
+    getVersionRefSnapshotPath(nodePath, version)
+  }${lastSegment}_${MESH.REF}_${MESH.VERSION_SNAPSHOT_PREFIX}${version}.jsonld`;
 }
 
 // data
@@ -123,7 +164,9 @@ export function getCurrentDataSnapshotPath(nodePath: string): string {
 
 export function getCurrentDataDistPath(nodePath: string): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getCurrentDataSnapshotPath(nodePath)}${lastSegment}_${MESH.DATA}_${MESH.CURRENT}.jsonld`;
+  return `${
+    getCurrentDataSnapshotPath(nodePath)
+  }${lastSegment}_${MESH.DATA}_${MESH.CURRENT}.jsonld`;
 }
 
 export function getNextDataSnapshotPath(nodePath: string): string {
@@ -132,14 +175,26 @@ export function getNextDataSnapshotPath(nodePath: string): string {
 
 export function getNextDataDistPath(nodePath: string): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getNextDataSnapshotPath(nodePath)}${lastSegment}_${MESH.DATA}_${MESH.NEXT}.jsonld`;
+  return `${
+    getNextDataSnapshotPath(nodePath)
+  }${lastSegment}_${MESH.DATA}_${MESH.NEXT}.jsonld`;
 }
 
-export function getVersionDataSnapshotPath(nodePath: string, version: number): string {
-  return `${getDataFlowPath(nodePath)}/${MESH.VERSION_SNAPSHOT_PREFIX}${version}/`;
+export function getVersionDataSnapshotPath(
+  nodePath: string,
+  version: number,
+): string {
+  return `${
+    getDataFlowPath(nodePath)
+  }/${MESH.VERSION_SNAPSHOT_PREFIX}${version}/`;
 }
 
-export function getVersionDataDistPath(nodePath: string, version: number): string {
+export function getVersionDataDistPath(
+  nodePath: string,
+  version: number,
+): string {
   const lastSegment = getLastPathSegment(nodePath);
-  return `${getVersionDataSnapshotPath(nodePath, version)}${lastSegment}_${MESH.DATA}_${MESH.VERSION_SNAPSHOT_PREFIX}${version}.jsonld`;
+  return `${
+    getVersionDataSnapshotPath(nodePath, version)
+  }${lastSegment}_${MESH.DATA}_${MESH.VERSION_SNAPSHOT_PREFIX}${version}.jsonld`;
 }

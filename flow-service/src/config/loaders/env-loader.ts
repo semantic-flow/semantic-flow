@@ -5,8 +5,12 @@
  * Supports FLOW_* prefixed environment variables.
  */
 
-import type { ServiceConfigInput, EnvironmentConfig, LogLevel } from '../types.ts';
-import { ConfigError } from '../types.ts';
+import type {
+  EnvironmentConfig,
+  LogLevel,
+  ServiceConfigInput,
+} from "../types.ts";
+import { ConfigError } from "../types.ts";
 
 /**
  * Loads environment variables prefixed with `FLOW_` and assembles them into a structured `ServiceConfigInput` object.
@@ -34,14 +38,18 @@ export function loadEnvConfig(): ServiceConfigInput {
 
   // Mesh paths configuration
   if (env.FLOW_MESH_PATHS) {
-    const meshPaths = env.FLOW_MESH_PATHS.split(',').map(p => p.trim()).filter(p => p);
+    const meshPaths = env.FLOW_MESH_PATHS.split(",").map((p) => p.trim())
+      .filter((p) => p);
     if (meshPaths.length > 0) {
       configInput["fsvc:meshPaths"] = meshPaths;
     }
   }
 
   // Logging configuration (mutable for construction)
-  const loggingConfig: Record<string, Record<string, string | boolean | number> | string> = {};
+  const loggingConfig: Record<
+    string,
+    Record<string, string | boolean | number> | string
+  > = {};
   let hasLoggingConfig = false;
 
   // Console logging
@@ -51,7 +59,7 @@ export function loadEnvConfig(): ServiceConfigInput {
       loggingConfig["fsvc:hasConsoleChannel"] = {
         "@type": "fsvc:LogChannelConfig",
         "fsvc:logChannelEnabled": true,
-        "fsvc:logLevel": logLevel
+        "fsvc:logLevel": logLevel,
       };
       hasLoggingConfig = true;
     } catch (error) {
@@ -59,8 +67,12 @@ export function loadEnvConfig(): ServiceConfigInput {
       if (error instanceof ConfigError) {
         throw error;
       }
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new ConfigError(`Invalid FLOW_LOG_LEVEL environment variable: ${errorMessage}`);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : String(error);
+      throw new ConfigError(
+        `Invalid FLOW_LOG_LEVEL environment variable: ${errorMessage}`,
+      );
     }
   }
 
@@ -70,7 +82,7 @@ export function loadEnvConfig(): ServiceConfigInput {
     if (enabled !== undefined) {
       const fileChannel: Record<string, string | boolean | number> = {
         "@type": "fsvc:LogChannelConfig",
-        "fsvc:logChannelEnabled": enabled
+        "fsvc:logChannelEnabled": enabled,
       };
 
       if (env.FLOW_FILE_LOG_LEVEL) {
@@ -82,8 +94,12 @@ export function loadEnvConfig(): ServiceConfigInput {
           if (error instanceof ConfigError) {
             throw error;
           }
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          throw new ConfigError(`Invalid FLOW_FILE_LOG_LEVEL environment variable: ${errorMessage}`);
+          const errorMessage = error instanceof Error
+            ? error.message
+            : String(error);
+          throw new ConfigError(
+            `Invalid FLOW_FILE_LOG_LEVEL environment variable: ${errorMessage}`,
+          );
         }
       }
 
@@ -94,7 +110,9 @@ export function loadEnvConfig(): ServiceConfigInput {
       // Parse log retention settings
       if (env.FLOW_LOG_RETENTION_DAYS) {
         const retentionDays = parseInt(env.FLOW_LOG_RETENTION_DAYS, 10);
-        if (!isNaN(retentionDays) && retentionDays > 0 && retentionDays <= 365) {
+        if (
+          !isNaN(retentionDays) && retentionDays > 0 && retentionDays <= 365
+        ) {
           fileChannel["fsvc:logRetentionDays"] = retentionDays;
         }
       }
@@ -116,7 +134,11 @@ export function loadEnvConfig(): ServiceConfigInput {
       if (env.FLOW_LOG_ROTATION_INTERVAL) {
         const interval = env.FLOW_LOG_ROTATION_INTERVAL.toLowerCase().trim();
         if (["daily", "weekly", "monthly", "size-based"].includes(interval)) {
-          fileChannel["fsvc:logRotationInterval"] = interval as "daily" | "weekly" | "monthly" | "size-based";
+          fileChannel["fsvc:logRotationInterval"] = interval as
+            | "daily"
+            | "weekly"
+            | "monthly"
+            | "size-based";
         }
       }
 
@@ -131,7 +153,7 @@ export function loadEnvConfig(): ServiceConfigInput {
     if (enabled !== undefined) {
       const sentryChannel: Record<string, string | boolean> = {
         "@type": "fsvc:LogChannelConfig",
-        "fsvc:logChannelEnabled": enabled
+        "fsvc:logChannelEnabled": enabled,
       };
 
       if (env.FLOW_SENTRY_DSN) {
@@ -193,7 +215,8 @@ export function loadEnvConfig(): ServiceConfigInput {
   }
 
   if (env.FLOW_DEFAULT_FORMATS) {
-    const formats = env.FLOW_DEFAULT_FORMATS.split(',').map(f => f.trim()).filter(f => f);
+    const formats = env.FLOW_DEFAULT_FORMATS.split(",").map((f) => f.trim())
+      .filter((f) => f);
     if (formats.length > 0) {
       nodeDefaults["conf:distributionFormats"] = formats;
       hasNodeDefaults = true;
@@ -233,7 +256,7 @@ function getEnvironmentVariables(): EnvironmentConfig {
     FLOW_DEFAULT_VERSIONING: Deno.env.get("FLOW_DEFAULT_VERSIONING"),
     FLOW_DEFAULT_FORMATS: Deno.env.get("FLOW_DEFAULT_FORMATS"),
     FLOW_API_ENABLED: Deno.env.get("FLOW_API_ENABLED"),
-    FLOW_SPARQL_ENABLED: Deno.env.get("FLOW_SPARQL_ENABLED")
+    FLOW_SPARQL_ENABLED: Deno.env.get("FLOW_SPARQL_ENABLED"),
   };
 }
 
@@ -249,7 +272,11 @@ function validateLogLevel(level: string): LogLevel {
   const normalized = level.toLowerCase().trim() as LogLevel;
 
   if (!validLevels.includes(normalized)) {
-    throw new ConfigError(`Invalid log level in environment variable: ${level}. Must be one of: ${validLevels.join(", ")}`);
+    throw new ConfigError(
+      `Invalid log level in environment variable: ${level}. Must be one of: ${
+        validLevels.join(", ")
+      }`,
+    );
   }
   return normalized;
 }
@@ -287,6 +314,8 @@ function parseBoolean(value: string): boolean | undefined {
  * @param cliConfigPath - Optional path to the configuration file specified via CLI
  * @returns The resolved configuration file path, or `undefined` if neither is set
  */
-export function getServiceConfigPath(cliConfigPath?: string): string | undefined {
+export function getServiceConfigPath(
+  cliConfigPath?: string,
+): string | undefined {
   return cliConfigPath || Deno.env.get("FLOW_CONFIG_PATH");
 }

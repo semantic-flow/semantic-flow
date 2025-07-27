@@ -4,8 +4,8 @@
  * Provides formatted logging for service startup configuration display
  */
 
-import type { ServiceConfigAccessor } from '../config/resolution/service-config-resolver.ts';
-import { MESH } from '../../../flow-core/src/mesh-constants.ts';
+import type { ServiceConfigAccessor } from "../config/resolution/service-config-resolver.ts";
+import { MESH } from "../../../flow-core/src/mesh-constants.ts";
 import { resolve } from "../../../flow-core/src/deps.ts";
 
 /**
@@ -15,17 +15,19 @@ import { resolve } from "../../../flow-core/src/deps.ts";
  */
 export function logStartupConfiguration(config: ServiceConfigAccessor): void {
   const now = new Date();
-  const timestamp = now.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }) + ' ' + now.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
+  const timestamp = now.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }) + " " + now.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
   }).toLowerCase();
 
-  console.log(`🔧 Flow Service initializing at ${timestamp} with configuration:`);
+  console.log(
+    `🔧 Flow Service initializing at ${timestamp} with configuration:`,
+  );
 
   if (config.meshPaths.length > 0) {
     for (const meshPath of config.meshPaths) {
@@ -37,14 +39,26 @@ export function logStartupConfiguration(config: ServiceConfigAccessor): void {
   }
 
   console.log(`   Console Logging: ${config.consoleLogLevel}`);
-  console.log(`   File Logging: ${config.fileLogEnabled ? config.fileLogLevel : 'disabled'}`);
-  console.log(`   Sentry Logging: ${config.sentryEnabled ? config.sentryLogLevel : 'disabled'}`);
+  console.log(
+    `   File Logging: ${
+      config.fileLogEnabled ? config.fileLogLevel : "disabled"
+    }`,
+  );
+  console.log(
+    `   Sentry Logging: ${
+      config.sentryEnabled ? config.sentryLogLevel : "disabled"
+    }`,
+  );
   const enabledServices = [];
-  if (config.apiEnabled) enabledServices.push('API');
-  if (config.sparqlEnabled) enabledServices.push('SPARQL Endpoint');
-  if (config.queryWidgetEnabled) enabledServices.push('SPARQL GUI');
+  if (config.apiEnabled) enabledServices.push("API");
+  if (config.sparqlEnabled) enabledServices.push("SPARQL Endpoint");
+  if (config.queryWidgetEnabled) enabledServices.push("SPARQL GUI");
 
-  console.log(`   Services: ${enabledServices.length > 0 ? enabledServices.join(', ') : 'none'}`);
+  console.log(
+    `   Services: ${
+      enabledServices.length > 0 ? enabledServices.join(", ") : "none"
+    }`,
+  );
 }
 
 /**

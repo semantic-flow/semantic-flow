@@ -1,4 +1,4 @@
-import { ServiceConfigAccessor } from '../config/index.ts';
+import { ServiceConfigAccessor } from "../config/index.ts";
 //import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 
 /**
@@ -17,8 +17,12 @@ export function composeMetadataContent(
   config: ServiceConfigAccessor,
   startedAtTime?: string,
 ): Record<string, unknown> {
-  const title = typeof initialData.title === 'string' ? initialData.title : slug;
-  const description = typeof initialData.description === 'string' ? initialData.description : `Node created for ${slug}`;
+  const title = typeof initialData.title === "string"
+    ? initialData.title
+    : slug;
+  const description = typeof initialData.description === "string"
+    ? initialData.description
+    : `Node created for ${slug}`;
   const attributedTo = config.defaultAttributedTo;
   const delegationChain = config.defaultDelegationChain;
 
@@ -37,7 +41,7 @@ export function composeMetadataContent(
       "meta": "https://semantic-flow.github.io/ontology/meta-flow/",
       "mesh": "https://semantic-flow.github.io/ontology/mesh/",
       "node": "https://semantic-flow.github.io/ontology/node/",
-      "flow": "https://semantic-flow.github.io/ontology/flow/"
+      "flow": "https://semantic-flow.github.io/ontology/flow/",
     },
     "@graph": [
       {
@@ -45,7 +49,7 @@ export function composeMetadataContent(
         "@type": "mesh:Node",
         "node:hasSlug": slug,
         "dcterms:title": title,
-        "dcterms:description": description
+        "dcterms:description": description,
       },
       {
         "@id": `../../${slug}/_handle/#`,
@@ -54,8 +58,8 @@ export function composeMetadataContent(
         "dcterms:title": `${title} Handle`,
         "dcterms:description": `Handle for the ${slug} ${nodeType} node.`,
         "node:isHandleFor": {
-          "@id": `../../${slug}/_handle/`
-        }
+          "@id": `../../${slug}/_handle/`,
+        },
       },
       {
         "@id": "#creation-activity",
@@ -64,15 +68,15 @@ export function composeMetadataContent(
         "dcterms:description": `Creation of the ${slug} ${nodeType} node.`,
         "prov:startedAtTime": startTime,
         "prov:endedAtTime": endTime,
-        "prov:wasAssociatedWith": attributedTo
+        "prov:wasAssociatedWith": attributedTo,
       },
       {
         "@id": "#creation-context",
         "@type": "meta:ProvenanceContext",
         "meta:forActivity": { "@id": "#creation-activity" },
         "prov:wasAttributedTo": attributedTo,
-        "meta:delegationChain": delegationChain
-      }
-    ]
+        "meta:delegationChain": delegationChain,
+      },
+    ],
   };
 }

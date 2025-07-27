@@ -1,4 +1,4 @@
-import { assertEquals } from '../../../flow-core/src/deps.ts';
+import { assertEquals } from "../../../flow-core/src/deps.ts";
 
 Deno.test("Health endpoint is reachable", async () => {
   const response = await fetch("http://localhost:8080/api/health");

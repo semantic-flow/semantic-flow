@@ -7,7 +7,6 @@ const DATA = "data";
 const NEXT = "next";
 const CURRENT = "current";
 
-
 export const MESH = {
   // Flow slugs
   CONFIG,
@@ -46,6 +45,6 @@ export const MESH = {
   FLOW_ONTOLOGY: "https://semantic-flow.github.io/ontology/flow/",
   CONFIG_FLOW_ONTOLOGY: "https://semantic-flow.github.io/ontology/config-flow/",
   META_FLOW_ONTOLOGY: "https://semantic-flow.github.io/ontology/meta-flow/",
-  FLOW_SERVICE_ONTOLOGY: "https://semantic-flow.github.io/ontology/flow-service/"
+  FLOW_SERVICE_ONTOLOGY:
+    "https://semantic-flow.github.io/ontology/flow-service/",
 } as const;
-

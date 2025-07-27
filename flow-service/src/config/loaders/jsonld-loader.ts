@@ -5,11 +5,11 @@
  * Supports both service and node configuration formats.
  */
 
-import type { ServiceConfigInput, NodeConfigInput } from '../types.ts';
-import { ConfigError } from '../types.ts';
-import { handleCaughtError } from '../../utils/logger.ts';
-import { getCurrentConfigDistPath } from '../../../../flow-core/src/utils/mesh-path-utils.ts';
-import { dirname, resolve } from '../../../../flow-core/src/deps.ts';
+import type { NodeConfigInput, ServiceConfigInput } from "../types.ts";
+import { ConfigError } from "../types.ts";
+import { handleCaughtError } from "../../utils/logger.ts";
+import { getCurrentConfigDistPath } from "../../../../flow-core/src/utils/mesh-path-utils.ts";
+import { dirname, resolve } from "../../../../flow-core/src/deps.ts";
 
 /**
  * Loads a service configuration from a JSON-LD file at the specified path.
@@ -19,14 +19,20 @@ import { dirname, resolve } from '../../../../flow-core/src/deps.ts';
  * @param configPath - Path to the service configuration JSON-LD file
  * @returns The parsed service configuration object, or `null` if the file is missing
  */
-export async function loadServiceConfig(configPath: string): Promise<ServiceConfigInput | null> {
+export async function loadServiceConfig(
+  configPath: string,
+): Promise<ServiceConfigInput | null> {
   try {
     const configContent = await Deno.readTextFile(configPath);
     const parsedConfig = JSON.parse(configContent);
 
     // Basic validation - ensure it's a service config
     if (parsedConfig["@type"] !== "fsvc:ServiceConfig") {
-      throw new ConfigError(`Invalid service config type: expected "fsvc:ServiceConfig", got "${parsedConfig["@type"]}"`);
+      throw new ConfigError(
+        `Invalid service config type: expected "fsvc:ServiceConfig", got "${
+          parsedConfig["@type"]
+        }"`,
+      );
     }
 
     return parsedConfig as ServiceConfigInput;
@@ -37,19 +43,34 @@ export async function loadServiceConfig(configPath: string): Promise<ServiceConf
     }
 
     if (error instanceof SyntaxError) {
-      await handleCaughtError(error, `Invalid JSON in config file ${configPath}`);
-      throw new ConfigError(`Invalid JSON in config file ${configPath}: ${error.message}`, error);
+      await handleCaughtError(
+        error,
+        `Invalid JSON in config file ${configPath}`,
+      );
+      throw new ConfigError(
+        `Invalid JSON in config file ${configPath}: ${error.message}`,
+        error,
+      );
     }
 
     if (error instanceof ConfigError) {
-      await handleCaughtError(error, `Configuration error loading service config from ${configPath}`);
+      await handleCaughtError(
+        error,
+        `Configuration error loading service config from ${configPath}`,
+      );
       throw error;
     }
 
-    await handleCaughtError(error, `Failed to load service config from ${configPath}`);
+    await handleCaughtError(
+      error,
+      `Failed to load service config from ${configPath}`,
+    );
     const errorMessage = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? error : undefined;
-    throw new ConfigError(`Failed to load service config from ${configPath}: ${errorMessage}`, cause);
+    throw new ConfigError(
+      `Failed to load service config from ${configPath}: ${errorMessage}`,
+      cause,
+    );
   }
 }
 
@@ -61,7 +82,9 @@ export async function loadServiceConfig(configPath: string): Promise<ServiceConf
  * @param nodePath - The directory path of the node whose configuration should be loaded
  * @returns The parsed node configuration object, or `null` if the configuration file does not exist
  */
-export async function loadNodeConfig(nodePath: string): Promise<NodeConfigInput | null> {
+export async function loadNodeConfig(
+  nodePath: string,
+): Promise<NodeConfigInput | null> {
   // Resolve nodePath to absolute path to avoid relative path issues
   const absoluteNodePath = resolve(nodePath);
   const configPath = getCurrentConfigDistPath(absoluteNodePath);
@@ -72,7 +95,11 @@ export async function loadNodeConfig(nodePath: string): Promise<NodeConfigInput 
 
     // Basic validation - ensure it's a node config
     if (parsedConfig["@type"] !== "flow:ConfigDistribution") {
-      throw new ConfigError(`Invalid node config type: expected "flow:ConfigDistribution", got "${parsedConfig["@type"]}"`);
+      throw new ConfigError(
+        `Invalid node config type: expected "flow:ConfigDistribution", got "${
+          parsedConfig["@type"]
+        }"`,
+      );
     }
 
     return parsedConfig as NodeConfigInput;
@@ -83,19 +110,34 @@ export async function loadNodeConfig(nodePath: string): Promise<NodeConfigInput 
     }
 
     if (error instanceof SyntaxError) {
-      await handleCaughtError(error, `Invalid JSON in node config at ${configPath}`);
-      throw new ConfigError(`Invalid JSON in node config at ${configPath}: ${error.message}`, error);
+      await handleCaughtError(
+        error,
+        `Invalid JSON in node config at ${configPath}`,
+      );
+      throw new ConfigError(
+        `Invalid JSON in node config at ${configPath}: ${error.message}`,
+        error,
+      );
     }
 
     if (error instanceof ConfigError) {
-      await handleCaughtError(error, `Configuration error loading node config from ${configPath}`);
+      await handleCaughtError(
+        error,
+        `Configuration error loading node config from ${configPath}`,
+      );
       throw error;
     }
 
-    await handleCaughtError(error, `Failed to load node config from ${configPath}`);
+    await handleCaughtError(
+      error,
+      `Failed to load node config from ${configPath}`,
+    );
     const errorMessage = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? error : undefined;
-    throw new ConfigError(`Failed to load node config from ${configPath}: ${errorMessage}`, cause);
+    throw new ConfigError(
+      `Failed to load node config from ${configPath}: ${errorMessage}`,
+      cause,
+    );
   }
 }
 
@@ -104,7 +146,10 @@ export async function loadNodeConfig(nodePath: string): Promise<NodeConfigInput 
  *
  * Ensures the target directory exists before writing. Throws a ConfigError if saving fails.
  */
-export async function saveServiceConfig(configPath: string, config: ServiceConfigInput): Promise<void> {
+export async function saveServiceConfig(
+  configPath: string,
+  config: ServiceConfigInput,
+): Promise<void> {
   try {
     // Ensure the directory exists
     const dir = dirname(configPath);
@@ -114,10 +159,16 @@ export async function saveServiceConfig(configPath: string, config: ServiceConfi
     const configContent = JSON.stringify(config, null, 2);
     await Deno.writeTextFile(configPath, configContent);
   } catch (error) {
-    await handleCaughtError(error, `Failed to save service config to ${configPath}`);
+    await handleCaughtError(
+      error,
+      `Failed to save service config to ${configPath}`,
+    );
     const errorMessage = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? error : undefined;
-    throw new ConfigError(`Failed to save service config to ${configPath}: ${errorMessage}`, cause);
+    throw new ConfigError(
+      `Failed to save service config to ${configPath}: ${errorMessage}`,
+      cause,
+    );
   }
 }
 
@@ -126,7 +177,10 @@ export async function saveServiceConfig(configPath: string, config: ServiceConfi
  *
  * Ensures the target directory exists before writing. Throws a ConfigError if saving fails.
  */
-export async function saveNodeConfig(nodePath: string, config: NodeConfigInput): Promise<void> {
+export async function saveNodeConfig(
+  nodePath: string,
+  config: NodeConfigInput,
+): Promise<void> {
   const configPath = getCurrentConfigDistPath(nodePath);
 
   try {
@@ -138,13 +192,18 @@ export async function saveNodeConfig(nodePath: string, config: NodeConfigInput):
     const configContent = JSON.stringify(config, null, 2);
     await Deno.writeTextFile(configPath, configContent);
   } catch (error) {
-    await handleCaughtError(error, `Failed to save node config to ${configPath}`);
+    await handleCaughtError(
+      error,
+      `Failed to save node config to ${configPath}`,
+    );
     const errorMessage = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? error : undefined;
-    throw new ConfigError(`Failed to save node config to ${configPath}: ${errorMessage}`, cause);
+    throw new ConfigError(
+      `Failed to save node config to ${configPath}: ${errorMessage}`,
+      cause,
+    );
   }
 }
-
 
 /**
  * Determines whether a configuration file exists at the specified path.
@@ -168,12 +227,12 @@ export async function configExists(configPath: string): Promise<boolean> {
  * @returns An array of ancestor node paths, from deepest ancestor to root
  */
 export function getNodeHierarchy(nodePath: string): string[] {
-  const parts = nodePath.split('/').filter(part => part);
+  const parts = nodePath.split("/").filter((part) => part);
   const hierarchy: string[] = [];
 
   // Build hierarchy paths from deepest to shallowest
   for (let i = parts.length - 1; i >= 0; i--) {
-    const ancestorPath = parts.slice(0, i).join('/');
+    const ancestorPath = parts.slice(0, i).join("/");
     if (ancestorPath && ancestorPath !== nodePath) {
       hierarchy.push(ancestorPath);
     }
@@ -190,7 +249,9 @@ export function getNodeHierarchy(nodePath: string): string[] {
  * @param nodePath - The file system path to the node directory
  * @returns `true` if config inheritance is enabled or unspecified; `false` if explicitly disabled
  */
-export async function isConfigInheritanceEnabled(nodePath: string): Promise<boolean> {
+export async function isConfigInheritanceEnabled(
+  nodePath: string,
+): Promise<boolean> {
   try {
     const nodeConfig = await loadNodeConfig(nodePath);
 
@@ -213,8 +274,8 @@ export async function isConfigInheritanceEnabled(nodePath: string): Promise<bool
  * Throws a ConfigError if the input is not an object or if required properties are missing.
  */
 export function validateJSONLD(data: unknown): void {
-  if (!data || typeof data !== 'object') {
-    throw new ConfigError('Configuration must be a valid JSON object');
+  if (!data || typeof data !== "object") {
+    throw new ConfigError("Configuration must be a valid JSON object");
   }
 
   const obj = data as Record<string, unknown>;

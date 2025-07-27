@@ -32,7 +32,11 @@ export interface LogChannelConfig {
   readonly "fsvc:logRetentionDays"?: number;
   readonly "fsvc:logMaxFiles"?: number;
   readonly "fsvc:logMaxFileSize"?: number;
-  readonly "fsvc:logRotationInterval"?: "daily" | "weekly" | "monthly" | "size-based";
+  readonly "fsvc:logRotationInterval"?:
+    | "daily"
+    | "weekly"
+    | "monthly"
+    | "size-based";
 }
 
 export interface LoggingConfig {
@@ -178,14 +182,18 @@ export interface EnvironmentConfig {
 export class ConfigError extends Error {
   constructor(message: string, public override readonly cause?: Error) {
     super(message);
-    this.name = 'ConfigError';
+    this.name = "ConfigError";
   }
 }
 
 export class ConfigValidationError extends ConfigError {
-  constructor(message: string, public readonly errors: string[], cause?: Error) {
+  constructor(
+    message: string,
+    public readonly errors: string[],
+    cause?: Error,
+  ) {
     super(message, cause);
-    this.name = 'ConfigValidationError';
+    this.name = "ConfigValidationError";
   }
 }
 
@@ -198,7 +206,8 @@ export type LogLevel = "debug" | "info" | "warn" | "error";
  * @returns The configured service port number
  */
 export function getServicePort(context: ServiceConfigContext): number {
-  return context.inputOptions["fsvc:port"] ?? context.defaultOptions["fsvc:port"];
+  return context.inputOptions["fsvc:port"] ??
+    context.defaultOptions["fsvc:port"];
 }
 
 /**
@@ -207,7 +216,8 @@ export function getServicePort(context: ServiceConfigContext): number {
  * @returns The configured service host name or address.
  */
 export function getServiceHost(context: ServiceConfigContext): string {
-  return context.inputOptions["fsvc:host"] ?? context.defaultOptions["fsvc:host"];
+  return context.inputOptions["fsvc:host"] ??
+    context.defaultOptions["fsvc:host"];
 }
 
 /**
@@ -216,8 +226,12 @@ export function getServiceHost(context: ServiceConfigContext): string {
  * @returns The log level for the console channel.
  */
 export function getConsoleLogLevel(context: ServiceConfigContext): LogLevel {
-  return context.inputOptions["fsvc:hasLoggingConfig"]?.["fsvc:hasConsoleChannel"]?.["fsvc:logLevel"]
-    ?? context.defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasConsoleChannel"]["fsvc:logLevel"];
+  return context.inputOptions["fsvc:hasLoggingConfig"]
+    ?.["fsvc:hasConsoleChannel"]?.["fsvc:logLevel"] ??
+    context
+      .defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasConsoleChannel"][
+        "fsvc:logLevel"
+      ];
 }
 
 /**
@@ -226,8 +240,12 @@ export function getConsoleLogLevel(context: ServiceConfigContext): LogLevel {
  * @returns `true` if file logging is enabled; otherwise, `false`
  */
 export function getFileLogEnabled(context: ServiceConfigContext): boolean {
-  return context.inputOptions["fsvc:hasLoggingConfig"]?.["fsvc:hasFileChannel"]?.["fsvc:logChannelEnabled"]
-    ?? context.defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasFileChannel"]["fsvc:logChannelEnabled"];
+  return context.inputOptions["fsvc:hasLoggingConfig"]?.["fsvc:hasFileChannel"]
+    ?.["fsvc:logChannelEnabled"] ??
+    context
+      .defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasFileChannel"][
+        "fsvc:logChannelEnabled"
+      ];
 }
 
 /**
@@ -236,8 +254,12 @@ export function getFileLogEnabled(context: ServiceConfigContext): boolean {
  * @returns `true` if Sentry logging is enabled; otherwise, `false`
  */
 export function getSentryEnabled(context: ServiceConfigContext): boolean {
-  return context.inputOptions["fsvc:hasLoggingConfig"]?.["fsvc:hasSentryChannel"]?.["fsvc:logChannelEnabled"]
-    ?? context.defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasSentryChannel"]["fsvc:logChannelEnabled"];
+  return context.inputOptions["fsvc:hasLoggingConfig"]
+    ?.["fsvc:hasSentryChannel"]?.["fsvc:logChannelEnabled"] ??
+    context
+      .defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasSentryChannel"][
+        "fsvc:logChannelEnabled"
+      ];
 }
 
 /**
@@ -246,5 +268,6 @@ export function getSentryEnabled(context: ServiceConfigContext): boolean {
  * @returns `true` if versioning is enabled; otherwise, `false`
  */
 export function getVersioningEnabled(context: NodeConfigContext): boolean {
-  return context.inputOptions["conf:versioningEnabled"] ?? context.defaultOptions["conf:versioningEnabled"];
+  return context.inputOptions["conf:versioningEnabled"] ??
+    context.defaultOptions["conf:versioningEnabled"];
 }
