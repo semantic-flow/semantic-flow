@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from '../../../flow-core/src/deps.ts';
 
 Deno.test("Health endpoint is reachable", async () => {
   const response = await fetch("http://localhost:8080/api/health");

@@ -8,8 +8,8 @@
 import type { ServiceConfigInput, NodeConfigInput } from '../types.ts';
 import { ConfigError } from '../types.ts';
 import { handleCaughtError } from '../../utils/logger.ts';
-import { getCurrentConfigDistPath } from '../../../../flow-core/src/mesh-constants.ts';
-import { dirname, resolve } from 'https://deno.land/std@0.208.0/path/mod.ts';
+import { getCurrentConfigDistPath } from '../../../../flow-core/src/utils/mesh-path-utils.ts';
+import { dirname, resolve } from '../../../../flow-core/src/deps.ts';
 
 /**
  * Loads a service configuration from a JSON-LD file at the specified path.

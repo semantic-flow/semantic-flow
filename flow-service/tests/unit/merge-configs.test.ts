@@ -6,7 +6,7 @@
  */
 
 // @ts-nocheck - Unit tests intentionally test runtime behavior with various data types
-import { assertEquals, assertNotStrictEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals, assertNotStrictEquals } from '../../../flow-core/src/deps.ts';
 import { mergeConfigs } from "../../src/utils/merge-configs.ts";
 
 Deno.test("mergeConfigs - Basic object merging", () => {

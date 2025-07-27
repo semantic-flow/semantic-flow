@@ -1,8 +1,6 @@
-import { basename, dirname } from 'jsr:@std/path';
 import { ServiceConfigAccessor } from '../config/index.ts';
 import { logger } from './logger.ts';
-
-import { existsSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
+import { basename, dirname, existsSync } from '../../../flow-core/src/deps.ts';
 
 export const initializeMeshRegistry = (config: ServiceConfigAccessor, meshRegistry: Record<string, string>) => {
   const meshPaths = config.meshPaths;
