@@ -1,6 +1,5 @@
 import * as Sentry from 'npm:@sentry/deno';
-import { dirname } from 'https://deno.land/std@0.208.0/path/mod.ts';
-import { ensureDir } from 'https://deno.land/std@0.208.0/fs/mod.ts';
+import { ensureDir, dirname } from '../../../flow-core/src/deps.ts';
 
 // Environment-based configuration
 const isDevelopment = Deno.env.get('FLOW_ENV') !== 'production'

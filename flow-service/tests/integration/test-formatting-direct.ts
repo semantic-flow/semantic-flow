@@ -7,8 +7,7 @@
 // Import the formatting functions directly from the logger module
 // We'll need to extract them for testing
 
-import { dirname } from 'https://deno.land/std@0.208.0/path/mod.ts';
-import { ensureDir } from 'https://deno.land/std@0.208.0/fs/mod.ts';
+import { dirname, ensureDir } from '../../../flow-core/src/deps.ts';
 
 type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL';
 

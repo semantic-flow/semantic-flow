@@ -6,8 +6,7 @@
 
 import type { ServiceConfigAccessor } from '../config/resolution/service-config-resolver.ts';
 import { MESH } from '../../../flow-core/src/mesh-constants.ts';
-
-import { resolve } from "https://deno.land/std@0.224.0/path/mod.ts";
+import { resolve } from "../../../flow-core/src/deps.ts";
 
 /**
  * Logs the service startup configuration details with a timestamp in US locale.

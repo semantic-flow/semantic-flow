@@ -1,5 +1,7 @@
 // Utility functions for path handling in flow-core
 
+import { normalize } from '../deps.ts';
+
 /**
  * Converts a node relative path to a meta relative path by prepending "../../"
  * This is used to navigate from a node's directory to its meta directory.
@@ -10,34 +12,38 @@
 export function convertNodeRelativePathToMetaRelativePath(nodeRelativePath: string): string {
   return `../../${nodeRelativePath}`;
 }
-
 /**
- * Normalizes a node path to ensure it does not start with a slash or "./"
- * and uses consistent separators.
+ * Normalizes a folder path by ensuring it ends with a slash.
+ * If the path is empty, it returns "/".
  *
- * @param nodePath - The node path to normalize
- * @returns The normalized node path
+ * @param folderPath - The folder path to normalize
+ * @returns The normalized folder path
  */
-export function normalizeNodePath(nodePath: string): string {
-  if (!nodePath) return '';
-  let normalized = nodePath;
-  if (normalized.startsWith('/')) {
-    normalized = normalized.slice(1);
-  }
-  if (normalized.startsWith('./')) {
-    normalized = normalized.slice(2);
-  }
-  // Additional normalization can be added here if needed
-  return normalized;
+
+export function normalizeFolderPath(folderPath: string): string {
+  if (!folderPath) return "/";
+  const path = normalize(folderPath);
+  return path.endsWith("/") ? path : path + "/";
 }
 
 /**
- * Extracts the last segment of a node path.
+ * Safely extracts the last segment of a path.
+ * Removes trailing slashes, then returns the substring after the last slash.
+ * If no slash is present, returns the entire path.
  *
- * @param nodePath - The node path string
+ * @param path - The filesystem path string
  * @returns The last segment of the path
  */
-export function getLastSegment(nodePath: string): string {
-  const parts = nodePath.split('/');
-  return parts[parts.length - 1] || '';
+export function getLastPathSegment(path: string): string {
+  if (!path) return path;
+  // Remove trailing slashes
+  let trimmedPath = path;
+  while (trimmedPath.endsWith('/')) {
+    trimmedPath = trimmedPath.slice(0, -1);
+  }
+  const lastSlashIndex = trimmedPath.lastIndexOf('/');
+  if (lastSlashIndex === -1) {
+    return trimmedPath;
+  }
+  return trimmedPath.substring(lastSlashIndex + 1);
 }
