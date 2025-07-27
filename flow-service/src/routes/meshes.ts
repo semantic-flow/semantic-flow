@@ -250,6 +250,8 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     const { apiNodePath, nodeType, initialData, options } = c.req.valid('json');
     const fileSystemNodePath = apiNodePath.replace(/~/g, '/');
 
+    const startTime = new Date().toISOString();
+
     const meshParentPath = meshRegistry[meshName];
     if (!meshParentPath) {
       return c.json({
@@ -313,7 +315,8 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
       slug,
       nodeType,
       initialData,
-      config
+      config,
+      startTime
     );
 
     await Deno.mkdir(dirname(currentMetaDistPath), { recursive: true });

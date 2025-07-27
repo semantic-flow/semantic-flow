@@ -15,11 +15,15 @@ export function composeMetadataContent(
   nodeType: string,
   initialData: Record<string, unknown>,
   config: ServiceConfigAccessor,
+  startedAtTime?: string,
 ): Record<string, unknown> {
   const title = typeof initialData.title === 'string' ? initialData.title : slug;
   const description = typeof initialData.description === 'string' ? initialData.description : `Node created for ${slug}`;
   const attributedTo = config.defaultAttributedTo;
   const delegationChain = config.defaultDelegationChain;
+
+  const startTime = startedAtTime ?? new Date().toISOString();
+  const endTime = new Date().toISOString();
 
   return {
     "@context": {
@@ -58,8 +62,8 @@ export function composeMetadataContent(
         "@type": "meta:NodeCreation",
         "dcterms:title": `${title} Node Creation`,
         "dcterms:description": `Creation of the ${slug} ${nodeType} node.`,
-        "prov:startedAtTime": new Date().toISOString(),
-        "prov:endedAtTime": new Date().toISOString(),
+        "prov:startedAtTime": startTime,
+        "prov:endedAtTime": endTime,
         "prov:wasAssociatedWith": attributedTo
       },
       {
