@@ -1,27 +1,13 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { logger } from '../utils/logger.ts';
-import { MESH_CONSTANTS } from '../../../flow-core/src/mesh-constants.ts';
-import { join, basename } from 'jsr:@std/path';
+import { getMetaFlowPath, getNextMetaDistPath, getCurrentMetaDistPath, MESH, getHandlePath, getAssetsPath } from '../../../flow-core/src/mesh-constants.ts';
+import { join, dirname } from 'jsr:@std/path';
+import { existsSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { ServiceConfigAccessor } from '../config/index.ts';
-import { loadNodeConfig } from '../config/loaders/jsonld-loader.ts';
+import { composeMetadataContent } from '../services/metadata-composer.ts';
+import { initializeMeshRegistry } from '../utils/mesh-utils.ts';
+
 //import { Context } from '@hono/hono';
-
-const initializeMeshRegistry = (config: ServiceConfigAccessor, meshRegistry: Record<string, string>) => {
-  const meshPaths = config.meshPaths;
-  if (meshPaths && Array.isArray(meshPaths)) {
-    for (const meshPath of meshPaths) {
-      const meshName = basename(meshPath);
-
-      if (meshRegistry[meshName]) {
-        logger.warn(`Mesh name collision detected: '${meshName}' already exists at path '${meshRegistry[meshName]}'. Skipping '${meshPath}'.`);
-        continue;
-      }
-
-      meshRegistry[meshName] = meshPath;
-      logger.info(`Discovered mesh '${meshName}' from configuration at path: ${meshPath}`);
-    }
-  }
-};
 
 export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono => {
   const meshes = new OpenAPIHono();
@@ -32,13 +18,14 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
   const MeshRegistrationRequest = z.object({
     name: z.string().openapi({
       description: 'The logical name for the mesh.',
-      example: 'test-ns',
+      example: 'ns',
     }),
-    path: z.string().openapi({
-      description: 'The file system path to the mesh repository.',
-      example: './test-ns',
+    parentPath: z.string().openapi({
+      description: "The file system path to the mesh's parent directory.",
+      example: '../meshes',
     }),
   });
+
 
   const LinkObject = z.object({
     rel: z.string(),
@@ -54,9 +41,13 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
 
   // Schemas for Node Creation (POST /api/meshes/{meshName}/nodes)
   const NodeCreationRequest = z.object({
-    path: z.string().openapi({
-      description: "The relative path for the new node. For a root node, use `/` or an empty string; the API will return `/{meshName}/` as its path.",
-      example: '/',
+    apiNodePath: z.string().openapi({
+      description: "The relative path for the new node, using '~' as a separator. For a root node, use an empty string.",
+      examples: [
+        '',
+        'djradon',
+        'djradon~underbrush'
+      ],
     }),
     nodeType: z.enum(['Namespace', 'Reference', 'Dataset']).openapi({
       description: 'The type of node to create.',
@@ -89,7 +80,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     method: 'post',
     path: '/meshes',
     tags: ['Mesh Management'],
-    summary: 'Register a new mesh',
+    summary: 'Register an existing mesh',
     request: {
       body: {
         content: {
@@ -128,7 +119,8 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
   });
 
   meshes.openapi(registerMeshRoute, async (c) => {
-    const { name, path } = c.req.valid('json');
+    const { name, parentPath } = c.req.valid('json');
+    const path = join(parentPath, name);
 
     if (meshRegistry[name]) {
       return c.json({
@@ -158,8 +150,12 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
       throw error; // Re-throw other errors for the global handler
     }
 
-    const handlePath = join(path, MESH_CONSTANTS.HANDLE_DIR);
-    const metaFlowPath = join(path, MESH_CONSTANTS.META_FLOW_DIR);
+    if (!existsSync(join(path, '.git'))) {
+      logger.info(`Mesh root folder '${path}' exists but is not under git control (no '.git' folder found).`);
+    }
+
+    const handlePath = join(path, MESH.HANDLE_DIR);
+    const metaFlowPath = join(path, MESH.META_FLOW_DIR);
     let meshSignatureFound = false;
 
     try {
@@ -195,7 +191,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     }
 
     // Update registry after all validations pass
-    meshRegistry[name] = path;
+    meshRegistry[name] = parentPath;
 
     return c.json({ message, links }, 201);
   });
@@ -230,6 +226,14 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
           },
         },
       },
+      409: {
+        description: 'Node already exists.',
+        content: {
+          'application/json': {
+            schema: ErrorResponse,
+          },
+        },
+      },
       404: {
         description: 'Mesh not found.',
         content: {
@@ -243,139 +247,105 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
 
   meshes.openapi(createNodeRoute, async (c) => {
     const { meshName } = c.req.param();
-    const { path, nodeType, initialData, options } = c.req.valid('json');
+    const { apiNodePath, nodeType, initialData, options } = c.req.valid('json');
+    const fileSystemNodePath = apiNodePath.replace(/~/g, '/');
 
-    const meshRootPath = meshRegistry[meshName];
-    if (!meshRootPath) {
+    const startTime = new Date().toISOString();
+
+    const meshParentPath = meshRegistry[meshName];
+    if (!meshParentPath) {
       return c.json({
         error: "Not Found",
         message: `Mesh '${meshName}' not found.`
       }, 404);
     }
 
-    const isRootNode = path === '/' || path === '';
-    const responsePath = isRootNode ? `/${meshName}/` : path;
-    const physicalPath = isRootNode ? meshRootPath : join(meshRootPath, path);
+    const isRootNode = apiNodePath === '' || apiNodePath === '~';
+    const responsePath = isRootNode ? `/${meshName}/` : fileSystemNodePath;
 
-    logger.info(`Attempting to create node in mesh '${meshName}' at path '${path}' (physical: ${physicalPath})`);
+    const logMessage = isRootNode
+      ? `Attempting to create node at mesh root (${meshName})`
+      : `Attempting to create node in mesh '${meshName}' at path '${fileSystemNodePath}' (physical: ${meshParentPath})`;
+    logger.info(logMessage);
+
+    const slug = apiNodePath.split(MESH.API_IDENTIFIER_PATH_SEPARATOR).pop() || meshName;
+
+    // Check for node existence - fail if either _handle or _meta-flow directories exist
+    const handleDir = join(meshParentPath, getHandlePath(slug));
+    const metaFlowDir = join(meshParentPath, getMetaFlowPath(slug));
+
+    let nodeExists = false;
+    try {
+      await Deno.stat(handleDir);
+      nodeExists = true;
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    }
+
+    if (!nodeExists) {
+      try {
+        await Deno.stat(metaFlowDir);
+        nodeExists = true;
+      } catch (error) {
+        if (!(error instanceof Deno.errors.NotFound)) throw error;
+      }
+    }
+
+    if (nodeExists) {
+      return c.json({
+        error: 'Conflict',
+        message: `Node already exists at path '${responsePath}' in mesh '${meshName}'.`
+      }, 409);
+    }
 
     // This is a simplified implementation for now
     // It does not yet handle different node types or initialData
     const filesCreated: string[] = [];
-    const slug = basename(path.replace(/\/$/, '')) || basename(meshRootPath);
-    const snapshotFileName = 'meta-flow.jsonld';
-
-    const handleDir = join(physicalPath, MESH_CONSTANTS.HANDLE_DIR);
-    const metaFlowDir = join(physicalPath, MESH_CONSTANTS.META_FLOW_DIR, MESH_CONSTANTS.NEXT_SNAPSHOT_DIR);
-    const snapshotFilePath = join(metaFlowDir, snapshotFileName);
+    const assetsDir = join(meshParentPath, getAssetsPath(slug));
+    const currentMetaDistPath = join(meshParentPath, getCurrentMetaDistPath(slug));
+    const nextMetaDistPath = join(meshParentPath, getNextMetaDistPath(slug));
 
     await Deno.mkdir(handleDir, { recursive: true });
     filesCreated.push(handleDir);
 
     await Deno.mkdir(metaFlowDir, { recursive: true });
     filesCreated.push(metaFlowDir);
-    // Load node-specific configuration to check for attribution override
-    let nodeConfig;
-    try {
-      nodeConfig = await loadNodeConfig(physicalPath);
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.warn(`Failed to load node config from ${physicalPath}: ${error.message}`);
-      } else {
-        logger.warn(`Failed to load node config from ${physicalPath}: ${String(error)}`);
-      }
-    }
-    const attributedTo = nodeConfig?.['conf:defaultAttribution']
-      ? { "@id": nodeConfig['conf:defaultAttribution'] }
-      : config.defaultAttributedTo;
 
-    const title = typeof initialData.title === 'string' ? initialData.title : 'N/A';
-    const description = typeof initialData.description === 'string' ? initialData.description : `Node created for ${slug}`;
+    const metadataContent = composeMetadataContent(
+      slug,
+      nodeType,
+      initialData,
+      config,
+      startTime
+    );
 
-    const snapshotContent = {
-      "@context": {
-        "owl": "http://www.w3.org/2002/07/owl#",
-        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-        "xsd": "http://www.w3.org/2001/XMLSchema#",
-        "dcterms": "http://purl.org/dc/terms/",
-        "prov": "http://www.w3.org/ns/prov#",
-        "dcat": "http://www.w3.org/ns/dcat#",
-        "meta": "https://semantic-flow.github.io/ontology/meta-flow/",
-        "mesh": "https://semantic-flow.github.io/ontology/mesh/",
-        "node": "https://semantic-flow.github.io/ontology/node/",
-        "flow": "https://semantic-flow.github.io/ontology/flow/"
-      },
-      "@graph": [
-        {
-          "@id": "#meta-flow-v1-activity",
-          "@type": "meta:NodeCreation",
-          "dcterms:title": `${title} Node Creation`,
-          "dcterms:description": `Creation of the ${slug} ${nodeType} node.`,
-          "prov:startedAtTime": new Date().toISOString(),
-          "prov:endedAtTime": new Date().toISOString(),
-          "prov:wasAssociatedWith": attributedTo
-        },
-        {
-          "@id": `../../${slug}/_handle/`,
-          "@type": "mesh:Node",
-          "node:hasSlug": slug,
-          "dcterms:title": title,
-          "dcterms:description": description
-        },
-        {
-          "@id": `../../${slug}/_handle/#`,
-          "@type": "node:Handle",
-          "mesh:relativeIdentifier": `../../${slug}/_handle/`,
-          "dcterms:title": `${title} Handle`,
-          "dcterms:description": `Handle for the ${slug} ${nodeType} node.`,
-          "node:isHandleFor": {
-            "@id": `../../${slug}/_handle/`
-          }
-        },
-        {
-          "@id": "#meta-flow-v1-context",
-          "@type": "meta:ProvenanceContext",
-          "meta:forActivity": { "@id": "#meta-flow-v1-activity" },
-          "meta:forSnapshot": { "@id": "#meta-flow-v1-snapshot" },
-          "prov:wasAttributedTo": attributedTo,
-          "meta:delegationChain": config.defaultDelegationChain
-        },
-        {
-          "@id": "#meta-flow-v1-snapshot",
-          "@type": "flow:VersionSnapshot",
-          "dcterms:title": `${title} Metadata Snapshot`,
-          "dcterms:description": `Initial metadata snapshot for the ${slug} node.`,
-          "dcterms:created": new Date().toISOString(),
-          "prov:wasGeneratedBy": { "@id": "#meta-flow-v1-activity" },
-          "dcat:distribution": {
-            "@id": "#meta-flow-v1-distribution",
-            "@type": "dcat:Distribution",
-            "dcterms:format": "application/ld+json",
-            "dcterms:title": `${title} Metadata Distribution`,
-            "dcat:downloadURL": snapshotFileName
-          }
-        }
-      ]
-    };
+    await Deno.mkdir(dirname(currentMetaDistPath), { recursive: true });
+    await Deno.writeTextFile(currentMetaDistPath, JSON.stringify(metadataContent, null, 2));
+    filesCreated.push(currentMetaDistPath);
 
-    await Deno.writeTextFile(snapshotFilePath, JSON.stringify(snapshotContent, null, 2));
-    filesCreated.push(snapshotFilePath);
+    await Deno.mkdir(dirname(nextMetaDistPath), { recursive: true });
+    await Deno.writeTextFile(nextMetaDistPath, JSON.stringify(metadataContent, null, 2));
+    filesCreated.push(nextMetaDistPath);
 
     if (options?.copyDefaultAssets) {
-      const assetsDir = join(physicalPath, MESH_CONSTANTS.ASSETS_COMPONENT_DIR);
       await Deno.mkdir(assetsDir, { recursive: true });
       filesCreated.push(assetsDir);
     }
 
+    const message = isRootNode
+      ? `Node created successfully at mesh root (${meshName})`
+      : `Node created successfully at path '${fileSystemNodePath}' in mesh '${meshName}'.`;
+
+    const links: (z.infer<typeof LinkObject>)[] = [
+      { rel: 'self', href: `/api/meshes/${meshName}/nodes${responsePath}` },
+      { rel: 'mesh', href: `/api/meshes/${meshName}` },
+    ];
+
     const response = {
-      message: `Node created successfully at path '${responsePath}' in mesh '${meshName}'.`,
+      message,
       nodePath: responsePath,
       filesCreated,
-      links: [
-        { rel: 'self', href: `/api/meshes/${meshName}/nodes${responsePath}` },
-        { rel: 'mesh', href: `/api/meshes/${meshName}` },
-      ],
+      links,
     };
 
     return c.json(response, 201);

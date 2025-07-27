@@ -13,7 +13,7 @@
   "@id": "fsvc:defaultConfig",
   "fsvc:port": 8080,
   "fsvc:meshPaths": [
-    "../test-ns/"
+    "../meshes/test-ns/"
   ],
   "fsvc:defaultLicense": "https://creativecommons.org/licenses/by-sa/4.0/",
   "fsvc:defaultAttributedTo": {

@@ -8,8 +8,8 @@
 import type { ServiceConfigInput, NodeConfigInput } from '../types.ts';
 import { ConfigError } from '../types.ts';
 import { handleCaughtError } from '../../utils/logger.ts';
-import { getNodeConfigPath } from '../../../../flow-core/src/mesh-constants.ts';
-import { dirname } from 'https://deno.land/std@0.208.0/path/mod.ts';
+import { getCurrentConfigDistPath } from '../../../../flow-core/src/mesh-constants.ts';
+import { dirname, resolve } from 'https://deno.land/std@0.208.0/path/mod.ts';
 
 /**
  * Loads a service configuration from a JSON-LD file at the specified path.
@@ -62,7 +62,9 @@ export async function loadServiceConfig(configPath: string): Promise<ServiceConf
  * @returns The parsed node configuration object, or `null` if the configuration file does not exist
  */
 export async function loadNodeConfig(nodePath: string): Promise<NodeConfigInput | null> {
-  const configPath = getNodeConfigPath(nodePath);
+  // Resolve nodePath to absolute path to avoid relative path issues
+  const absoluteNodePath = resolve(nodePath);
+  const configPath = getCurrentConfigDistPath(absoluteNodePath);
 
   try {
     const configContent = await Deno.readTextFile(configPath);
@@ -125,7 +127,7 @@ export async function saveServiceConfig(configPath: string, config: ServiceConfi
  * Ensures the target directory exists before writing. Throws a ConfigError if saving fails.
  */
 export async function saveNodeConfig(nodePath: string, config: NodeConfigInput): Promise<void> {
-  const configPath = getNodeConfigPath(nodePath);
+  const configPath = getCurrentConfigDistPath(nodePath);
 
   try {
     // Ensure the directory exists
