@@ -7,6 +7,8 @@
 import type { ServiceConfigAccessor } from '../config/resolution/service-config-resolver.ts';
 import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 
+import { resolve } from "https://deno.land/std@0.224.0/path/mod.ts";
+
 /**
  * Logs the service startup configuration details with a timestamp in US locale.
  *
@@ -25,7 +27,16 @@ export function logStartupConfiguration(config: ServiceConfigAccessor): void {
   }).toLowerCase();
 
   console.log(`🔧 Flow Service initializing at ${timestamp} with configuration:`);
-  console.log(`   Mesh Paths: ${config.meshPaths.length > 0 ? config.meshPaths.join(', ') : 'none configured'}`);
+
+  if (config.meshPaths.length > 0) {
+    for (const meshPath of config.meshPaths) {
+      const absolutePath = resolve(Deno.cwd(), meshPath);
+      console.log(`   Configured mesh path: ${absolutePath}`);
+    }
+  } else {
+    console.log(`   Mesh Paths: none configured`);
+  }
+
   console.log(`   Console Logging: ${config.consoleLogLevel}`);
   console.log(`   File Logging: ${config.fileLogEnabled ? config.fileLogLevel : 'disabled'}`);
   console.log(`   Sentry Logging: ${config.sentryEnabled ? config.sentryLogLevel : 'disabled'}`);

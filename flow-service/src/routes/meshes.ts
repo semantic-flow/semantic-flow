@@ -2,6 +2,7 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { logger } from '../utils/logger.ts';
 import { getMetaFlowPath, getNextMetaDistPath, getCurrentMetaDistPath, MESH, getHandlePath, getAssetsPath } from '../../../flow-core/src/mesh-constants.ts';
 import { join, dirname } from 'jsr:@std/path';
+import { existsSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { ServiceConfigAccessor } from '../config/index.ts';
 import { composeMetadataContent } from '../services/metadata-composer.ts';
 import { initializeMeshRegistry } from '../utils/mesh-utils.ts';
@@ -147,6 +148,10 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
         }, 404);
       }
       throw error; // Re-throw other errors for the global handler
+    }
+
+    if (!existsSync(join(path, '.git'))) {
+      logger.info(`Mesh root folder '${path}' exists but is not under git control (no '.git' folder found).`);
     }
 
     const handlePath = join(path, MESH.HANDLE_DIR);
