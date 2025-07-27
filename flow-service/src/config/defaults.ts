@@ -107,8 +107,6 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
     'fsvc:staticServerEnabled': true,
     'fsvc:apiDocsEnabled': true,
   },
-  // Reference the service-specific node defaults to avoid duplication
-  'fsvc:nodeDefaults': SERVICE_NODE_DEFAULTS,
 };
 
 // Development Environment Overrides

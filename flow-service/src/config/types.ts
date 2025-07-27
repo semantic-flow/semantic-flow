@@ -33,10 +33,10 @@ export interface LogChannelConfig {
   readonly 'fsvc:logMaxFiles'?: number;
   readonly 'fsvc:logMaxFileSize'?: number;
   readonly 'fsvc:logRotationInterval'?:
-    | 'daily'
-    | 'weekly'
-    | 'monthly'
-    | 'size-based';
+  | 'daily'
+  | 'weekly'
+  | 'monthly'
+  | 'size-based';
 }
 
 export interface LoggingConfig {
@@ -83,7 +83,7 @@ export interface ServiceConfig extends JSONLDBase {
   readonly 'fsvc:meshPaths'?: string[];
   readonly 'fsvc:hasLoggingConfig': LoggingConfig;
   readonly 'fsvc:hasContainedServices': ContainedServicesConfig;
-  readonly 'fsvc:nodeDefaults': NodeConfig;
+  readonly 'fsvc:rootNodeConfigTemplate'?: NodeConfig;
   readonly 'fsvc:defaultDelegationChain'?: DelegationChain;
   readonly 'fsvc:defaultAttributedTo'?: AttributedTo;
 }
@@ -230,8 +230,8 @@ export function getConsoleLogLevel(context: ServiceConfigContext): LogLevel {
     ?.['fsvc:hasConsoleChannel']?.['fsvc:logLevel'] ??
     context
       .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasConsoleChannel'][
-        'fsvc:logLevel'
-      ];
+    'fsvc:logLevel'
+    ];
 }
 
 /**
@@ -244,8 +244,8 @@ export function getFileLogEnabled(context: ServiceConfigContext): boolean {
     ?.['fsvc:logChannelEnabled'] ??
     context
       .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasFileChannel'][
-        'fsvc:logChannelEnabled'
-      ];
+    'fsvc:logChannelEnabled'
+    ];
 }
 
 /**
@@ -258,8 +258,8 @@ export function getSentryEnabled(context: ServiceConfigContext): boolean {
     ?.['fsvc:hasSentryChannel']?.['fsvc:logChannelEnabled'] ??
     context
       .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasSentryChannel'][
-        'fsvc:logChannelEnabled'
-      ];
+    'fsvc:logChannelEnabled'
+    ];
 }
 
 /**
