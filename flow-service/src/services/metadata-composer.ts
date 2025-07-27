@@ -1,5 +1,5 @@
 import { ServiceConfigAccessor } from '../config/index.ts';
-import { MESH } from '../../../flow-core/src/mesh-constants.ts';
+//import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 
 /**
  * Composes the metadata content JSON object for a node creation event.

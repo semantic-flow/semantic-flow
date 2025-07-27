@@ -1,7 +1,7 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { logger } from '../utils/logger.ts';
 import { getMetaFlowPath, getNextMetaDistPath, getCurrentMetaDistPath, MESH, getHandlePath, getAssetsPath } from '../../../flow-core/src/mesh-constants.ts';
-import { join, basename, dirname } from 'jsr:@std/path';
+import { join, dirname } from 'jsr:@std/path';
 import { ServiceConfigAccessor } from '../config/index.ts';
 import { composeMetadataContent } from '../services/metadata-composer.ts';
 import { initializeMeshRegistry } from '../utils/mesh-utils.ts';

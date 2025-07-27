@@ -1,7 +1,5 @@
 // Utility functions for path handling in flow-core
 
-import { MESH } from '../mesh-constants.ts';
-
 /**
  * Converts a node relative path to a meta relative path by prepending "../../"
  * This is used to navigate from a node's directory to its meta directory.
