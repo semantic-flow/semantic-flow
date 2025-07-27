@@ -23,7 +23,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     }),
     parentPath: z.string().openapi({
       description: "The file system path to the mesh's parent directory.",
-      example: '../meshes',
+      example: '../meshes/',
     }),
   });
 
@@ -193,7 +193,7 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     }
 
     // Update registry after all validations pass
-    meshRegistry[name] = parentPath;
+    meshRegistry[name] = normalizedParentPath;
 
     return c.json({ message, links }, 201);
   });
