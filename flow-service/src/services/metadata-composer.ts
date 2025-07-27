@@ -1,3 +1,4 @@
+import { ServiceConfigAccessor } from '../config/index.ts';
 import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 
 /**
@@ -5,21 +6,20 @@ import { MESH } from '../../../flow-core/src/mesh-constants.ts';
  *
  * @param slug - The slug identifier for the node
  * @param nodeType - The type of the node (e.g., Namespace, Reference, Dataset)
- * @param title - The title of the node
- * @param description - The description of the node
- * @param attributedTo - Attribution object for provenance
- * @param delegationChain - Delegation chain object for provenance
+ * @param initialData - An object containing the initial metadata for the node
+ * @param config - The service configuration accessor
  * @returns The metadata content JSON object
  */
 export function composeMetadataContent(
   slug: string,
   nodeType: string,
-  title: string,
-  description: string,
-  attributedTo: Record<string, unknown>,
-  delegationChain: unknown
+  initialData: Record<string, unknown>,
+  config: ServiceConfigAccessor,
 ): Record<string, unknown> {
-  const snapshotFileName = 'meta-flow.jsonld';
+  const title = typeof initialData.title === 'string' ? initialData.title : slug;
+  const description = typeof initialData.description === 'string' ? initialData.description : `Node created for ${slug}`;
+  const attributedTo = config.defaultAttributedTo;
+  const delegationChain = config.defaultDelegationChain;
 
   return {
     "@context": {
@@ -36,15 +36,6 @@ export function composeMetadataContent(
       "flow": "https://semantic-flow.github.io/ontology/flow/"
     },
     "@graph": [
-      {
-        "@id": "#meta-flow-v1-activity",
-        "@type": "meta:NodeCreation",
-        "dcterms:title": `${title} Node Creation`,
-        "dcterms:description": `Creation of the ${slug} ${nodeType} node.`,
-        "prov:startedAtTime": new Date().toISOString(),
-        "prov:endedAtTime": new Date().toISOString(),
-        "prov:wasAssociatedWith": attributedTo
-      },
       {
         "@id": `../../${slug}/_handle/`,
         "@type": "mesh:Node",
@@ -63,27 +54,20 @@ export function composeMetadataContent(
         }
       },
       {
-        "@id": "#meta-flow-v1-context",
-        "@type": "meta:ProvenanceContext",
-        "meta:forActivity": { "@id": "#meta-flow-v1-activity" },
-        "meta:forSnapshot": { "@id": "#meta-flow-v1-snapshot" },
-        "prov:wasAttributedTo": attributedTo,
-        "meta:delegationChain": delegationChain
+        "@id": "#creation-activity",
+        "@type": "meta:NodeCreation",
+        "dcterms:title": `${title} Node Creation`,
+        "dcterms:description": `Creation of the ${slug} ${nodeType} node.`,
+        "prov:startedAtTime": new Date().toISOString(),
+        "prov:endedAtTime": new Date().toISOString(),
+        "prov:wasAssociatedWith": attributedTo
       },
       {
-        "@id": "#meta-flow-v1-snapshot",
-        "@type": "flow:VersionSnapshot",
-        "dcterms:title": `${title} Metadata Snapshot`,
-        "dcterms:description": `Initial metadata snapshot for the ${slug} node.`,
-        "dcterms:created": new Date().toISOString(),
-        "prov:wasGeneratedBy": { "@id": "#meta-flow-v1-activity" },
-        "dcat:distribution": {
-          "@id": "#meta-flow-v1-distribution",
-          "@type": "dcat:Distribution",
-          "dcterms:format": "application/ld+json",
-          "dcterms:title": `${title} Metadata Distribution`,
-          "dcat:downloadURL": snapshotFileName
-        }
+        "@id": "#creation-context",
+        "@type": "meta:ProvenanceContext",
+        "meta:forActivity": { "@id": "#creation-activity" },
+        "prov:wasAttributedTo": attributedTo,
+        "meta:delegationChain": delegationChain
       }
     ]
   };

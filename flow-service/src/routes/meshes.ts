@@ -256,7 +256,10 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     const isRootNode = apiNodePath === '' || apiNodePath === '~';
     const responsePath = isRootNode ? `/${meshName}/` : fileSystemNodePath;
 
-    logger.info(`Attempting to create node in mesh '${meshName}' at path '${fileSystemNodePath}' (physical: ${meshParentPath})`);
+    const logMessage = isRootNode
+      ? `Attempting to create node at mesh root (${meshName})`
+      : `Attempting to create node in mesh '${meshName}' at path '${fileSystemNodePath}' (physical: ${meshParentPath})`;
+    logger.info(logMessage);
 
     const slug = apiNodePath.split(MESH.API_IDENTIFIER_PATH_SEPARATOR).pop() || meshName;
 
@@ -301,19 +304,11 @@ export const createMeshesRoutes = (config: ServiceConfigAccessor): OpenAPIHono =
     await Deno.mkdir(metaFlowDir, { recursive: true });
     filesCreated.push(metaFlowDir);
 
-    // TODO : 
-    const attributedTo = config.defaultAttributedTo;
-
-    const title = typeof initialData.title === 'string' ? initialData.title : slug;
-    const description = typeof initialData.description === 'string' ? initialData.description : `Node created for ${slug}`;
-
     const metadataContent = composeMetadataContent(
       slug,
       nodeType,
-      title,
-      description,
-      attributedTo ?? {},
-      config.defaultDelegationChain
+      initialData,
+      config
     );
 
     await Deno.mkdir(dirname(currentMetaDistPath), { recursive: true });
