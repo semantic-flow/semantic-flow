@@ -1,4 +1,4 @@
-import { handleError, logger } from "./logger.ts";
+import { handleError, logger } from './logger.ts';
 
 // Define custom error types (simplified from your weave implementation)
 export class FlowServiceError extends Error {
@@ -8,7 +8,7 @@ export class FlowServiceError extends Error {
     public readonly context?: Record<string, unknown>,
   ) {
     super(message);
-    this.name = "FlowServiceError";
+    this.name = 'FlowServiceError';
   }
 }
 
@@ -18,15 +18,15 @@ export class ValidationError extends FlowServiceError {
     public readonly field?: string,
     context?: Record<string, unknown>,
   ) {
-    super(message, "VALIDATION_ERROR", { field, ...context });
-    this.name = "ValidationError";
+    super(message, 'VALIDATION_ERROR', { field, ...context });
+    this.name = 'ValidationError';
   }
 }
 
 export class ConfigurationError extends FlowServiceError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, "CONFIG_ERROR", context);
-    this.name = "ConfigurationError";
+    super(message, 'CONFIG_ERROR', context);
+    this.name = 'ConfigurationError';
   }
 }
 
@@ -38,7 +38,7 @@ export function handleServiceError(
 ): void {
   if (error instanceof FlowServiceError) {
     // Log structured error with context
-    logger.error(`${context ? context + ": " : ""}${error.message}`, error, {
+    logger.error(`${context ? context + ': ' : ''}${error.message}`, error, {
       code: error.code,
       context: error.context,
       ...meta,

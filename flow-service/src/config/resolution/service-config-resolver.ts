@@ -12,16 +12,16 @@ import type {
   ServiceConfigContext,
   ServiceConfigInput,
   ServiceOptions,
-} from "../types.ts";
-import { getServiceConfigPath, loadEnvConfig } from "../loaders/env-loader.ts";
-import { loadServiceConfig } from "../loaders/jsonld-loader.ts";
+} from '../types.ts';
+import { getServiceConfigPath, loadEnvConfig } from '../loaders/env-loader.ts';
+import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
 import {
   getEnvironmentDefaults,
   PLATFORM_SERVICE_DEFAULTS,
-} from "../defaults.ts";
-import { ConfigError } from "../types.ts";
-import { mergeConfigs } from "../../utils/merge-configs.ts";
-import { handleCaughtError } from "../../utils/logger.ts";
+} from '../defaults.ts';
+import { ConfigError } from '../types.ts';
+import { mergeConfigs } from '../../utils/merge-configs.ts';
+import { handleCaughtError } from '../../utils/logger.ts';
 
 /**
  * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.
@@ -59,7 +59,7 @@ export async function resolveServiceConfig(
     }
 
     // 5. Get environment-specific defaults
-    const environment = Deno.env.get("FLOW_ENV") || "development";
+    const environment = Deno.env.get('FLOW_ENV') || 'development';
     const defaultOptions = getEnvironmentDefaults(environment);
 
     // 6. Return side-by-side context (no merge)
@@ -91,10 +91,10 @@ export async function resolveServiceConfig(
  * @throws ConfigError if the log level is not valid
  */
 function validateLogLevel(level: string | LogLevel): LogLevel {
-  const validLevels: LogLevel[] = ["debug", "info", "warn", "error"];
+  const validLevels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
   if (!validLevels.includes(level as LogLevel)) {
     throw new ConfigError(
-      `Invalid log level: ${level}. Must be one of: ${validLevels.join(", ")}`,
+      `Invalid log level: ${level}. Must be one of: ${validLevels.join(', ')}`,
     );
   }
   return level as LogLevel;
@@ -114,41 +114,41 @@ function convertCliOptionsToConfig(
   const config: ServiceConfigInput = {};
 
   if (cliOptions.port !== undefined) {
-    config["fsvc:port"] = cliOptions.port;
+    config['fsvc:port'] = cliOptions.port;
   }
 
   if (cliOptions.host !== undefined) {
-    config["fsvc:host"] = cliOptions.host;
+    config['fsvc:host'] = cliOptions.host;
   }
 
   if (cliOptions.meshPaths !== undefined && cliOptions.meshPaths.length > 0) {
-    config["fsvc:meshPaths"] = cliOptions.meshPaths;
+    config['fsvc:meshPaths'] = cliOptions.meshPaths;
   }
 
   if (cliOptions.logLevel !== undefined) {
-    config["fsvc:hasLoggingConfig"] = {
-      "@type": "fsvc:LoggingConfig",
-      "fsvc:hasConsoleChannel": {
-        "@type": "fsvc:LogChannelConfig",
-        "fsvc:logChannelEnabled": true,
-        "fsvc:logLevel": validateLogLevel(cliOptions.logLevel),
+    config['fsvc:hasLoggingConfig'] = {
+      '@type': 'fsvc:LoggingConfig',
+      'fsvc:hasConsoleChannel': {
+        '@type': 'fsvc:LogChannelConfig',
+        'fsvc:logChannelEnabled': true,
+        'fsvc:logLevel': validateLogLevel(cliOptions.logLevel),
       },
     };
   }
 
   if (cliOptions.sentryEnabled !== undefined) {
-    if (!config["fsvc:hasLoggingConfig"]) {
-      config["fsvc:hasLoggingConfig"] = {
-        "@type": "fsvc:LoggingConfig",
+    if (!config['fsvc:hasLoggingConfig']) {
+      config['fsvc:hasLoggingConfig'] = {
+        '@type': 'fsvc:LoggingConfig',
       };
     }
-    const loggingConfig = config["fsvc:hasLoggingConfig"] as Record<
+    const loggingConfig = config['fsvc:hasLoggingConfig'] as Record<
       string,
       unknown
     >;
-    loggingConfig["fsvc:hasSentryChannel"] = {
-      "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": cliOptions.sentryEnabled,
+    loggingConfig['fsvc:hasSentryChannel'] = {
+      '@type': 'fsvc:LogChannelConfig',
+      'fsvc:logChannelEnabled': cliOptions.sentryEnabled,
     };
   }
 
@@ -198,8 +198,8 @@ export function mergeConfigContext(
  * @throws ConfigError if any required configuration is missing or invalid.
  */
 export function validateServiceConfig(context: ServiceConfigContext): void {
-  const port = getConfigValue<number>(context, "fsvc:port", "fsvc:port");
-  const host = getConfigValue<string>(context, "fsvc:host", "fsvc:host");
+  const port = getConfigValue<number>(context, 'fsvc:port', 'fsvc:port');
+  const host = getConfigValue<string>(context, 'fsvc:host', 'fsvc:host');
 
   if (!port || port <= 0 || port > 65535) {
     throw new ConfigError(
@@ -212,15 +212,15 @@ export function validateServiceConfig(context: ServiceConfigContext): void {
   }
 
   // Validate Sentry configuration if enabled
-  const loggingConfig = context.inputOptions["fsvc:hasLoggingConfig"] ||
-    context.defaultOptions["fsvc:hasLoggingConfig"];
-  const sentryChannel = loggingConfig?.["fsvc:hasSentryChannel"];
+  const loggingConfig = context.inputOptions['fsvc:hasLoggingConfig'] ||
+    context.defaultOptions['fsvc:hasLoggingConfig'];
+  const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
 
-  if (sentryChannel && sentryChannel["fsvc:logChannelEnabled"]) {
-    const sentryDsn = sentryChannel["fsvc:sentryDsn"];
-    if (!sentryDsn || !sentryDsn.startsWith("https://")) {
+  if (sentryChannel && sentryChannel['fsvc:logChannelEnabled']) {
+    const sentryDsn = sentryChannel['fsvc:sentryDsn'];
+    if (!sentryDsn || !sentryDsn.startsWith('https://')) {
       throw new ConfigError(
-        "Sentry is enabled but no valid DSN is configured. Please set FLOW_SENTRY_DSN environment variable or configure it in the service config file.",
+        'Sentry is enabled but no valid DSN is configured. Please set FLOW_SENTRY_DSN environment variable or configure it in the service config file.',
       );
     }
   }
@@ -233,93 +233,93 @@ export class ServiceConfigAccessor {
   constructor(private context: ServiceConfigContext) {}
 
   get port(): number {
-    return getConfigValue<number>(this.context, "fsvc:port", "fsvc:port");
+    return getConfigValue<number>(this.context, 'fsvc:port', 'fsvc:port');
   }
 
   get host(): string {
-    return getConfigValue<string>(this.context, "fsvc:host", "fsvc:host");
+    return getConfigValue<string>(this.context, 'fsvc:host', 'fsvc:host');
   }
 
   get meshPaths(): string[] {
-    return this.context.inputOptions["fsvc:meshPaths"] || [];
+    return this.context.inputOptions['fsvc:meshPaths'] || [];
   }
 
   get consoleLogLevel(): string {
-    const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] ||
-      this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    const consoleChannel = loggingConfig?.["fsvc:hasConsoleChannel"];
-    return consoleChannel?.["fsvc:logLevel"] || "info";
+    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
+      this.context.defaultOptions['fsvc:hasLoggingConfig'];
+    const consoleChannel = loggingConfig?.['fsvc:hasConsoleChannel'];
+    return consoleChannel?.['fsvc:logLevel'] || 'info';
   }
 
   get fileLogEnabled(): boolean {
-    const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] ||
-      this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    const fileChannel = loggingConfig?.["fsvc:hasFileChannel"];
-    return fileChannel?.["fsvc:logChannelEnabled"] || false;
+    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
+      this.context.defaultOptions['fsvc:hasLoggingConfig'];
+    const fileChannel = loggingConfig?.['fsvc:hasFileChannel'];
+    return fileChannel?.['fsvc:logChannelEnabled'] || false;
   }
 
   get fileLogLevel(): string {
-    const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] ||
-      this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    const fileChannel = loggingConfig?.["fsvc:hasFileChannel"];
-    return fileChannel?.["fsvc:logLevel"] || "warn";
+    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
+      this.context.defaultOptions['fsvc:hasLoggingConfig'];
+    const fileChannel = loggingConfig?.['fsvc:hasFileChannel'];
+    return fileChannel?.['fsvc:logLevel'] || 'warn';
   }
 
   get sentryEnabled(): boolean {
-    const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] ||
-      this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    const sentryChannel = loggingConfig?.["fsvc:hasSentryChannel"];
-    return sentryChannel?.["fsvc:logChannelEnabled"] || false;
+    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
+      this.context.defaultOptions['fsvc:hasLoggingConfig'];
+    const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
+    return sentryChannel?.['fsvc:logChannelEnabled'] || false;
   }
 
   get sentryLogLevel(): string {
-    const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] ||
-      this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    const sentryChannel = loggingConfig?.["fsvc:hasSentryChannel"];
-    return sentryChannel?.["fsvc:logLevel"] || "error";
+    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
+      this.context.defaultOptions['fsvc:hasLoggingConfig'];
+    const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
+    return sentryChannel?.['fsvc:logLevel'] || 'error';
   }
 
   get sentryDsn(): string | undefined {
-    const loggingConfig = this.context.inputOptions["fsvc:hasLoggingConfig"] ||
-      this.context.defaultOptions["fsvc:hasLoggingConfig"];
-    const sentryChannel = loggingConfig?.["fsvc:hasSentryChannel"];
-    return sentryChannel?.["fsvc:sentryDsn"];
+    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
+      this.context.defaultOptions['fsvc:hasLoggingConfig'];
+    const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
+    return sentryChannel?.['fsvc:sentryDsn'];
   }
 
   get apiEnabled(): boolean {
     const containedServices =
-      this.context.inputOptions["fsvc:hasContainedServices"] ||
-      this.context.defaultOptions["fsvc:hasContainedServices"];
-    return containedServices["fsvc:apiEnabled"] ?? true;
+      this.context.inputOptions['fsvc:hasContainedServices'] ||
+      this.context.defaultOptions['fsvc:hasContainedServices'];
+    return containedServices['fsvc:apiEnabled'] ?? true;
   }
 
   get sparqlEnabled(): boolean {
     const containedServices =
-      this.context.inputOptions["fsvc:hasContainedServices"] ||
-      this.context.defaultOptions["fsvc:hasContainedServices"];
-    return containedServices["fsvc:sparqlEnabled"] ?? true;
+      this.context.inputOptions['fsvc:hasContainedServices'] ||
+      this.context.defaultOptions['fsvc:hasContainedServices'];
+    return containedServices['fsvc:sparqlEnabled'] ?? true;
   }
 
   get queryWidgetEnabled(): boolean {
     const containedServices =
-      this.context.inputOptions["fsvc:hasContainedServices"] ||
-      this.context.defaultOptions["fsvc:hasContainedServices"];
-    return containedServices["fsvc:queryWidgetEnabled"] ?? true;
+      this.context.inputOptions['fsvc:hasContainedServices'] ||
+      this.context.defaultOptions['fsvc:hasContainedServices'];
+    return containedServices['fsvc:queryWidgetEnabled'] ?? true;
   }
 
   get defaultDelegationChain(): DelegationChain | undefined {
     return getConfigValue<DelegationChain | undefined>(
       this.context,
-      "fsvc:defaultDelegationChain",
-      "fsvc:defaultDelegationChain",
+      'fsvc:defaultDelegationChain',
+      'fsvc:defaultDelegationChain',
     );
   }
 
   get defaultAttributedTo(): AttributedTo | undefined {
     return getConfigValue<AttributedTo | undefined>(
       this.context,
-      "fsvc:defaultAttributedTo",
-      "fsvc:defaultAttributedTo",
+      'fsvc:defaultAttributedTo',
+      'fsvc:defaultAttributedTo',
     );
   }
 }

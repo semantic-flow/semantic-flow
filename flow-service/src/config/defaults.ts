@@ -5,38 +5,38 @@
  * Based on the existing JSON-LD configuration files.
  */
 
-import type { JSONLDContext, NodeConfig, ServiceConfig } from "./types.ts";
-import { mergeConfigs } from "../utils/merge-configs.ts";
+import type { JSONLDContext, NodeConfig, ServiceConfig } from './types.ts';
+import { mergeConfigs } from '../utils/merge-configs.ts';
 
 // Standard JSON-LD Context
 export const DEFAULT_CONTEXT: JSONLDContext = {
-  fsvc: "https://semantic-flow.github.io/ontology/flow-service/",
-  mesh: "https://semantic-flow.github.io/ontology/mesh/",
-  node: "https://semantic-flow.github.io/ontology/node/",
-  flow: "https://semantic-flow.github.io/ontology/flow/",
-  conf: "https://semantic-flow.github.io/ontology/config-flow/",
+  fsvc: 'https://semantic-flow.github.io/ontology/flow-service/',
+  mesh: 'https://semantic-flow.github.io/ontology/mesh/',
+  node: 'https://semantic-flow.github.io/ontology/node/',
+  flow: 'https://semantic-flow.github.io/ontology/flow/',
+  conf: 'https://semantic-flow.github.io/ontology/config-flow/',
 };
 
 // Platform Node Configuration Defaults
 export const PLATFORM_NODE_DEFAULTS: NodeConfig = {
-  "@context": DEFAULT_CONTEXT,
-  "@type": "conf:NodeConfig",
-  "@id": "conf:defaultConfig",
-  "conf:versioningEnabled": true,
-  "conf:configInheritanceEnabled": true,
-  "conf:distributionFormats": [
-    "application/trig",
-    "application/ld+json",
+  '@context': DEFAULT_CONTEXT,
+  '@type': 'conf:NodeConfig',
+  '@id': 'conf:defaultConfig',
+  'conf:versioningEnabled': true,
+  'conf:configInheritanceEnabled': true,
+  'conf:distributionFormats': [
+    'application/trig',
+    'application/ld+json',
   ],
-  "conf:templateMappings": {
-    "@type": "conf:TemplateMapping",
-    "conf:hasResourcePageTemplate":
-      "/_assets/templates/default-resource-page.html",
+  'conf:templateMappings': {
+    '@type': 'conf:TemplateMapping',
+    'conf:hasResourcePageTemplate':
+      '/_assets/templates/default-resource-page.html',
   },
-  "conf:generateUnifiedDataset": false,
-  "conf:generateAggregatedDataset": false,
-  "conf:generateResourcePages": true,
-  "conf:stylesheetPath": "/_assets/css/default-resource-page.css",
+  'conf:generateUnifiedDataset': false,
+  'conf:generateAggregatedDataset': false,
+  'conf:generateResourcePages': true,
+  'conf:stylesheetPath': '/_assets/css/default-resource-page.css',
 };
 
 /**
@@ -50,125 +50,125 @@ export const PLATFORM_NODE_DEFAULTS: NodeConfig = {
  */
 export const SERVICE_NODE_DEFAULTS: Omit<
   NodeConfig,
-  "@id" | "conf:generateResourcePages" | "conf:stylesheetPath"
+  '@id' | 'conf:generateResourcePages' | 'conf:stylesheetPath'
 > = {
-  "@context": DEFAULT_CONTEXT,
-  "@type": "conf:NodeConfig",
-  "conf:versioningEnabled": true,
-  "conf:configInheritanceEnabled": true,
-  "conf:distributionFormats": [
-    "application/trig",
-    "application/ld+json",
+  '@context': DEFAULT_CONTEXT,
+  '@type': 'conf:NodeConfig',
+  'conf:versioningEnabled': true,
+  'conf:configInheritanceEnabled': true,
+  'conf:distributionFormats': [
+    'application/trig',
+    'application/ld+json',
   ],
-  "conf:templateMappings": {
-    "@type": "conf:TemplateMapping",
-    "conf:hasResourcePageTemplate": "templates/default-resource.html", // Service-relative path
+  'conf:templateMappings': {
+    '@type': 'conf:TemplateMapping',
+    'conf:hasResourcePageTemplate': 'templates/default-resource.html', // Service-relative path
   },
-  "conf:generateUnifiedDataset": false,
-  "conf:generateAggregatedDataset": false,
+  'conf:generateUnifiedDataset': false,
+  'conf:generateAggregatedDataset': false,
 };
 
 // Platform Service Configuration Defaults
 export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
-  "@context": DEFAULT_CONTEXT,
-  "@type": "fsvc:ServiceConfig",
-  "@id": "fsvc:defaultConfig",
-  "fsvc:port": 3000,
-  "fsvc:host": "localhost",
-  "fsvc:hasLoggingConfig": {
-    "@type": "fsvc:LoggingConfig",
-    "fsvc:hasConsoleChannel": {
-      "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": true,
-      "fsvc:logLevel": "info",
+  '@context': DEFAULT_CONTEXT,
+  '@type': 'fsvc:ServiceConfig',
+  '@id': 'fsvc:defaultConfig',
+  'fsvc:port': 3000,
+  'fsvc:host': 'localhost',
+  'fsvc:hasLoggingConfig': {
+    '@type': 'fsvc:LoggingConfig',
+    'fsvc:hasConsoleChannel': {
+      '@type': 'fsvc:LogChannelConfig',
+      'fsvc:logChannelEnabled': true,
+      'fsvc:logLevel': 'info',
     },
-    "fsvc:hasFileChannel": {
-      "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": false,
-      "fsvc:logLevel": "warn",
-      "fsvc:logFormat": "pretty",
-      "fsvc:logFilePath": "./logs/flow-service.log",
-      "fsvc:logRetentionDays": 30,
-      "fsvc:logMaxFiles": 10,
-      "fsvc:logMaxFileSize": 10485760,
-      "fsvc:logRotationInterval": "daily",
+    'fsvc:hasFileChannel': {
+      '@type': 'fsvc:LogChannelConfig',
+      'fsvc:logChannelEnabled': false,
+      'fsvc:logLevel': 'warn',
+      'fsvc:logFormat': 'pretty',
+      'fsvc:logFilePath': './logs/flow-service.log',
+      'fsvc:logRetentionDays': 30,
+      'fsvc:logMaxFiles': 10,
+      'fsvc:logMaxFileSize': 10485760,
+      'fsvc:logRotationInterval': 'daily',
     },
-    "fsvc:hasSentryChannel": {
-      "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": false,
-      "fsvc:logLevel": "error",
-      "fsvc:sentryLoggingEnabled": true,
+    'fsvc:hasSentryChannel': {
+      '@type': 'fsvc:LogChannelConfig',
+      'fsvc:logChannelEnabled': false,
+      'fsvc:logLevel': 'error',
+      'fsvc:sentryLoggingEnabled': true,
     },
   },
-  "fsvc:hasContainedServices": {
-    "@type": "fsvc:ContainedServicesConfig",
-    "fsvc:apiEnabled": true,
-    "fsvc:sparqlEnabled": true,
-    "fsvc:queryWidgetEnabled": true,
-    "fsvc:staticServerEnabled": true,
-    "fsvc:apiDocsEnabled": true,
+  'fsvc:hasContainedServices': {
+    '@type': 'fsvc:ContainedServicesConfig',
+    'fsvc:apiEnabled': true,
+    'fsvc:sparqlEnabled': true,
+    'fsvc:queryWidgetEnabled': true,
+    'fsvc:staticServerEnabled': true,
+    'fsvc:apiDocsEnabled': true,
   },
   // Reference the service-specific node defaults to avoid duplication
-  "fsvc:nodeDefaults": SERVICE_NODE_DEFAULTS,
-  "fsvc:defaultAttributedTo": {
-    "@id": "https://orcid.org/0000-0002-1825-0097",
+  'fsvc:nodeDefaults': SERVICE_NODE_DEFAULTS,
+  'fsvc:defaultAttributedTo': {
+    '@id': 'https://orcid.org/0000-0002-1825-0097',
   },
 };
 
 // Development Environment Overrides
 export const DEVELOPMENT_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
-  "fsvc:hasLoggingConfig": {
-    "@type": "fsvc:LoggingConfig",
-    "fsvc:hasConsoleChannel": {
-      "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": true,
-      "fsvc:logLevel": "debug", // More verbose logging in development
+  'fsvc:hasLoggingConfig': {
+    '@type': 'fsvc:LoggingConfig',
+    'fsvc:hasConsoleChannel': {
+      '@type': 'fsvc:LogChannelConfig',
+      'fsvc:logChannelEnabled': true,
+      'fsvc:logLevel': 'debug', // More verbose logging in development
     },
-    "fsvc:hasFileChannel": {
-      "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": true,
-      "fsvc:logLevel": "info",
-      "fsvc:logFormat": "pretty",
-      "fsvc:logFilePath": "./logs/flow-service-dev.log",
-      "fsvc:logRetentionDays": 7,
-      "fsvc:logMaxFiles": 5,
-      "fsvc:logMaxFileSize": 5242880,
-      "fsvc:logRotationInterval": "daily",
+    'fsvc:hasFileChannel': {
+      '@type': 'fsvc:LogChannelConfig',
+      'fsvc:logChannelEnabled': true,
+      'fsvc:logLevel': 'info',
+      'fsvc:logFormat': 'pretty',
+      'fsvc:logFilePath': './logs/flow-service-dev.log',
+      'fsvc:logRetentionDays': 7,
+      'fsvc:logMaxFiles': 5,
+      'fsvc:logMaxFileSize': 5242880,
+      'fsvc:logRotationInterval': 'daily',
     },
-    "fsvc:hasSentryChannel": {
-      "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": true,
-      "fsvc:logLevel": "warn",
-      "fsvc:sentryLoggingEnabled": true,
+    'fsvc:hasSentryChannel': {
+      '@type': 'fsvc:LogChannelConfig',
+      'fsvc:logChannelEnabled': true,
+      'fsvc:logLevel': 'warn',
+      'fsvc:sentryLoggingEnabled': true,
     },
   },
 };
 
 // Production Environment Overrides
 export const PRODUCTION_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
-  "fsvc:hasLoggingConfig": {
-    "@type": "fsvc:LoggingConfig",
-    "fsvc:hasConsoleChannel": {
-      "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": true,
-      "fsvc:logLevel": "info", // Less verbose in production
+  'fsvc:hasLoggingConfig': {
+    '@type': 'fsvc:LoggingConfig',
+    'fsvc:hasConsoleChannel': {
+      '@type': 'fsvc:LogChannelConfig',
+      'fsvc:logChannelEnabled': true,
+      'fsvc:logLevel': 'info', // Less verbose in production
     },
-    "fsvc:hasFileChannel": {
-      "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": true,
-      "fsvc:logLevel": "warn",
-      "fsvc:logFormat": "pretty",
-      "fsvc:logFilePath": "./logs/flow-service.log",
-      "fsvc:logRetentionDays": 90,
-      "fsvc:logMaxFiles": 20,
-      "fsvc:logMaxFileSize": 52428800,
-      "fsvc:logRotationInterval": "daily",
+    'fsvc:hasFileChannel': {
+      '@type': 'fsvc:LogChannelConfig',
+      'fsvc:logChannelEnabled': true,
+      'fsvc:logLevel': 'warn',
+      'fsvc:logFormat': 'pretty',
+      'fsvc:logFilePath': './logs/flow-service.log',
+      'fsvc:logRetentionDays': 90,
+      'fsvc:logMaxFiles': 20,
+      'fsvc:logMaxFileSize': 52428800,
+      'fsvc:logRotationInterval': 'daily',
     },
-    "fsvc:hasSentryChannel": {
-      "@type": "fsvc:LogChannelConfig",
-      "fsvc:logChannelEnabled": true, // Enable Sentry in production
-      "fsvc:logLevel": "error",
-      "fsvc:sentryLoggingEnabled": true,
+    'fsvc:hasSentryChannel': {
+      '@type': 'fsvc:LogChannelConfig',
+      'fsvc:logChannelEnabled': true, // Enable Sentry in production
+      'fsvc:logLevel': 'error',
+      'fsvc:sentryLoggingEnabled': true,
     },
   },
 };
@@ -182,13 +182,13 @@ export const PRODUCTION_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
  * @returns The effective service configuration for the given environment
  */
 export function getEnvironmentDefaults(environment?: string): ServiceConfig {
-  const env = environment?.toLowerCase() || "development";
+  const env = environment?.toLowerCase() || 'development';
 
   let envOverrides: Partial<ServiceConfig> = {};
 
   switch (env) {
-    case "production":
-    case "prod":
+    case 'production':
+    case 'prod':
       envOverrides = PRODUCTION_SERVICE_OVERRIDES;
       break;
     default:

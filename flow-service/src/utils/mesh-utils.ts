@@ -1,6 +1,6 @@
-import { ServiceConfigAccessor } from "../config/index.ts";
-import { logger } from "./logger.ts";
-import { basename, dirname, existsSync } from "../../../flow-core/src/deps.ts";
+import { ServiceConfigAccessor } from '../config/index.ts';
+import { logger } from './logger.ts';
+import { basename, dirname, existsSync } from '../../../flow-core/src/deps.ts';
 
 export const initializeMeshRegistry = (
   config: ServiceConfigAccessor,

@@ -1,6 +1,6 @@
 // Utility functions for path handling in flow-core
 
-import { normalize } from "../deps.ts";
+import { normalize } from '../deps.ts';
 
 /**
  * Converts a node relative path to a meta relative path by prepending "../../"
@@ -23,9 +23,9 @@ export function convertNodeRelativePathToMetaRelativePath(
  */
 
 export function normalizeFolderPath(folderPath: string): string {
-  if (!folderPath) return "/";
+  if (!folderPath) return '/';
   const path = normalize(folderPath);
-  return path.endsWith("/") ? path : path + "/";
+  return path.endsWith('/') ? path : path + '/';
 }
 
 /**
@@ -40,10 +40,10 @@ export function getLastPathSegment(path: string): string {
   if (!path) return path;
   // Remove trailing slashes
   let trimmedPath = path;
-  while (trimmedPath.endsWith("/")) {
+  while (trimmedPath.endsWith('/')) {
     trimmedPath = trimmedPath.slice(0, -1);
   }
-  const lastSlashIndex = trimmedPath.lastIndexOf("/");
+  const lastSlashIndex = trimmedPath.lastIndexOf('/');
   if (lastSlashIndex === -1) {
     return trimmedPath;
   }

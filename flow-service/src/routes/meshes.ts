@@ -1,18 +1,18 @@
-import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { logger } from "../utils/logger.ts";
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import { logger } from '../utils/logger.ts';
 import {
   getAssetsPath,
   getCurrentMetaDistPath,
   getHandlePath,
   getMetaFlowPath,
   getNextMetaDistPath,
-} from "../../../flow-core/src/utils/mesh-path-utils.ts";
-import { normalizeFolderPath } from "../../../flow-core/src/utils/path-utils.ts";
-import { MESH } from "../../../flow-core/src/mesh-constants.ts";
-import { dirname, existsSync, join } from "../../../flow-core/src/deps.ts";
-import { ServiceConfigAccessor } from "../config/index.ts";
-import { composeMetadataContent } from "../services/metadata-composer.ts";
-import { initializeMeshRegistry } from "../utils/mesh-utils.ts";
+} from '../../../flow-core/src/utils/mesh-path-utils.ts';
+import { normalizeFolderPath } from '../../../flow-core/src/utils/path-utils.ts';
+import { MESH } from '../../../flow-core/src/mesh-constants.ts';
+import { dirname, existsSync, join } from '../../../flow-core/src/deps.ts';
+import { ServiceConfigAccessor } from '../config/index.ts';
+import { composeMetadataContent } from '../services/metadata-composer.ts';
+import { initializeMeshRegistry } from '../utils/mesh-utils.ts';
 
 //import { Context } from '@hono/hono';
 
@@ -26,12 +26,12 @@ export const createMeshesRoutes = (
   // Schemas for Mesh Registration (POST /api/meshes)
   const MeshRegistrationRequest = z.object({
     name: z.string().openapi({
-      description: "The logical name for the mesh.",
-      example: "ns",
+      description: 'The logical name for the mesh.',
+      example: 'ns',
     }),
     parentPath: z.string().openapi({
       description: "The file system path to the mesh's parent directory.",
-      example: "../meshes/",
+      example: '../meshes/',
     }),
   });
 
@@ -53,22 +53,22 @@ export const createMeshesRoutes = (
       description:
         "The relative path for the new node, using '~' as a separator. For a root node, use an empty string.",
       examples: [
-        "",
-        "djradon",
-        "djradon~underbrush",
+        '',
+        'djradon',
+        'djradon~underbrush',
       ],
     }),
-    nodeType: z.enum(["Namespace", "Reference", "Dataset"]).openapi({
-      description: "The type of node to create.",
+    nodeType: z.enum(['Namespace', 'Reference', 'Dataset']).openapi({
+      description: 'The type of node to create.',
     }),
     initialData: z.record(z.string(), z.unknown()).openapi({
-      description: "An object containing the initial metadata for the node.",
+      description: 'An object containing the initial metadata for the node.',
       example: { title: "djradon's primary semantic mesh" },
     }),
     options: z.object({
       copyDefaultAssets: z.boolean().optional().openapi({
         description:
-          "If true, copies default assets (templates, CSS) into the mesh. Typically used for root node creation.",
+          'If true, copies default assets (templates, CSS) into the mesh. Typically used for root node creation.',
       }),
     }).optional(),
   });
@@ -87,14 +87,14 @@ export const createMeshesRoutes = (
 
   // Route for Mesh Registration
   const registerMeshRoute = createRoute({
-    method: "post",
-    path: "/meshes",
-    tags: ["Mesh Management"],
-    summary: "Register an existing mesh",
+    method: 'post',
+    path: '/meshes',
+    tags: ['Mesh Management'],
+    summary: 'Register an existing mesh',
     request: {
       body: {
         content: {
-          "application/json": {
+          'application/json': {
             schema: MeshRegistrationRequest,
           },
         },
@@ -102,25 +102,25 @@ export const createMeshesRoutes = (
     },
     responses: {
       201: {
-        description: "Mesh registered successfully.",
+        description: 'Mesh registered successfully.',
         content: {
-          "application/json": {
+          'application/json': {
             schema: MeshRegistrationResponse,
           },
         },
       },
       400: {
-        description: "Bad request due to invalid input or mesh already exists.",
+        description: 'Bad request due to invalid input or mesh already exists.',
         content: {
-          "application/json": {
+          'application/json': {
             schema: ErrorResponse,
           },
         },
       },
       404: {
-        description: "The specified path to the mesh does not exist.",
+        description: 'The specified path to the mesh does not exist.',
         content: {
-          "application/json": {
+          'application/json': {
             schema: ErrorResponse,
           },
         },
@@ -129,13 +129,13 @@ export const createMeshesRoutes = (
   });
 
   meshes.openapi(registerMeshRoute, async (c) => {
-    const { name, parentPath } = c.req.valid("json");
+    const { name, parentPath } = c.req.valid('json');
     const normalizedParentPath = normalizeFolderPath(parentPath);
     const path = join(normalizedParentPath, name);
 
     if (meshRegistry[name]) {
       return c.json({
-        error: "Bad Request",
+        error: 'Bad Request',
         message: `Mesh '${name}' is already registered at path: ${
           meshRegistry[name]
         }`,
@@ -149,21 +149,21 @@ export const createMeshesRoutes = (
       if (!stats.isDirectory) {
         // Return a 400 error for validation issues, consistent with other checks
         return c.json({
-          error: "Bad Request",
+          error: 'Bad Request',
           message: `Path '${path}' is not a directory.`,
         }, 400);
       }
     } catch (error) {
       if (error instanceof Deno.errors.NotFound) {
         return c.json({
-          error: "Not Found",
+          error: 'Not Found',
           message: `Path '${path}' does not exist.`,
         }, 404);
       }
       throw error; // Re-throw other errors for the global handler
     }
 
-    if (!existsSync(join(path, ".git"))) {
+    if (!existsSync(join(path, '.git'))) {
       logger.info(
         `Mesh root folder '${path}' exists but is not under git control (no '.git' folder found).`,
       );
@@ -190,18 +190,18 @@ export const createMeshesRoutes = (
     }
 
     const links: (z.infer<typeof LinkObject>)[] = [
-      { rel: "self", href: `/api/meshes/${name}` },
-      { rel: "nodes", href: `/api/meshes/${name}/nodes` },
+      { rel: 'self', href: `/api/meshes/${name}` },
+      { rel: 'nodes', href: `/api/meshes/${name}/nodes` },
     ];
 
     let message = `Mesh '${name}' registered successfully.`;
     if (!meshSignatureFound) {
-      message += " No mesh signature detected.";
+      message += ' No mesh signature detected.';
       links.push({
-        rel: "create-root-node",
+        rel: 'create-root-node',
         href: `/api/meshes/${name}/nodes`,
-        method: "POST",
-        title: "Initialize this mesh by creating a root node",
+        method: 'POST',
+        title: 'Initialize this mesh by creating a root node',
       });
     }
 
@@ -213,20 +213,20 @@ export const createMeshesRoutes = (
 
   // Route for Node Creation
   const createNodeRoute = createRoute({
-    method: "post",
-    path: "/meshes/{meshName}/nodes",
-    tags: ["Node Management"],
-    summary: "Create a new node in a mesh",
+    method: 'post',
+    path: '/meshes/{meshName}/nodes',
+    tags: ['Node Management'],
+    summary: 'Create a new node in a mesh',
     request: {
       params: z.object({
         meshName: z.string().openapi({
-          description: "The logical name of the mesh.",
-          example: "test-ns",
+          description: 'The logical name of the mesh.',
+          example: 'test-ns',
         }),
       }),
       body: {
         content: {
-          "application/json": {
+          'application/json': {
             schema: NodeCreationRequest,
           },
         },
@@ -234,25 +234,25 @@ export const createMeshesRoutes = (
     },
     responses: {
       201: {
-        description: "Node created successfully.",
+        description: 'Node created successfully.',
         content: {
-          "application/json": {
+          'application/json': {
             schema: NodeCreationResponse,
           },
         },
       },
       409: {
-        description: "Node already exists.",
+        description: 'Node already exists.',
         content: {
-          "application/json": {
+          'application/json': {
             schema: ErrorResponse,
           },
         },
       },
       404: {
-        description: "Mesh not found.",
+        description: 'Mesh not found.',
         content: {
-          "application/json": {
+          'application/json': {
             schema: ErrorResponse,
           },
         },
@@ -262,20 +262,20 @@ export const createMeshesRoutes = (
 
   meshes.openapi(createNodeRoute, async (c) => {
     const { meshName } = c.req.param();
-    const { apiNodePath, nodeType, initialData, options } = c.req.valid("json");
-    const fileSystemNodePath = apiNodePath.replace(/~/g, "/");
+    const { apiNodePath, nodeType, initialData, options } = c.req.valid('json');
+    const fileSystemNodePath = apiNodePath.replace(/~/g, '/');
 
     const startTime = new Date().toISOString();
 
     const meshParentPath = meshRegistry[meshName];
     if (!meshParentPath) {
       return c.json({
-        error: "Not Found",
+        error: 'Not Found',
         message: `Mesh '${meshName}' not found.`,
       }, 404);
     }
 
-    const isRootNode = apiNodePath === "" || apiNodePath === "~";
+    const isRootNode = apiNodePath === '' || apiNodePath === '~';
     const responsePath = isRootNode ? `/${meshName}/` : fileSystemNodePath;
 
     const logMessage = isRootNode
@@ -309,7 +309,7 @@ export const createMeshesRoutes = (
 
     if (nodeExists) {
       return c.json({
-        error: "Conflict",
+        error: 'Conflict',
         message:
           `Node already exists at path '${responsePath}' in mesh '${meshName}'.`,
       }, 409);
@@ -363,8 +363,8 @@ export const createMeshesRoutes = (
       : `Node created successfully at path '${fileSystemNodePath}' in mesh '${meshName}'.`;
 
     const links: (z.infer<typeof LinkObject>)[] = [
-      { rel: "self", href: `/api/meshes/${meshName}/nodes${responsePath}` },
-      { rel: "mesh", href: `/api/meshes/${meshName}` },
+      { rel: 'self', href: `/api/meshes/${meshName}/nodes${responsePath}` },
+      { rel: 'mesh', href: `/api/meshes/${meshName}` },
     ];
 
     const response = {

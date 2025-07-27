@@ -5,11 +5,11 @@
  * Supports both service and node configuration formats.
  */
 
-import type { NodeConfigInput, ServiceConfigInput } from "../types.ts";
-import { ConfigError } from "../types.ts";
-import { handleCaughtError } from "../../utils/logger.ts";
-import { getCurrentConfigDistPath } from "../../../../flow-core/src/utils/mesh-path-utils.ts";
-import { dirname, resolve } from "../../../../flow-core/src/deps.ts";
+import type { NodeConfigInput, ServiceConfigInput } from '../types.ts';
+import { ConfigError } from '../types.ts';
+import { handleCaughtError } from '../../utils/logger.ts';
+import { getCurrentConfigDistPath } from '../../../../flow-core/src/utils/mesh-path-utils.ts';
+import { dirname, resolve } from '../../../../flow-core/src/deps.ts';
 
 /**
  * Loads a service configuration from a JSON-LD file at the specified path.
@@ -27,10 +27,10 @@ export async function loadServiceConfig(
     const parsedConfig = JSON.parse(configContent);
 
     // Basic validation - ensure it's a service config
-    if (parsedConfig["@type"] !== "fsvc:ServiceConfig") {
+    if (parsedConfig['@type'] !== 'fsvc:ServiceConfig') {
       throw new ConfigError(
         `Invalid service config type: expected "fsvc:ServiceConfig", got "${
-          parsedConfig["@type"]
+          parsedConfig['@type']
         }"`,
       );
     }
@@ -94,10 +94,10 @@ export async function loadNodeConfig(
     const parsedConfig = JSON.parse(configContent);
 
     // Basic validation - ensure it's a node config
-    if (parsedConfig["@type"] !== "flow:ConfigDistribution") {
+    if (parsedConfig['@type'] !== 'flow:ConfigDistribution') {
       throw new ConfigError(
         `Invalid node config type: expected "flow:ConfigDistribution", got "${
-          parsedConfig["@type"]
+          parsedConfig['@type']
         }"`,
       );
     }
@@ -227,12 +227,12 @@ export async function configExists(configPath: string): Promise<boolean> {
  * @returns An array of ancestor node paths, from deepest ancestor to root
  */
 export function getNodeHierarchy(nodePath: string): string[] {
-  const parts = nodePath.split("/").filter((part) => part);
+  const parts = nodePath.split('/').filter((part) => part);
   const hierarchy: string[] = [];
 
   // Build hierarchy paths from deepest to shallowest
   for (let i = parts.length - 1; i >= 0; i--) {
-    const ancestorPath = parts.slice(0, i).join("/");
+    const ancestorPath = parts.slice(0, i).join('/');
     if (ancestorPath && ancestorPath !== nodePath) {
       hierarchy.push(ancestorPath);
     }
@@ -256,8 +256,8 @@ export async function isConfigInheritanceEnabled(
     const nodeConfig = await loadNodeConfig(nodePath);
 
     // If the node has explicit inheritance setting, use it
-    if (nodeConfig?.["conf:configInheritanceEnabled"] !== undefined) {
-      return nodeConfig["conf:configInheritanceEnabled"];
+    if (nodeConfig?.['conf:configInheritanceEnabled'] !== undefined) {
+      return nodeConfig['conf:configInheritanceEnabled'];
     }
 
     // Default to true if not specified
@@ -274,17 +274,17 @@ export async function isConfigInheritanceEnabled(
  * Throws a ConfigError if the input is not an object or if required properties are missing.
  */
 export function validateJSONLD(data: unknown): void {
-  if (!data || typeof data !== "object") {
-    throw new ConfigError("Configuration must be a valid JSON object");
+  if (!data || typeof data !== 'object') {
+    throw new ConfigError('Configuration must be a valid JSON object');
   }
 
   const obj = data as Record<string, unknown>;
 
-  if (!obj["@type"]) {
+  if (!obj['@type']) {
     throw new ConfigError('Configuration must have an "@type" property');
   }
 
-  if (!obj["@context"]) {
+  if (!obj['@context']) {
     throw new ConfigError('Configuration must have an "@context" property');
   }
 }

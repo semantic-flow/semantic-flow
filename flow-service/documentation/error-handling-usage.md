@@ -7,7 +7,7 @@ appropriately.
 ## Usage
 
 ```typescript
-import { handleCaughtError } from "./src/utils/logger.ts";
+import { handleCaughtError } from './src/utils/logger.ts';
 ```
 
 ## Basic Usage
@@ -17,7 +17,7 @@ try {
   // Some operation that might fail
   await riskyOperation();
 } catch (e) {
-  await handleCaughtError(e, "During risky operation");
+  await handleCaughtError(e, 'During risky operation');
 }
 ```
 
@@ -30,26 +30,26 @@ import {
   ConfigurationError,
   FlowServiceError,
   ValidationError,
-} from "./src/utils/errors.ts";
+} from './src/utils/errors.ts';
 
 try {
   throw new FlowServiceError(
-    "Service initialization failed",
-    "INIT_ERROR",
-    { component: "mesh-scanner", retryCount: 3 },
+    'Service initialization failed',
+    'INIT_ERROR',
+    { component: 'mesh-scanner', retryCount: 3 },
   );
 } catch (e) {
-  await handleCaughtError(e, "During service startup");
+  await handleCaughtError(e, 'During service startup');
 }
 
 try {
   throw new ValidationError(
-    "Invalid configuration field",
-    "port",
-    { providedValue: "invalid", expectedType: "number" },
+    'Invalid configuration field',
+    'port',
+    { providedValue: 'invalid', expectedType: 'number' },
   );
 } catch (e) {
-  await handleCaughtError(e, "Config validation failed");
+  await handleCaughtError(e, 'Config validation failed');
 }
 ```
 
@@ -57,9 +57,9 @@ try {
 
 ```typescript
 try {
-  throw new TypeError("Cannot read property of undefined");
+  throw new TypeError('Cannot read property of undefined');
 } catch (e) {
-  await handleCaughtError(e, "Property access error");
+  await handleCaughtError(e, 'Property access error');
 }
 ```
 
@@ -67,15 +67,15 @@ try {
 
 ```typescript
 try {
-  throw "Something went wrong!";
+  throw 'Something went wrong!';
 } catch (e) {
-  await handleCaughtError(e, "String error thrown");
+  await handleCaughtError(e, 'String error thrown');
 }
 
 try {
   throw 404;
 } catch (e) {
-  await handleCaughtError(e, "HTTP status error");
+  await handleCaughtError(e, 'HTTP status error');
 }
 ```
 

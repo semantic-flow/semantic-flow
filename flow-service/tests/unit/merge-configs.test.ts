@@ -9,35 +9,35 @@
 import {
   assertEquals,
   assertNotStrictEquals,
-} from "../../../flow-core/src/deps.ts";
-import { mergeConfigs } from "../../src/utils/merge-configs.ts";
+} from '../../../flow-core/src/deps.ts';
+import { mergeConfigs } from '../../src/utils/merge-configs.ts';
 
-Deno.test("mergeConfigs - Basic object merging", () => {
+Deno.test('mergeConfigs - Basic object merging', () => {
   const base = {
-    name: "base",
+    name: 'base',
     value: 42,
     flag: true,
   };
 
   const override = {
     value: 100,
-    newProp: "added",
+    newProp: 'added',
   };
 
   const result = mergeConfigs(base, override);
 
   assertEquals(result, {
-    name: "base",
+    name: 'base',
     value: 100,
     flag: true,
-    newProp: "added",
+    newProp: 'added',
   });
 });
 
-Deno.test("mergeConfigs - Deep nested object merging", () => {
+Deno.test('mergeConfigs - Deep nested object merging', () => {
   const base = {
     server: {
-      host: "localhost",
+      host: 'localhost',
       port: 8080,
       options: {
         cors: true,
@@ -45,7 +45,7 @@ Deno.test("mergeConfigs - Deep nested object merging", () => {
       },
     },
     database: {
-      host: "db.example.com",
+      host: 'db.example.com',
       port: 5432,
     },
   };
@@ -64,7 +64,7 @@ Deno.test("mergeConfigs - Deep nested object merging", () => {
 
   assertEquals(result, {
     server: {
-      host: "localhost",
+      host: 'localhost',
       port: 3000,
       options: {
         cors: true,
@@ -73,22 +73,22 @@ Deno.test("mergeConfigs - Deep nested object merging", () => {
       },
     },
     database: {
-      host: "db.example.com",
+      host: 'db.example.com',
       port: 5432,
     },
   });
 });
 
-Deno.test("mergeConfigs - Array replacement (not merging)", () => {
+Deno.test('mergeConfigs - Array replacement (not merging)', () => {
   const base = {
-    items: ["a", "b", "c"],
+    items: ['a', 'b', 'c'],
     config: {
       values: [1, 2, 3],
     },
   };
 
   const override = {
-    items: ["x", "y"],
+    items: ['x', 'y'],
     config: {
       values: [9, 8],
     },
@@ -97,40 +97,40 @@ Deno.test("mergeConfigs - Array replacement (not merging)", () => {
   const result = mergeConfigs(base, override);
 
   assertEquals(result, {
-    items: ["x", "y"],
+    items: ['x', 'y'],
     config: {
       values: [9, 8],
     },
   });
 });
 
-Deno.test("mergeConfigs - Null and undefined handling", () => {
+Deno.test('mergeConfigs - Null and undefined handling', () => {
   const base = {
-    keep: "this",
-    replace: "original",
-    nullValue: "will stay",
-    undefinedValue: "will stay",
+    keep: 'this',
+    replace: 'original',
+    nullValue: 'will stay',
+    undefinedValue: 'will stay',
   };
 
   const override = {
-    replace: "new value",
+    replace: 'new value',
     nullValue: null,
     undefinedValue: undefined,
-    newProp: "added",
+    newProp: 'added',
   };
 
   const result = mergeConfigs(base, override);
 
   assertEquals(result, {
-    keep: "this",
-    replace: "new value",
-    nullValue: "will stay",
-    undefinedValue: "will stay",
-    newProp: "added",
+    keep: 'this',
+    replace: 'new value',
+    nullValue: 'will stay',
+    undefinedValue: 'will stay',
+    newProp: 'added',
   });
 });
 
-Deno.test("mergeConfigs - Empty objects", () => {
+Deno.test('mergeConfigs - Empty objects', () => {
   const base = { a: 1, b: 2 };
   const emptyOverride = {};
 
@@ -144,7 +144,7 @@ Deno.test("mergeConfigs - Empty objects", () => {
   assertEquals(result2, override);
 });
 
-Deno.test("mergeConfigs - Immutability (no input mutation)", () => {
+Deno.test('mergeConfigs - Immutability (no input mutation)', () => {
   const base = {
     nested: {
       value: 42,
@@ -155,7 +155,7 @@ Deno.test("mergeConfigs - Immutability (no input mutation)", () => {
     nested: {
       value: 100,
     },
-    newProp: "added",
+    newProp: 'added',
   };
 
   const originalBase = JSON.parse(JSON.stringify(base));
@@ -173,35 +173,35 @@ Deno.test("mergeConfigs - Immutability (no input mutation)", () => {
   assertNotStrictEquals(result.nested, base.nested);
 });
 
-Deno.test("mergeConfigs - Service configuration merge scenario", () => {
+Deno.test('mergeConfigs - Service configuration merge scenario', () => {
   // Simulate a realistic service configuration merge
   const defaultConfig = {
-    "fsvc:port": 8080,
-    "fsvc:host": "localhost",
-    "fsvc:hasLoggingConfig": {
-      "@type": "fsvc:LoggingConfig",
-      "fsvc:hasConsoleChannel": {
-        "@type": "fsvc:LogChannelConfig",
-        "fsvc:logChannelEnabled": true,
-        "fsvc:logLevel": "info",
+    'fsvc:port': 8080,
+    'fsvc:host': 'localhost',
+    'fsvc:hasLoggingConfig': {
+      '@type': 'fsvc:LoggingConfig',
+      'fsvc:hasConsoleChannel': {
+        '@type': 'fsvc:LogChannelConfig',
+        'fsvc:logChannelEnabled': true,
+        'fsvc:logLevel': 'info',
       },
-      "fsvc:hasFileChannel": {
-        "@type": "fsvc:LogChannelConfig",
-        "fsvc:logChannelEnabled": false,
-        "fsvc:logLevel": "warn",
+      'fsvc:hasFileChannel': {
+        '@type': 'fsvc:LogChannelConfig',
+        'fsvc:logChannelEnabled': false,
+        'fsvc:logLevel': 'warn',
       },
     },
   };
 
   const userConfig = {
-    "fsvc:port": 3000,
-    "fsvc:hasLoggingConfig": {
-      "fsvc:hasConsoleChannel": {
-        "fsvc:logLevel": "debug",
+    'fsvc:port': 3000,
+    'fsvc:hasLoggingConfig': {
+      'fsvc:hasConsoleChannel': {
+        'fsvc:logLevel': 'debug',
       },
-      "fsvc:hasFileChannel": {
-        "fsvc:logChannelEnabled": true,
-        "fsvc:logFilePath": "/var/log/service.log",
+      'fsvc:hasFileChannel': {
+        'fsvc:logChannelEnabled': true,
+        'fsvc:logFilePath': '/var/log/service.log',
       },
     },
   };
@@ -209,57 +209,57 @@ Deno.test("mergeConfigs - Service configuration merge scenario", () => {
   const result = mergeConfigs(defaultConfig, userConfig);
 
   assertEquals(result, {
-    "fsvc:port": 3000,
-    "fsvc:host": "localhost",
-    "fsvc:hasLoggingConfig": {
-      "@type": "fsvc:LoggingConfig",
-      "fsvc:hasConsoleChannel": {
-        "@type": "fsvc:LogChannelConfig",
-        "fsvc:logChannelEnabled": true,
-        "fsvc:logLevel": "debug",
+    'fsvc:port': 3000,
+    'fsvc:host': 'localhost',
+    'fsvc:hasLoggingConfig': {
+      '@type': 'fsvc:LoggingConfig',
+      'fsvc:hasConsoleChannel': {
+        '@type': 'fsvc:LogChannelConfig',
+        'fsvc:logChannelEnabled': true,
+        'fsvc:logLevel': 'debug',
       },
-      "fsvc:hasFileChannel": {
-        "@type": "fsvc:LogChannelConfig",
-        "fsvc:logChannelEnabled": true,
-        "fsvc:logLevel": "warn",
-        "fsvc:logFilePath": "/var/log/service.log",
+      'fsvc:hasFileChannel': {
+        '@type': 'fsvc:LogChannelConfig',
+        'fsvc:logChannelEnabled': true,
+        'fsvc:logLevel': 'warn',
+        'fsvc:logFilePath': '/var/log/service.log',
       },
     },
   });
 });
 
-Deno.test("mergeConfigs - Mixed data types", () => {
+Deno.test('mergeConfigs - Mixed data types', () => {
   const base = {
-    string: "text",
+    string: 'text',
     number: 42,
     boolean: true,
     array: [1, 2, 3],
-    object: { nested: "value" },
+    object: { nested: 'value' },
     nullValue: null,
   };
 
   const override = {
-    string: "new text",
+    string: 'new text',
     number: 100,
     boolean: false,
-    array: ["a", "b"],
-    object: { nested: "new value", added: "prop" },
-    nullValue: "not null anymore",
+    array: ['a', 'b'],
+    object: { nested: 'new value', added: 'prop' },
+    nullValue: 'not null anymore',
   };
 
   const result = mergeConfigs(base, override);
 
   assertEquals(result, {
-    string: "new text",
+    string: 'new text',
     number: 100,
     boolean: false,
-    array: ["a", "b"],
-    object: { nested: "new value", added: "prop" },
-    nullValue: "not null anymore",
+    array: ['a', 'b'],
+    object: { nested: 'new value', added: 'prop' },
+    nullValue: 'not null anymore',
   });
 });
 
-Deno.test("mergeConfigs - Edge case: Override with null nested object", () => {
+Deno.test('mergeConfigs - Edge case: Override with null nested object', () => {
   const base = {
     config: {
       enabled: true,
@@ -288,13 +288,13 @@ Deno.test("mergeConfigs - Edge case: Override with null nested object", () => {
   });
 });
 
-Deno.test("mergeConfigs - Deep nesting with multiple levels", () => {
+Deno.test('mergeConfigs - Deep nesting with multiple levels', () => {
   const base = {
     level1: {
       level2: {
         level3: {
-          value: "original",
-          keep: "this",
+          value: 'original',
+          keep: 'this',
         },
       },
     },
@@ -304,7 +304,7 @@ Deno.test("mergeConfigs - Deep nesting with multiple levels", () => {
     level1: {
       level2: {
         level3: {
-          value: "updated",
+          value: 'updated',
         },
       },
     },
@@ -316,18 +316,18 @@ Deno.test("mergeConfigs - Deep nesting with multiple levels", () => {
     level1: {
       level2: {
         level3: {
-          value: "updated",
-          keep: "this",
+          value: 'updated',
+          keep: 'this',
         },
       },
     },
   });
 });
 
-Deno.test("mergeConfigs - Array within nested object", () => {
+Deno.test('mergeConfigs - Array within nested object', () => {
   const base = {
     config: {
-      items: ["a", "b"],
+      items: ['a', 'b'],
       settings: {
         flags: [1, 2, 3],
       },
@@ -336,7 +336,7 @@ Deno.test("mergeConfigs - Array within nested object", () => {
 
   const override = {
     config: {
-      items: ["x", "y", "z"],
+      items: ['x', 'y', 'z'],
       settings: {
         flags: [8, 9],
       },
@@ -347,7 +347,7 @@ Deno.test("mergeConfigs - Array within nested object", () => {
 
   assertEquals(result, {
     config: {
-      items: ["x", "y", "z"],
+      items: ['x', 'y', 'z'],
       settings: {
         flags: [8, 9],
       },

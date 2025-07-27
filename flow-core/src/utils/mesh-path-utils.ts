@@ -2,8 +2,8 @@
  * Utility functions for mesh path operations
  */
 
-import { MESH } from "../mesh-constants.ts";
-import { getLastPathSegment } from "./path-utils.ts";
+import { MESH } from '../mesh-constants.ts';
+import { getLastPathSegment } from './path-utils.ts';
 
 // Usage throughout codebase
 

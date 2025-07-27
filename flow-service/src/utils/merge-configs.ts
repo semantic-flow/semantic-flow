@@ -22,8 +22,8 @@ export function mergeConfigs<T extends object>(
   for (const [key, value] of Object.entries(override)) {
     if (value !== undefined && value !== null) {
       if (
-        typeof value === "object" && !Array.isArray(value) &&
-        typeof result[key] === "object" && !Array.isArray(result[key]) &&
+        typeof value === 'object' && !Array.isArray(value) &&
+        typeof result[key] === 'object' && !Array.isArray(result[key]) &&
         result[key] !== null
       ) {
         // Deep merge objects

@@ -1,10 +1,10 @@
-import * as Sentry from "npm:@sentry/deno";
-import { dirname, ensureDir } from "../../../flow-core/src/deps.ts";
+import * as Sentry from 'npm:@sentry/deno';
+import { dirname, ensureDir } from '../../../flow-core/src/deps.ts';
 
 // Environment-based configuration
-const isDevelopment = Deno.env.get("FLOW_ENV") !== "production";
-const logLevel = Deno.env.get("FLOW_LOG_LEVEL") ||
-  (isDevelopment ? "DEBUG" : "INFO");
+const isDevelopment = Deno.env.get('FLOW_ENV') !== 'production';
+const logLevel = Deno.env.get('FLOW_LOG_LEVEL') ||
+  (isDevelopment ? 'DEBUG' : 'INFO');
 
 // Log levels (inspired by your weave implementation)
 export const LogLevels = {
@@ -21,19 +21,19 @@ type LogLevel = keyof typeof LogLevels;
 export interface LogContext {
   // Operation tracking
   operation?:
-    | "scan"
-    | "weave"
-    | "validate"
-    | "config-resolve"
-    | "api-request"
-    | "startup"
-    | "error-handling";
+    | 'scan'
+    | 'weave'
+    | 'validate'
+    | 'config-resolve'
+    | 'api-request'
+    | 'startup'
+    | 'error-handling';
   requestId?: string;
 
   // Mesh/Node context
   meshPath?: string;
   nodePath?: string;
-  nodeType?: "data" | "namespace" | "reference";
+  nodeType?: 'data' | 'namespace' | 'reference';
 
   // Performance metrics
   duration?: number;
@@ -42,7 +42,7 @@ export interface LogContext {
   fileCount?: number;
 
   // Configuration context
-  configSource?: "file" | "inheritance" | "defaults" | "api" | "environment";
+  configSource?: 'file' | 'inheritance' | 'defaults' | 'api' | 'environment';
   schemaVersion?: string;
 
   // Error context
@@ -57,10 +57,10 @@ export interface LogContext {
 
   // Service context
   component?:
-    | "mesh-scanner"
-    | "api-handler"
-    | "config-resolver"
-    | "weave-processor";
+    | 'mesh-scanner'
+    | 'api-handler'
+    | 'config-resolver'
+    | 'weave-processor';
 
   // Arbitrary additional context
   [key: string]: unknown;
@@ -120,7 +120,7 @@ class FileLogger {
     try {
       await this.ensureLogDirectory();
 
-      const content = this.writeQueue.join("\n") + "\n";
+      const content = this.writeQueue.join('\n') + '\n';
       this.writeQueue = [];
 
       await Deno.writeTextFile(this.logFile, content, { append: true });
@@ -160,8 +160,8 @@ class FileLogger {
       const now = new Date();
       const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       const rotatedName = this.logFile.replace(
-        ".log",
-        `-${yesterday.toISOString().split("T")[0]}.log`,
+        '.log',
+        `-${yesterday.toISOString().split('T')[0]}.log`,
       );
 
       await Deno.rename(this.logFile, rotatedName);
@@ -179,10 +179,10 @@ async function getFileLogger(): Promise<FileLogger | null> {
   if (!fileLogger) {
     try {
       // Check environment variable first to avoid config dependency during logger initialization
-      const fileLogPath = Deno.env.get("FLOW_FILE_LOG_PATH");
-      const fileLogEnabled = Deno.env.get("FLOW_FILE_LOG_ENABLED");
+      const fileLogPath = Deno.env.get('FLOW_FILE_LOG_PATH');
+      const fileLogEnabled = Deno.env.get('FLOW_FILE_LOG_ENABLED');
 
-      if (fileLogEnabled === "true" && fileLogPath) {
+      if (fileLogEnabled === 'true' && fileLogPath) {
         fileLogger = new FileLogger(fileLogPath);
         await fileLogger.rotateIfNeeded();
       }
@@ -195,7 +195,7 @@ async function getFileLogger(): Promise<FileLogger | null> {
 }
 
 // Initialize Sentry (only in production or when explicitly configured)
-const sentryDsn = Deno.env.get("FLOW_SENTRY_DSN");
+const sentryDsn = Deno.env.get('FLOW_SENTRY_DSN');
 let sentryInitialized = false;
 
 // Formatters for structured logging
@@ -209,9 +209,9 @@ function formatStructuredMessage(
     timestamp,
     level: level.toLowerCase(),
     message,
-    service: "flow-service",
-    version: Deno.env.get("FLOW_VERSION"),
-    environment: Deno.env.get("FLOW_ENV") || "development",
+    service: 'flow-service',
+    version: Deno.env.get('FLOW_VERSION'),
+    environment: Deno.env.get('FLOW_ENV') || 'development',
     ...context,
   };
 
@@ -227,17 +227,17 @@ function formatConsoleMessage(
   const prefix = `[${timestamp}] ${level.padEnd(5)}`;
 
   if (isDevelopment) {
-    const coloredLevel = level === "ERROR" || level === "CRITICAL"
-      ? colorize("red", level)
-      : level === "WARN"
-      ? colorize("yellow", level)
-      : level === "DEBUG"
-      ? colorize("blue", level)
-      : colorize("green", level);
+    const coloredLevel = level === 'ERROR' || level === 'CRITICAL'
+      ? colorize('red', level)
+      : level === 'WARN'
+      ? colorize('yellow', level)
+      : level === 'DEBUG'
+      ? colorize('blue', level)
+      : colorize('green', level);
 
-    const coloredPrefix = colorize("gray", `[${timestamp}]`) +
+    const coloredPrefix = colorize('gray', `[${timestamp}]`) +
       ` ${coloredLevel.padEnd(5)}`;
-    let contextStr = "";
+    let contextStr = '';
 
     if (context && Object.keys(context).length > 0) {
       const parts = [];
@@ -247,7 +247,7 @@ function formatConsoleMessage(
       if (context.nodeCount) parts.push(`${context.nodeCount} nodes`);
       if (context.component) parts.push(`[${context.component}]`);
 
-      contextStr = parts.length > 0 ? ` (${parts.join(", ")})` : "";
+      contextStr = parts.length > 0 ? ` (${parts.join(', ')})` : '';
     }
 
     return `${coloredPrefix} ${message}${contextStr}`;
@@ -268,15 +268,15 @@ async function writeToAllChannels(
   const consoleFormatted = formatConsoleMessage(level, message, context);
 
   switch (level) {
-    case "DEBUG":
-    case "INFO":
+    case 'DEBUG':
+    case 'INFO':
       console.log(consoleFormatted);
       break;
-    case "WARN":
+    case 'WARN':
       console.warn(consoleFormatted);
       break;
-    case "ERROR":
-    case "CRITICAL":
+    case 'ERROR':
+    case 'CRITICAL':
       console.error(consoleFormatted);
       break;
   }
@@ -302,13 +302,13 @@ async function writeToAllChannels(
         // Error reporting
         Sentry.captureException(error, {
           level: level.toLowerCase() as
-            | "debug"
-            | "info"
-            | "warning"
-            | "error"
-            | "fatal",
+            | 'debug'
+            | 'info'
+            | 'warning'
+            | 'error'
+            | 'fatal',
           tags: {
-            source: "flow-service",
+            source: 'flow-service',
             component: context?.component,
             operation: context?.operation,
           },
@@ -319,11 +319,11 @@ async function writeToAllChannels(
         Sentry.captureMessage(
           message,
           level.toLowerCase() as
-            | "debug"
-            | "info"
-            | "warning"
-            | "error"
-            | "fatal",
+            | 'debug'
+            | 'info'
+            | 'warning'
+            | 'error'
+            | 'fatal',
         );
         if (context) {
           Sentry.setContext(`${level.toLowerCase()}_context`, context);
@@ -337,7 +337,7 @@ async function writeToAllChannels(
 
 export function initSentry(dsn?: string) {
   const targetDsn = dsn || sentryDsn;
-  const sentryEnabled = Deno.env.get("FLOW_SENTRY_ENABLED") === "true" &&
+  const sentryEnabled = Deno.env.get('FLOW_SENTRY_ENABLED') === 'true' &&
     !!targetDsn;
 
   console.log(`🔧 Sentry enabled in config: ${sentryEnabled}`);
@@ -347,7 +347,7 @@ export function initSentry(dsn?: string) {
     try {
       Sentry.init({
         dsn: targetDsn,
-        environment: isDevelopment ? "development" : "production",
+        environment: isDevelopment ? 'development' : 'production',
         debug: isDevelopment,
         tracesSampleRate: isDevelopment ? 1.0 : 0.1,
         // Enable logs to be sent to Sentry (experimental feature)
@@ -360,7 +360,7 @@ export function initSentry(dsn?: string) {
       console.error(`🔧 ERROR: Failed to initialize Sentry: ${error}`);
       console.error(`🔧 ERROR: Sentry will remain disabled`);
     }
-  } else if (Deno.env.get("FLOW_SENTRY_ENABLED") !== "true") {
+  } else if (Deno.env.get('FLOW_SENTRY_ENABLED') !== 'true') {
     console.log(`🔧 Sentry disabled - FLOW_SENTRY_ENABLED is not 'true'`);
   } else if (!targetDsn) {
     console.log(`🔧 Sentry disabled - no DSN provided`);
@@ -371,13 +371,13 @@ export function initSentry(dsn?: string) {
 
 // Console colors (simplified from your weave implementation)
 const colors = {
-  reset: "\x1b[0m",
-  red: "\x1b[31m",
-  yellow: "\x1b[33m",
-  blue: "\x1b[34m",
-  green: "\x1b[32m",
-  gray: "\x1b[90m",
-  bold: "\x1b[1m",
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  green: '\x1b[32m',
+  gray: '\x1b[90m',
+  bold: '\x1b[1m',
 };
 
 function colorize(color: keyof typeof colors, text: string): string {
@@ -391,7 +391,7 @@ function shouldLog(level: LogLevel): boolean {
 }
 
 function safeSpread(obj?: unknown): Record<string, unknown> {
-  if (!obj || typeof obj !== "object") return {};
+  if (!obj || typeof obj !== 'object') return {};
   return obj as Record<string, unknown>;
 }
 
@@ -400,21 +400,21 @@ class StructuredLoggerImpl implements StructuredLogger {
   constructor(private baseContext: LogContext = {}) {}
 
   async debug(message: string, context?: LogContext): Promise<void> {
-    if (!shouldLog("DEBUG")) return;
+    if (!shouldLog('DEBUG')) return;
     const mergedContext = { ...this.baseContext, ...context };
-    await writeToAllChannels("DEBUG", message, mergedContext);
+    await writeToAllChannels('DEBUG', message, mergedContext);
   }
 
   async info(message: string, context?: LogContext): Promise<void> {
-    if (!shouldLog("INFO")) return;
+    if (!shouldLog('INFO')) return;
     const mergedContext = { ...this.baseContext, ...context };
-    await writeToAllChannels("INFO", message, mergedContext);
+    await writeToAllChannels('INFO', message, mergedContext);
   }
 
   async warn(message: string, context?: LogContext): Promise<void> {
-    if (!shouldLog("WARN")) return;
+    if (!shouldLog('WARN')) return;
     const mergedContext = { ...this.baseContext, ...context };
-    await writeToAllChannels("WARN", message, mergedContext);
+    await writeToAllChannels('WARN', message, mergedContext);
   }
 
   async error(
@@ -422,9 +422,9 @@ class StructuredLoggerImpl implements StructuredLogger {
     error?: Error,
     context?: LogContext,
   ): Promise<void> {
-    if (!shouldLog("ERROR")) return;
+    if (!shouldLog('ERROR')) return;
     const mergedContext = { ...this.baseContext, ...context };
-    await writeToAllChannels("ERROR", message, mergedContext, error);
+    await writeToAllChannels('ERROR', message, mergedContext, error);
   }
 
   async critical(
@@ -433,7 +433,7 @@ class StructuredLoggerImpl implements StructuredLogger {
     context?: LogContext,
   ): Promise<void> {
     const mergedContext = { ...this.baseContext, ...context };
-    await writeToAllChannels("CRITICAL", message, mergedContext, error);
+    await writeToAllChannels('CRITICAL', message, mergedContext, error);
   }
 
   withContext(baseContext: LogContext): StructuredLogger {
@@ -450,7 +450,7 @@ export async function handleError(
   context?: string,
   meta?: Record<string, unknown>,
 ): Promise<void> {
-  const contextMessage = context ? `${context}: ` : "";
+  const contextMessage = context ? `${context}: ` : '';
 
   if (error instanceof Error) {
     await logger.error(`${contextMessage}${error.message}`, error, {
@@ -486,7 +486,7 @@ export async function handleCaughtError(
   };
 
   // Log detailed error information
-  const logDetailedError = async (error: Error, type = "Error") => {
+  const logDetailedError = async (error: Error, type = 'Error') => {
     await logger.error(formatErrorMsg(type, error.message), error, {
       errorType: type,
       errorName: error.name,
@@ -495,24 +495,24 @@ export async function handleCaughtError(
 
     // Log stack trace if available
     if (error.stack) {
-      await logger.debug("Stack trace:", {
+      await logger.debug('Stack trace:', {
         stack: error.stack,
-        operation: "error-handling",
+        operation: 'error-handling',
       });
     }
 
     // Log cause if available
     if (error.cause) {
-      await logger.debug("Caused by:", {
+      await logger.debug('Caused by:', {
         cause: Deno.inspect(error.cause, { colors: false }),
-        operation: "error-handling",
+        operation: 'error-handling',
       });
     }
 
     // Log additional error details
-    await logger.debug("Error details:", {
+    await logger.debug('Error details:', {
       errorDetails: Deno.inspect(error, { colors: false }),
-      operation: "error-handling",
+      operation: 'error-handling',
     });
   };
 
@@ -520,36 +520,36 @@ export async function handleCaughtError(
   try {
     if (e instanceof Error) {
       // Check for custom Flow Service error types first
-      if (e.name === "FlowServiceError") {
+      if (e.name === 'FlowServiceError') {
         const fsError = e as Error & { code?: string; context?: unknown };
-        await logger.error(formatErrorMsg("FlowServiceError", e.message), e, {
-          errorType: "FlowServiceError",
+        await logger.error(formatErrorMsg('FlowServiceError', e.message), e, {
+          errorType: 'FlowServiceError',
           errorCode: fsError.code,
           errorContext: fsError.context,
           customMessage,
         });
 
         if (e.stack) {
-          await logger.debug("FlowServiceError stack trace:", {
+          await logger.debug('FlowServiceError stack trace:', {
             stack: e.stack,
-            operation: "error-handling",
+            operation: 'error-handling',
           });
         }
 
         if (fsError.context) {
-          await logger.debug("FlowServiceError context:", {
+          await logger.debug('FlowServiceError context:', {
             context: Deno.inspect(fsError.context, { colors: false }),
-            operation: "error-handling",
+            operation: 'error-handling',
           });
         }
-      } else if (e.name === "ValidationError") {
+      } else if (e.name === 'ValidationError') {
         const valError = e as Error & {
           code?: string;
           field?: string;
           context?: unknown;
         };
-        await logger.error(formatErrorMsg("ValidationError", e.message), e, {
-          errorType: "ValidationError",
+        await logger.error(formatErrorMsg('ValidationError', e.message), e, {
+          errorType: 'ValidationError',
           errorCode: valError.code,
           field: valError.field,
           errorContext: valError.context,
@@ -557,21 +557,21 @@ export async function handleCaughtError(
         });
 
         if (e.stack) {
-          await logger.debug("ValidationError stack trace:", {
+          await logger.debug('ValidationError stack trace:', {
             stack: e.stack,
-            operation: "error-handling",
+            operation: 'error-handling',
           });
         }
       } else if (
-        e.name === "ConfigurationError" || e.name === "ConfigError" ||
-        e.name === "ConfigValidationError"
+        e.name === 'ConfigurationError' || e.name === 'ConfigError' ||
+        e.name === 'ConfigValidationError'
       ) {
         const configError = e as Error & {
           code?: string;
           errors?: string[];
           context?: unknown;
         };
-        await logger.error(formatErrorMsg("ConfigurationError", e.message), e, {
+        await logger.error(formatErrorMsg('ConfigurationError', e.message), e, {
           errorType: e.name,
           errorCode: configError.code,
           errors: configError.errors, // For ConfigValidationError
@@ -580,86 +580,86 @@ export async function handleCaughtError(
         });
 
         if (e.stack) {
-          await logger.debug("ConfigurationError stack trace:", {
+          await logger.debug('ConfigurationError stack trace:', {
             stack: e.stack,
-            operation: "error-handling",
+            operation: 'error-handling',
           });
         }
 
         if (configError.errors) {
-          await logger.debug("Configuration validation errors:", {
+          await logger.debug('Configuration validation errors:', {
             validationErrors: configError.errors,
-            operation: "error-handling",
+            operation: 'error-handling',
           });
         }
-      } else if (e.name === "TypeError") {
-        await logDetailedError(e, "TypeError");
-      } else if (e.name === "ReferenceError") {
-        await logDetailedError(e, "ReferenceError");
-      } else if (e.name === "SyntaxError") {
-        await logDetailedError(e, "SyntaxError");
-      } else if (e.name === "RangeError") {
-        await logDetailedError(e, "RangeError");
+      } else if (e.name === 'TypeError') {
+        await logDetailedError(e, 'TypeError');
+      } else if (e.name === 'ReferenceError') {
+        await logDetailedError(e, 'ReferenceError');
+      } else if (e.name === 'SyntaxError') {
+        await logDetailedError(e, 'SyntaxError');
+      } else if (e.name === 'RangeError') {
+        await logDetailedError(e, 'RangeError');
       } else {
         // Generic Error handling
-        await logDetailedError(e, "Error");
+        await logDetailedError(e, 'Error');
       }
-    } else if (typeof e === "string") {
+    } else if (typeof e === 'string') {
       // Handle string errors
-      await logger.error(formatErrorMsg("StringError", e), undefined, {
-        errorType: "StringError",
+      await logger.error(formatErrorMsg('StringError', e), undefined, {
+        errorType: 'StringError',
         errorValue: e,
         customMessage,
       });
-    } else if (typeof e === "number") {
+    } else if (typeof e === 'number') {
       // Handle numeric errors
-      await logger.error(formatErrorMsg("NumericError", String(e)), undefined, {
-        errorType: "NumericError",
+      await logger.error(formatErrorMsg('NumericError', String(e)), undefined, {
+        errorType: 'NumericError',
         errorValue: e,
         customMessage,
       });
     } else if (e === null) {
       // Handle null errors
       await logger.error(
-        formatErrorMsg("NullError", "null value thrown"),
+        formatErrorMsg('NullError', 'null value thrown'),
         undefined,
         {
-          errorType: "NullError",
+          errorType: 'NullError',
           customMessage,
         },
       );
     } else if (e === undefined) {
       // Handle undefined errors
       await logger.error(
-        formatErrorMsg("UndefinedError", "undefined value thrown"),
+        formatErrorMsg('UndefinedError', 'undefined value thrown'),
         undefined,
         {
-          errorType: "UndefinedError",
+          errorType: 'UndefinedError',
           customMessage,
         },
       );
     } else {
       // Handle any other unknown error types
       await logger.error(
-        formatErrorMsg("UnknownError", "Unknown error type"),
+        formatErrorMsg('UnknownError', 'Unknown error type'),
         undefined,
         {
-          errorType: "UnknownError",
+          errorType: 'UnknownError',
           errorValue: Deno.inspect(e, { colors: false }),
           customMessage,
         },
       );
 
       // Log detailed inspection of unknown error
-      await logger.debug("Unknown error details:", {
+      await logger.debug('Unknown error details:', {
         unknownError: Deno.inspect(e, { colors: false, depth: 3 }),
-        operation: "error-handling",
+        operation: 'error-handling',
       });
     }
   } catch (loggingError) {
     // Fallback error handling if logging itself fails
-    console.error("Failed to log error properly:", loggingError);
-    console.error("Original error was:", e);
+    console.error('Failed to log error properly:', loggingError);
+    console.error('Original error was:', e);
   }
 }
 

@@ -4,9 +4,9 @@
  * Provides formatted logging for service startup configuration display
  */
 
-import type { ServiceConfigAccessor } from "../config/resolution/service-config-resolver.ts";
-import { MESH } from "../../../flow-core/src/mesh-constants.ts";
-import { resolve } from "../../../flow-core/src/deps.ts";
+import type { ServiceConfigAccessor } from '../config/resolution/service-config-resolver.ts';
+import { MESH } from '../../../flow-core/src/mesh-constants.ts';
+import { resolve } from '../../../flow-core/src/deps.ts';
 
 /**
  * Logs the service startup configuration details with a timestamp in US locale.
@@ -15,13 +15,13 @@ import { resolve } from "../../../flow-core/src/deps.ts";
  */
 export function logStartupConfiguration(config: ServiceConfigAccessor): void {
   const now = new Date();
-  const timestamp = now.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }) + " " + now.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
+  const timestamp = now.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }) + ' ' + now.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
     hour12: true,
   }).toLowerCase();
 
@@ -41,22 +41,22 @@ export function logStartupConfiguration(config: ServiceConfigAccessor): void {
   console.log(`   Console Logging: ${config.consoleLogLevel}`);
   console.log(
     `   File Logging: ${
-      config.fileLogEnabled ? config.fileLogLevel : "disabled"
+      config.fileLogEnabled ? config.fileLogLevel : 'disabled'
     }`,
   );
   console.log(
     `   Sentry Logging: ${
-      config.sentryEnabled ? config.sentryLogLevel : "disabled"
+      config.sentryEnabled ? config.sentryLogLevel : 'disabled'
     }`,
   );
   const enabledServices = [];
-  if (config.apiEnabled) enabledServices.push("API");
-  if (config.sparqlEnabled) enabledServices.push("SPARQL Endpoint");
-  if (config.queryWidgetEnabled) enabledServices.push("SPARQL GUI");
+  if (config.apiEnabled) enabledServices.push('API');
+  if (config.sparqlEnabled) enabledServices.push('SPARQL Endpoint');
+  if (config.queryWidgetEnabled) enabledServices.push('SPARQL GUI');
 
   console.log(
     `   Services: ${
-      enabledServices.length > 0 ? enabledServices.join(", ") : "none"
+      enabledServices.length > 0 ? enabledServices.join(', ') : 'none'
     }`,
   );
 }

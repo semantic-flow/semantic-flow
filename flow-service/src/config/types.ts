@@ -7,131 +7,131 @@
 
 // JSON-LD Context and Type Definitions
 export interface JSONLDContext {
-  readonly fsvc: "https://semantic-flow.github.io/ontology/flow-service/";
-  readonly mesh: "https://semantic-flow.github.io/ontology/mesh/";
-  readonly node: "https://semantic-flow.github.io/ontology/node/";
-  readonly flow: "https://semantic-flow.github.io/ontology/flow/";
-  readonly conf: "https://semantic-flow.github.io/ontology/config-flow/";
+  readonly fsvc: 'https://semantic-flow.github.io/ontology/flow-service/';
+  readonly mesh: 'https://semantic-flow.github.io/ontology/mesh/';
+  readonly node: 'https://semantic-flow.github.io/ontology/node/';
+  readonly flow: 'https://semantic-flow.github.io/ontology/flow/';
+  readonly conf: 'https://semantic-flow.github.io/ontology/config-flow/';
 }
 
 export interface JSONLDBase {
-  readonly "@context": JSONLDContext;
-  readonly "@type": string;
-  readonly "@id"?: string;
+  readonly '@context': JSONLDContext;
+  readonly '@type': string;
+  readonly '@id'?: string;
 }
 
 // Logging Configuration Types
 export interface LogChannelConfig {
-  readonly "@type": "fsvc:LogChannelConfig";
-  readonly "fsvc:logChannelEnabled": boolean;
-  readonly "fsvc:logLevel": "debug" | "info" | "warn" | "error";
-  readonly "fsvc:logFormat"?: "json" | "pretty";
-  readonly "fsvc:logFilePath"?: string;
-  readonly "fsvc:sentryDsn"?: string;
-  readonly "fsvc:sentryLoggingEnabled"?: boolean;
-  readonly "fsvc:logRetentionDays"?: number;
-  readonly "fsvc:logMaxFiles"?: number;
-  readonly "fsvc:logMaxFileSize"?: number;
-  readonly "fsvc:logRotationInterval"?:
-    | "daily"
-    | "weekly"
-    | "monthly"
-    | "size-based";
+  readonly '@type': 'fsvc:LogChannelConfig';
+  readonly 'fsvc:logChannelEnabled': boolean;
+  readonly 'fsvc:logLevel': 'debug' | 'info' | 'warn' | 'error';
+  readonly 'fsvc:logFormat'?: 'json' | 'pretty';
+  readonly 'fsvc:logFilePath'?: string;
+  readonly 'fsvc:sentryDsn'?: string;
+  readonly 'fsvc:sentryLoggingEnabled'?: boolean;
+  readonly 'fsvc:logRetentionDays'?: number;
+  readonly 'fsvc:logMaxFiles'?: number;
+  readonly 'fsvc:logMaxFileSize'?: number;
+  readonly 'fsvc:logRotationInterval'?:
+    | 'daily'
+    | 'weekly'
+    | 'monthly'
+    | 'size-based';
 }
 
 export interface LoggingConfig {
-  readonly "@type": "fsvc:LoggingConfig";
-  readonly "fsvc:hasConsoleChannel": LogChannelConfig;
-  readonly "fsvc:hasFileChannel": LogChannelConfig;
-  readonly "fsvc:hasSentryChannel": LogChannelConfig;
+  readonly '@type': 'fsvc:LoggingConfig';
+  readonly 'fsvc:hasConsoleChannel': LogChannelConfig;
+  readonly 'fsvc:hasFileChannel': LogChannelConfig;
+  readonly 'fsvc:hasSentryChannel': LogChannelConfig;
 }
 
 // Contained Services Configuration
 export interface ContainedServicesConfig {
-  readonly "@type": "fsvc:ContainedServicesConfig";
-  readonly "fsvc:apiEnabled": boolean;
-  readonly "fsvc:sparqlEnabled": boolean;
-  readonly "fsvc:queryWidgetEnabled": boolean;
-  readonly "fsvc:staticServerEnabled": boolean;
-  readonly "fsvc:apiDocsEnabled": boolean;
+  readonly '@type': 'fsvc:ContainedServicesConfig';
+  readonly 'fsvc:apiEnabled': boolean;
+  readonly 'fsvc:sparqlEnabled': boolean;
+  readonly 'fsvc:queryWidgetEnabled': boolean;
+  readonly 'fsvc:staticServerEnabled': boolean;
+  readonly 'fsvc:apiDocsEnabled': boolean;
 }
 
 // Node Configuration Types (for service defaults)
 export interface TemplateMapping {
-  readonly "@type": "conf:TemplateMapping";
-  readonly "conf:hasResourcePageTemplate": string;
+  readonly '@type': 'conf:TemplateMapping';
+  readonly 'conf:hasResourcePageTemplate': string;
 }
 
 export interface NodeConfig extends JSONLDBase {
-  readonly "@type": "conf:NodeConfig";
-  readonly "conf:versioningEnabled": boolean;
-  readonly "conf:distributionFormats": string[];
-  readonly "conf:templateMappings"?: TemplateMapping;
-  readonly "conf:configInheritanceEnabled": boolean;
-  readonly "conf:generateUnifiedDataset": boolean;
-  readonly "conf:generateAggregatedDataset": boolean;
-  readonly "conf:generateResourcePages"?: boolean;
-  readonly "conf:stylesheetPath"?: string;
-  readonly "conf:defaultAttribution"?: string;
+  readonly '@type': 'conf:NodeConfig';
+  readonly 'conf:versioningEnabled': boolean;
+  readonly 'conf:distributionFormats': string[];
+  readonly 'conf:templateMappings'?: TemplateMapping;
+  readonly 'conf:configInheritanceEnabled': boolean;
+  readonly 'conf:generateUnifiedDataset': boolean;
+  readonly 'conf:generateAggregatedDataset': boolean;
+  readonly 'conf:generateResourcePages'?: boolean;
+  readonly 'conf:stylesheetPath'?: string;
+  readonly 'conf:defaultAttribution'?: string;
 }
 
 // Complete Service Configuration
 export interface ServiceConfig extends JSONLDBase {
-  readonly "@type": "fsvc:ServiceConfig";
-  readonly "fsvc:port": number;
-  readonly "fsvc:host": string;
-  readonly "fsvc:meshPaths"?: string[];
-  readonly "fsvc:hasLoggingConfig": LoggingConfig;
-  readonly "fsvc:hasContainedServices": ContainedServicesConfig;
-  readonly "fsvc:nodeDefaults": NodeConfig;
-  readonly "fsvc:defaultDelegationChain"?: DelegationChain;
-  readonly "fsvc:defaultAttributedTo"?: AttributedTo;
+  readonly '@type': 'fsvc:ServiceConfig';
+  readonly 'fsvc:port': number;
+  readonly 'fsvc:host': string;
+  readonly 'fsvc:meshPaths'?: string[];
+  readonly 'fsvc:hasLoggingConfig': LoggingConfig;
+  readonly 'fsvc:hasContainedServices': ContainedServicesConfig;
+  readonly 'fsvc:nodeDefaults': NodeConfig;
+  readonly 'fsvc:defaultDelegationChain'?: DelegationChain;
+  readonly 'fsvc:defaultAttributedTo'?: AttributedTo;
 }
 
 // Attribution Configuration
 export interface AttributedTo {
-  readonly "@id": string;
+  readonly '@id': string;
   [key: string]: unknown;
 }
 
 // Delegation Chain Configuration
 export interface DelegationStep {
-  readonly "@type": "meta:DelegationStep";
-  readonly "meta:stepOrder": number;
-  readonly "prov:agent": {
-    readonly "@id": string;
+  readonly '@type': 'meta:DelegationStep';
+  readonly 'meta:stepOrder': number;
+  readonly 'prov:agent': {
+    readonly '@id': string;
   };
 }
 
 export interface DelegationChain {
-  readonly "@type": "meta:DelegationChain";
-  readonly "meta:hasStep": DelegationStep[];
+  readonly '@type': 'meta:DelegationChain';
+  readonly 'meta:hasStep': DelegationStep[];
 }
 
 // Partial Types for Sparse Input Configuration (mutable for construction)
 export interface ServiceConfigInput extends Partial<JSONLDBase> {
-  "@type"?: "fsvc:ServiceConfig";
-  "fsvc:port"?: number;
-  "fsvc:host"?: string;
-  "fsvc:meshPaths"?: string[];
-  "fsvc:hasLoggingConfig"?: Partial<LoggingConfig>;
-  "fsvc:hasContainedServices"?: Partial<ContainedServicesConfig>;
-  "fsvc:nodeDefaults"?: Partial<NodeConfig>;
-  "fsvc:defaultDelegationChain"?: Partial<DelegationChain>;
-  "fsvc:defaultAttributedTo"?: Partial<AttributedTo>;
+  '@type'?: 'fsvc:ServiceConfig';
+  'fsvc:port'?: number;
+  'fsvc:host'?: string;
+  'fsvc:meshPaths'?: string[];
+  'fsvc:hasLoggingConfig'?: Partial<LoggingConfig>;
+  'fsvc:hasContainedServices'?: Partial<ContainedServicesConfig>;
+  'fsvc:nodeDefaults'?: Partial<NodeConfig>;
+  'fsvc:defaultDelegationChain'?: Partial<DelegationChain>;
+  'fsvc:defaultAttributedTo'?: Partial<AttributedTo>;
 }
 
 export interface NodeConfigInput extends Partial<JSONLDBase> {
-  "@type"?: "conf:NodeConfig";
-  "conf:versioningEnabled"?: boolean;
-  "conf:distributionFormats"?: string[];
-  "conf:templateMappings"?: Partial<TemplateMapping>;
-  "conf:configInheritanceEnabled"?: boolean;
-  "conf:generateUnifiedDataset"?: boolean;
-  "conf:generateAggregatedDataset"?: boolean;
-  "conf:generateResourcePages"?: boolean;
-  "conf:stylesheetPath"?: string;
-  "conf:defaultAttribution"?: string;
+  '@type'?: 'conf:NodeConfig';
+  'conf:versioningEnabled'?: boolean;
+  'conf:distributionFormats'?: string[];
+  'conf:templateMappings'?: Partial<TemplateMapping>;
+  'conf:configInheritanceEnabled'?: boolean;
+  'conf:generateUnifiedDataset'?: boolean;
+  'conf:generateAggregatedDataset'?: boolean;
+  'conf:generateResourcePages'?: boolean;
+  'conf:stylesheetPath'?: string;
+  'conf:defaultAttribution'?: string;
 }
 
 // Configuration Context Types (Side-by-Side Pattern)
@@ -182,7 +182,7 @@ export interface EnvironmentConfig {
 export class ConfigError extends Error {
   constructor(message: string, public override readonly cause?: Error) {
     super(message);
-    this.name = "ConfigError";
+    this.name = 'ConfigError';
   }
 }
 
@@ -193,12 +193,12 @@ export class ConfigValidationError extends ConfigError {
     cause?: Error,
   ) {
     super(message, cause);
-    this.name = "ConfigValidationError";
+    this.name = 'ConfigValidationError';
   }
 }
 
 // Utility Types for Configuration Access
-export type LogLevel = "debug" | "info" | "warn" | "error";
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 /**
  * Retrieves the service port from the input options if specified; otherwise, returns the default port.
@@ -206,8 +206,8 @@ export type LogLevel = "debug" | "info" | "warn" | "error";
  * @returns The configured service port number
  */
 export function getServicePort(context: ServiceConfigContext): number {
-  return context.inputOptions["fsvc:port"] ??
-    context.defaultOptions["fsvc:port"];
+  return context.inputOptions['fsvc:port'] ??
+    context.defaultOptions['fsvc:port'];
 }
 
 /**
@@ -216,8 +216,8 @@ export function getServicePort(context: ServiceConfigContext): number {
  * @returns The configured service host name or address.
  */
 export function getServiceHost(context: ServiceConfigContext): string {
-  return context.inputOptions["fsvc:host"] ??
-    context.defaultOptions["fsvc:host"];
+  return context.inputOptions['fsvc:host'] ??
+    context.defaultOptions['fsvc:host'];
 }
 
 /**
@@ -226,11 +226,11 @@ export function getServiceHost(context: ServiceConfigContext): string {
  * @returns The log level for the console channel.
  */
 export function getConsoleLogLevel(context: ServiceConfigContext): LogLevel {
-  return context.inputOptions["fsvc:hasLoggingConfig"]
-    ?.["fsvc:hasConsoleChannel"]?.["fsvc:logLevel"] ??
+  return context.inputOptions['fsvc:hasLoggingConfig']
+    ?.['fsvc:hasConsoleChannel']?.['fsvc:logLevel'] ??
     context
-      .defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasConsoleChannel"][
-        "fsvc:logLevel"
+      .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasConsoleChannel'][
+        'fsvc:logLevel'
       ];
 }
 
@@ -240,11 +240,11 @@ export function getConsoleLogLevel(context: ServiceConfigContext): LogLevel {
  * @returns `true` if file logging is enabled; otherwise, `false`
  */
 export function getFileLogEnabled(context: ServiceConfigContext): boolean {
-  return context.inputOptions["fsvc:hasLoggingConfig"]?.["fsvc:hasFileChannel"]
-    ?.["fsvc:logChannelEnabled"] ??
+  return context.inputOptions['fsvc:hasLoggingConfig']?.['fsvc:hasFileChannel']
+    ?.['fsvc:logChannelEnabled'] ??
     context
-      .defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasFileChannel"][
-        "fsvc:logChannelEnabled"
+      .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasFileChannel'][
+        'fsvc:logChannelEnabled'
       ];
 }
 
@@ -254,11 +254,11 @@ export function getFileLogEnabled(context: ServiceConfigContext): boolean {
  * @returns `true` if Sentry logging is enabled; otherwise, `false`
  */
 export function getSentryEnabled(context: ServiceConfigContext): boolean {
-  return context.inputOptions["fsvc:hasLoggingConfig"]
-    ?.["fsvc:hasSentryChannel"]?.["fsvc:logChannelEnabled"] ??
+  return context.inputOptions['fsvc:hasLoggingConfig']
+    ?.['fsvc:hasSentryChannel']?.['fsvc:logChannelEnabled'] ??
     context
-      .defaultOptions["fsvc:hasLoggingConfig"]["fsvc:hasSentryChannel"][
-        "fsvc:logChannelEnabled"
+      .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasSentryChannel'][
+        'fsvc:logChannelEnabled'
       ];
 }
 
@@ -268,6 +268,6 @@ export function getSentryEnabled(context: ServiceConfigContext): boolean {
  * @returns `true` if versioning is enabled; otherwise, `false`
  */
 export function getVersioningEnabled(context: NodeConfigContext): boolean {
-  return context.inputOptions["conf:versioningEnabled"] ??
-    context.defaultOptions["conf:versioningEnabled"];
+  return context.inputOptions['conf:versioningEnabled'] ??
+    context.defaultOptions['conf:versioningEnabled'];
 }
