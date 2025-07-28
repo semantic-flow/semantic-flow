@@ -20,8 +20,8 @@ export async function clearGraph(
   const count = await countQuads(matchStream);
 
   if (count > 0) {
-    const delStream = quadstore.match(undefined, undefined, undefined, graph);
-    await quadstore.delStream(delStream as any);
+    //TODO maybe delStream would be better
+    quadstore.removeMatches(undefined, undefined, undefined, graph);
   }
 
   return count;

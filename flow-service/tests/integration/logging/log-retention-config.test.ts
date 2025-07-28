@@ -4,8 +4,8 @@
  * Test script to verify log retention configuration integration
  */
 
-import { getCompleteServiceConfig } from '../../src/config/index.ts';
-import { loadEnvConfig } from '../../src/config/loaders/env-loader.ts';
+import { getCompleteServiceConfig } from '../../../src/config/index.ts';
+import { loadEnvConfig } from '../../../src/config/loaders/env-loader.ts';
 
 async function testLogRetentionConfig() {
   console.log('🧪 Testing log retention configuration...\n');

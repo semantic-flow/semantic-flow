@@ -4,8 +4,8 @@
  * Test script to verify Sentry logging integration with log retention configuration
  */
 
-import { logger } from '../../src/utils/logger.ts';
-import { getCompleteServiceConfig } from '../../src/config/index.ts';
+import { logger } from '../../../src/utils/logger.ts';
+import { getCompleteServiceConfig } from '../../../src/config/index.ts';
 
 async function testSentryLogging() {
   console.log('🧪 Testing Sentry logging integration...\n');

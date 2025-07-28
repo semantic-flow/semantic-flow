@@ -7,19 +7,19 @@
 // Import the formatting functions directly from the logger module
 // We'll need to extract them for testing
 
-import { dirname, ensureDir } from '../../../flow-core/src/deps.ts';
+import { dirname, ensureDir } from '../../../../flow-core/src/deps.ts';
 
 type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL';
 
 interface LogContext {
   operation?:
-    | 'scan'
-    | 'weave'
-    | 'validate'
-    | 'config-resolve'
-    | 'api-request'
-    | 'startup'
-    | 'error-handling';
+  | 'scan'
+  | 'weave'
+  | 'validate'
+  | 'config-resolve'
+  | 'api-request'
+  | 'startup'
+  | 'error-handling';
   requestId?: string;
   meshPath?: string;
   nodePath?: string;
@@ -37,10 +37,10 @@ interface LogContext {
   statusCode?: number;
   userAgent?: string;
   component?:
-    | 'mesh-scanner'
-    | 'api-handler'
-    | 'config-resolver'
-    | 'weave-processor';
+  | 'mesh-scanner'
+  | 'api-handler'
+  | 'config-resolver'
+  | 'weave-processor';
   [key: string]: unknown;
 }
 
@@ -71,7 +71,7 @@ function formatPrettyMessage(
 
 // Simple file logger
 class SimpleFileLogger {
-  constructor(private logFile: string) {}
+  constructor(private logFile: string) { }
 
   async ensureLogDirectory(): Promise<void> {
     try {
