@@ -16,3 +16,4 @@ export { ensureDir } from 'https://deno.land/std@0.224.0/fs/ensure_dir.ts';
 export { Quadstore } from 'npm:quadstore';
 export { MemoryLevel } from 'npm:memory-level';
 export { DataFactory } from 'npm:rdf-data-factory';
+export type { Quad, NamedNode, Literal, Term, Stream } from 'npm:@rdfjs/types';
