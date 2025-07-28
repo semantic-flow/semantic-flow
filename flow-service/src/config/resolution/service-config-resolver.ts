@@ -1,4 +1,7 @@
 import type {
+  AttributedTo,
+  DelegationChain,
+  LogLevel,
   ServiceConfigContext,
   ServiceConfigInput,
   ServiceOptions,
@@ -7,6 +10,7 @@ import { getServiceConfigPath, loadEnvConfig } from '../loaders/env-loader.ts';
 import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
 import {
   getEnvironmentDefaults,
+  PLATFORM_SERVICE_DEFAULTS,
 } from '../defaults.ts';
 import { ConfigError } from '../types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';

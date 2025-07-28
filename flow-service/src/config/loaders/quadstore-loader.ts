@@ -1,7 +1,8 @@
-import { quadstore, df } from '../../quadstore.ts';
+import { defaultQuadstoreBundle } from '../../quadstoreDefaultBundle.ts';
 import type { ServiceConfigInput, NodeConfigInput } from '../types.ts';
 import { PLATFORM_SERVICE_DEFAULTS, PLATFORM_NODE_DEFAULTS } from '../defaults.ts';
 import { clearGraph, copyGraph } from '../../../../flow-core/src/utils/quadstore/quadstore-utils.ts';
+import { ServiceConfig } from '../index.ts';
 
 /**
  * Named graph terms for Quadstore config graphs
@@ -40,7 +41,12 @@ export async function loadInputNodeConfig(inputNodeConfig: NodeConfigInput): Pro
 /**
  * Merge input and platform graphs into merged service config graph
  */
-export async function mergeServiceConfigGraphs(): Promise<void> {
+export async function mergeServiceConfigGraphs(
+  {
+    store,
+    df,
+  } = defaultQuadstoreBundle
+): Promise<void> {
   // Clear merged graph
   const count = await clearGraph(df.namedNode(GRAPH_NAMES.mergedServiceConfig));
   if (count > 0) {
@@ -51,33 +57,13 @@ export async function mergeServiceConfigGraphs(): Promise<void> {
   await copyGraph(df.namedNode(GRAPH_NAMES.inputServiceConfig), df.namedNode(GRAPH_NAMES.mergedServiceConfig));
 
   // Copy platform service defaults quads if not overridden
-  const platformQuads = quadstore.match(undefined, undefined, undefined, df.namedNode(GRAPH_NAMES.platformServiceDefaults));
+  const platformQuads = store.match(undefined, undefined, undefined, df.namedNode(GRAPH_NAMES.platformServiceDefaults));
   for await (const q of platformQuads as any) {
-    const exists = await quadstore.countQuads(q.subject, q.predicate, undefined, df.namedNode(GRAPH_NAMES.mergedServiceConfig));
+    const exists = await store.countQuads(q.subject, q.predicate, undefined, df.namedNode(GRAPH_NAMES.mergedServiceConfig));
     if (exists === 0) {
-      await quadstore.put(df.quad(q.subject, q.predicate, q.object, df.namedNode(GRAPH_NAMES.mergedServiceConfig)));
+      await store.put(df.quad(q.subject, q.predicate, q.object, df.namedNode(GRAPH_NAMES.mergedServiceConfig)));
     }
   }
 }
 
-/**
- * Helper to convert a config object to RDF quads and load into a named graph
- * This is a simplified placeholder; a real implementation would convert JSON-LD fully.
- */
-async function loadConfigObjectToGraph(configObj: object, graphName: string): Promise<void> {
-  // Clear existing quads in the graph
-  await clearGraph(df.namedNode(graphName));
 
-  // Convert configObj to quads and add to store
-  const id = (configObj as Record<string, unknown>)['@id'];
-  if (typeof id !== 'string') {
-    throw new Error('Config object must have a valid @id string');
-  }
-  const subject = df.namedNode(id);
-  for (const [key, value] of Object.entries(configObj)) {
-    if (key === '@context' || key === '@type' || key === '@id') continue;
-    const predicate = df.namedNode(key);
-    const object = typeof value === 'string' ? df.literal(value) : df.literal(JSON.stringify(value));
-    await quadstore.put(df.quad(subject, predicate, object, df.namedNode(graphName)));
-  }
-}

@@ -1,38 +1,54 @@
-import { Quadstore, MemoryLevel, DataFactory } from '../../../flow-core/src/deps.ts';
-import { quadstore, df } from '../../src/quadstore.ts';
-import { Quad } from '../../../flow-core/src/deps.ts';
+import { assertEquals } from '../../../flow-core/src/deps.ts';
+import { MemoryLevel, DataFactory, Quadstore, NamedNode } from '../../../flow-core/src/deps.ts';
+import { countQuadsInStream, clearGraph, copyGraph } from '../../../flow-core/src/utils/quadstore/quadstore-utils.ts';
 
+Deno.test('Quadstore clearGraph and copyGraph utilities', async () => {
+  const backend = new MemoryLevel();
+  const df = new DataFactory();
+  const store = new Quadstore({ backend, dataFactory: df });
+  await store.open();
 
-// Open the store
-await quadstore.open();
+  const testQuadstoreBundle = { store, df, backend };
 
-// Put a single quad into the store using Quadstore's API
-await quadstore.put(df.quad(
-  df.namedNode('http://example.com/subject'),
-  df.namedNode('http://example.com/predicate'),
-  df.namedNode('http://example.com/object'),
-  df.defaultGraph(),
-));
+  const graphA: NamedNode = df.namedNode('urn:graphA');
+  const graphB: NamedNode = df.namedNode('urn:graphB');
 
+  // Clear both graphs before test
+  await clearGraph(graphA, testQuadstoreBundle);
+  await clearGraph(graphB, testQuadstoreBundle);
 
-// Retrieves all quads using RDF/JS Stream interfaces
-const quadsStream = quadstore.match(undefined, undefined, undefined, df.defaultGraph());
-quadsStream.on('data', (quad: Quad) => console.log(quad));
+  // Add quads to graphA
+  const subject = df.namedNode('http://example.com/subject');
+  const predicate = df.namedNode('http://example.com/predicate');
+  const object = df.namedNode('http://example.com/object');
 
+  await store.put(df.quad(subject, predicate, object, graphA));
 
-const quadsStream2 = quadstore.match(undefined, undefined, undefined, df.defaultGraph());
-await quadstore.delStream(quadsStream2 as any);
+  // Verify graphA has 1 quad
+  let count = await countQuadsInGraph(graphA, store);
+  assertEquals(count, 1);
 
-console.log('All quads deleted');
+  // Copy graphA to graphB
+  await copyGraph(graphA, graphB, testQuadstoreBundle);
 
-const quadsStream3 = quadstore.match(undefined, undefined, undefined, df.defaultGraph());
-quadsStream3.on('data', quad => console.log(quad));
+  // Verify graphB has 1 quad
+  count = await countQuadsInGraph(graphB, store);
+  assertEquals(count, 1);
 
+  // Clear graphA
+  const deletedCount = await clearGraph(graphA, testQuadstoreBundle);
+  assertEquals(deletedCount, 1);
 
+  // Verify graphA is empty
+  count = await countQuadsInGraph(graphA, store);
+  assertEquals(count, 0);
 
-// Retrieves all quads using Quadstore's API  
-const { items } = await quadstore.get({});
+  // Verify graphB still has 1 quad
+  count = await countQuadsInGraph(graphB, store);
+  assertEquals(count, 1);
+});
 
-for (const item of items) {
-  console.log(item);
+function countQuadsInGraph(graph: NamedNode, store: Quadstore): Promise<number> {
+  const stream = store.match(undefined, undefined, undefined, graph);
+  return countQuadsInStream(stream);
 }

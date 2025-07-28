@@ -155,6 +155,19 @@ export interface ServiceOptions {
   readonly sentryEnabled?: boolean;
 }
 
+// Imports for QuadstoreBundle types
+// usage: const bundle: QuadstoreBundle<MemoryLevel<string, string>> = { ... };
+import type { Quadstore, DataFactory } from '../../../flow-core/src/deps.ts';
+import type { AbstractLevel } from 'npm:abstract-level';
+
+// Quadstore Bundle Type
+export interface QuadstoreBundle<B extends AbstractLevel<any, any, any> = AbstractLevel<any, any, any>> {
+  store: Quadstore;
+  df: DataFactory;
+  backend: B;
+}
+
+
 // Environment Variable Mapping
 export interface EnvironmentConfig {
   readonly FLOW_CONFIG_PATH?: string;

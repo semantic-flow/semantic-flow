@@ -14,6 +14,11 @@ export { existsSync } from 'https://deno.land/std@0.224.0/fs/mod.ts';
 export { ensureDir } from 'https://deno.land/std@0.224.0/fs/ensure_dir.ts';
 
 export { Quadstore } from 'npm:quadstore';
-export { MemoryLevel } from 'npm:memory-level';
 export { DataFactory } from 'npm:rdf-data-factory';
+export { MemoryLevel } from 'npm:memory-level';
+
+export { jsonld } from "npm:jsonld";
+
+// exported types
 export type { Quad, NamedNode, Literal, Term, Stream } from 'npm:@rdfjs/types';
+
