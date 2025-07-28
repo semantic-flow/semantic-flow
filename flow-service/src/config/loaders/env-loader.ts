@@ -7,10 +7,10 @@
 
 import type {
   EnvironmentConfig,
-  LogLevel,
   ServiceConfigInput,
 } from '../types.ts';
 import { ConfigError } from '../types.ts';
+import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
 
 /**
  * Loads environment variables prefixed with `FLOW_` and assembles them into a structured `ServiceConfigInput` object.
@@ -260,26 +260,6 @@ function getEnvironmentVariables(): EnvironmentConfig {
   };
 }
 
-/**
- * Validates and normalizes a log level string from an environment variable.
- *
- * @param level - The log level string to validate
- * @returns The normalized log level if valid
- * @throws ConfigError if the log level is not one of "debug", "info", "warn", or "error"
- */
-function validateLogLevel(level: string): LogLevel {
-  const validLevels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
-  const normalized = level.toLowerCase().trim() as LogLevel;
-
-  if (!validLevels.includes(normalized)) {
-    throw new ConfigError(
-      `Invalid log level in environment variable: ${level}. Must be one of: ${
-        validLevels.join(', ')
-      }`,
-    );
-  }
-  return normalized;
-}
 
 /**
  * Parses a string into a boolean value, supporting common true/false representations.

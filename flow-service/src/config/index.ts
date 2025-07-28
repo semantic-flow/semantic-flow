@@ -63,24 +63,27 @@ export {
 
 // Service Configuration Resolution (Cascading Pattern)
 export {
+  resolveServiceConfig,
+} from './resolution/service-config-resolver.ts';
+
+export {
   getConfigValue,
   mergeConfigContext,
-  resolveServiceConfig,
-  ServiceConfigAccessor,
-  validateServiceConfig,
-} from './resolution/service-config-resolver.ts';
+} from './resolution/service-config-utils.ts';
+
+export { validateServiceConfig } from './resolution/service-config-validator.ts';
+
+export { ServiceConfigAccessor } from './resolution/service-config-accessor.ts';
 
 // Shared Utilities
 export { mergeConfigs } from '../utils/merge-configs.ts';
 
 // Import the implementations for the helper functions
 import type { ServiceConfig, ServiceOptions } from './types.ts';
-import {
-  mergeConfigContext,
-  resolveServiceConfig,
-  ServiceConfigAccessor,
-  validateServiceConfig,
-} from './resolution/service-config-resolver.ts';
+import { resolveServiceConfig } from './resolution/service-config-resolver.ts';
+import { mergeConfigContext } from './resolution/service-config-utils.ts';
+import { validateServiceConfig } from './resolution/service-config-validator.ts';
+import { ServiceConfigAccessor } from './resolution/service-config-accessor.ts';
 import { handleCaughtError } from '../utils/logger.ts';
 
 /**
