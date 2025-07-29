@@ -1,4 +1,4 @@
-import type { ServiceConfigContext, ServiceConfigInput } from '../types.ts';
+import type { ServiceConfigContext, ServiceConfigInput } from '../config-types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';
 import { PLATFORM_SERVICE_DEFAULTS } from '../defaults.ts';
 

@@ -8,8 +8,8 @@
 import type {
   EnvironmentConfig,
   ServiceConfigInput,
-} from '../types.ts';
-import { ConfigError } from '../types.ts';
+} from '../config-types.ts';
+import { ConfigError } from '../config-types.ts';
 import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
 
 /**

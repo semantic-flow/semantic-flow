@@ -5,7 +5,7 @@
  * Based on the existing JSON-LD configuration files.
  */
 
-import type { FlowServiceContext, MeshNodeConfig, ServiceConfig } from './types.ts';
+import type { FlowServiceContext, MeshNodeConfig, ServiceConfig } from './config-types.ts';
 import { mergeConfigs } from '../utils/merge-configs.ts';
 
 // Standard JSON-LD Context
@@ -18,6 +18,7 @@ export const DEFAULT_CONTEXT: FlowServiceContext = {
 };
 
 // Platform Node Configuration Defaults
+// TODO: Rename to indicate it's for the root MeshNodes of new Meshes
 export const PLATFORM_NODE_DEFAULTS: MeshNodeConfig = {
   '@context': DEFAULT_CONTEXT,
   '@type': 'conf:MeshNodeConfig',

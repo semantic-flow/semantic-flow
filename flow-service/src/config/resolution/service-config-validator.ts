@@ -1,5 +1,5 @@
-import type { ServiceConfigContext } from '../types.ts';
-import { ConfigError } from '../types.ts';
+import type { ServiceConfigContext } from '../config-types.ts';
+import { ConfigError } from '../config-types.ts';
 import { getConfigValue } from './service-config-utils.ts';
 
 /**

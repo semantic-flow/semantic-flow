@@ -1,23 +1,18 @@
 import type {
-  AttributedTo,
-  DelegationChain,
-  LogLevel,
   ServiceConfigContext,
   ServiceConfigInput,
   ServiceOptions,
-} from '../types.ts';
+} from '../config-types.ts';
 import { getServiceConfigPath, loadEnvConfig } from '../loaders/env-loader.ts';
 import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
 import {
   getEnvironmentDefaults,
-  PLATFORM_SERVICE_DEFAULTS,
 } from '../defaults.ts';
-import { ConfigError } from '../types.ts';
+import { ConfigError } from '../config-types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';
 import { handleCaughtError } from '../../utils/logger.ts';
 import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
 import { getConfigValue, mergeConfigContext } from './service-config-utils.ts';
-import { loadPlatformDefaults, loadInputServiceConfig, loadInputMeshNodeConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
 
 /**
  * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.

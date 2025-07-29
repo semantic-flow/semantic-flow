@@ -20,6 +20,10 @@ export { MemoryLevel } from 'npm:memory-level';
 import jsonldDefault from "npm:jsonld";
 export const jsonld = jsonldDefault;
 
+export { Engine } from 'npm:quadstore-comunica';
+
+// exported types
+
 export type {
   JsonLdDocument,
   NodeObject,
@@ -27,6 +31,5 @@ export type {
   ContextDefinition,
 } from "npm:@types/jsonld";
 
-// exported types
-export type { Quad, NamedNode, Literal, Term, Stream } from 'npm:@rdfjs/types';
-
+//RDF: Quad, NamedNode, Literal, Term, Stream, DefaultGraph, etc
+export type * as RDF from 'npm:@rdfjs/types';

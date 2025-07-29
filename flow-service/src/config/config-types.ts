@@ -151,18 +151,6 @@ export interface ServiceOptions {
   readonly sentryEnabled?: boolean;
 }
 
-// Imports for QuadstoreBundle types
-// usage: const bundle: QuadstoreBundle<MemoryLevel<string, string>> = { ... };
-import type { Quadstore, DataFactory } from '../../../flow-core/src/deps.ts';
-import type { AbstractLevel } from 'npm:abstract-level';
-
-// Quadstore Bundle Type
-export interface QuadstoreBundle<B extends AbstractLevel<any, any, any> = AbstractLevel<any, any, any>> {
-  store: Quadstore;
-  df: DataFactory;
-  backend: B;
-}
-
 
 // Environment Variable Mapping
 export interface EnvironmentConfig {
@@ -209,74 +197,3 @@ export class ConfigValidationError extends ConfigError {
 // Utility Types for Configuration Access
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-/**
- * Retrieves the service port from the input options if specified; otherwise, returns the default port.
- *
- * @returns The configured service port number
- */
-export function getServicePort(context: ServiceConfigContext): number {
-  return context.inputOptions['fsvc:port'] ??
-    context.defaultOptions['fsvc:port'];
-}
-
-/**
- * Retrieves the service host from the input options if provided; otherwise, returns the default host.
- *
- * @returns The configured service host name or address.
- */
-export function getServiceHost(context: ServiceConfigContext): string {
-  return context.inputOptions['fsvc:host'] ??
-    context.defaultOptions['fsvc:host'];
-}
-
-/**
- * Retrieves the console log level from the service configuration context, preferring input options over defaults.
- *
- * @returns The log level for the console channel.
- */
-export function getConsoleLogLevel(context: ServiceConfigContext): LogLevel {
-  return context.inputOptions['fsvc:hasLoggingConfig']
-    ?.['fsvc:hasConsoleChannel']?.['fsvc:logLevel'] ??
-    context
-      .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasConsoleChannel'][
-    'fsvc:logLevel'
-    ];
-}
-
-/**
- * Determines whether file logging is enabled, preferring the input options if specified, otherwise using the default options.
- *
- * @returns `true` if file logging is enabled; otherwise, `false`
- */
-export function getFileLogEnabled(context: ServiceConfigContext): boolean {
-  return context.inputOptions['fsvc:hasLoggingConfig']?.['fsvc:hasFileChannel']
-    ?.['fsvc:logChannelEnabled'] ??
-    context
-      .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasFileChannel'][
-    'fsvc:logChannelEnabled'
-    ];
-}
-
-/**
- * Determines whether Sentry logging is enabled, preferring the input configuration if specified.
- *
- * @returns `true` if Sentry logging is enabled; otherwise, `false`
- */
-export function getSentryEnabled(context: ServiceConfigContext): boolean {
-  return context.inputOptions['fsvc:hasLoggingConfig']
-    ?.['fsvc:hasSentryChannel']?.['fsvc:logChannelEnabled'] ??
-    context
-      .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasSentryChannel'][
-    'fsvc:logChannelEnabled'
-    ];
-}
-
-/**
- * Determines whether versioning is enabled for a node, preferring input options over defaults.
- *
- * @returns `true` if versioning is enabled; otherwise, `false`
- */
-export function getVersioningEnabled(context: MeshNodeConfigContext): boolean {
-  return context.inputOptions['conf:versioningEnabled'] ??
-    context.defaultOptions['conf:versioningEnabled'];
-}

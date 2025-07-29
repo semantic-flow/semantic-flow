@@ -1,5 +1,6 @@
 import { assertEquals } from '../../../flow-core/src/deps.ts';
-import { MemoryLevel, DataFactory, Quadstore, NamedNode } from '../../../flow-core/src/deps.ts';
+import { MemoryLevel, DataFactory, Quadstore } from '../../../flow-core/src/deps.ts';
+import { RDF } from '../../../flow-core/src/deps.ts';
 import { countQuadsInStream, clearGraph, copyGraph } from '../../../flow-core/src/utils/quadstore-utils.ts';
 
 Deno.test('Quadstore clearGraph and copyGraph utilities', async () => {
@@ -10,8 +11,8 @@ Deno.test('Quadstore clearGraph and copyGraph utilities', async () => {
 
   const testQuadstoreBundle = { store, df, backend };
 
-  const graphA: NamedNode = df.namedNode('urn:graphA');
-  const graphB: NamedNode = df.namedNode('urn:graphB');
+  const graphA: RDF.NamedNode = df.namedNode('urn:graphA');
+  const graphB: RDF.NamedNode = df.namedNode('urn:graphB');
 
   // Clear both graphs before test
   await clearGraph(graphA, testQuadstoreBundle);
@@ -48,7 +49,7 @@ Deno.test('Quadstore clearGraph and copyGraph utilities', async () => {
   assertEquals(count, 1);
 });
 
-function countQuadsInGraph(graph: NamedNode, store: Quadstore): Promise<number> {
+function countQuadsInGraph(graph: RDF.NamedNode, store: Quadstore): Promise<number> {
   const stream = store.match(undefined, undefined, undefined, graph);
   return countQuadsInStream(stream);
 }

@@ -20,20 +20,11 @@ export type {
   ServiceConfigInput,
   ServiceOptions,
   TemplateMapping,
-} from './types.ts';
+} from './config-types.ts';
 
 // Error Types
-export { ConfigError, ConfigValidationError } from './types.ts';
+export { ConfigError, ConfigValidationError } from './config-types.ts';
 
-// Helper Functions
-export {
-  getConsoleLogLevel,
-  getFileLogEnabled,
-  getSentryEnabled,
-  getServiceHost,
-  getServicePort,
-  getVersioningEnabled,
-} from './types.ts';
 
 // Default Configurations
 export {
@@ -50,7 +41,6 @@ export { getServiceConfigPath, loadEnvConfig } from './loaders/env-loader.ts';
 
 // JSON-LD File Loading
 export {
-  cloneConfig,
   configExists,
   getNodeHierarchy,
   isConfigInheritanceEnabled,
@@ -58,7 +48,7 @@ export {
   loadServiceConfig,
   saveMeshNodeConfig,
   saveServiceConfig,
-  validateJSONLD,
+  validateJsonLd,
 } from './loaders/jsonld-loader.ts';
 
 // Service Configuration Resolution (Cascading Pattern)
@@ -79,7 +69,7 @@ export { ServiceConfigAccessor } from './resolution/service-config-accessor.ts';
 export { mergeConfigs } from '../utils/merge-configs.ts';
 
 // Import the implementations for the helper functions
-import type { ServiceConfig, ServiceOptions } from './types.ts';
+import type { ServiceConfig, ServiceOptions } from './config-types.ts';
 import { resolveServiceConfig } from './resolution/service-config-resolver.ts';
 import { mergeConfigContext } from './resolution/service-config-utils.ts';
 import { validateServiceConfig } from './resolution/service-config-validator.ts';

@@ -1,4 +1,4 @@
-import type { ServiceConfigInput, ServiceOptions } from '../types.ts';
+import type { ServiceConfigInput, ServiceOptions } from '../config-types.ts';
 import { getServiceConfigPath, loadEnvConfig } from '../loaders/env-loader.ts';
 import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';

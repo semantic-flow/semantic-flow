@@ -1,9 +1,11 @@
-import { NamedNode, Stream } from '../deps.ts';
+import { NodeObject, Quadstore, DataFactory } from '../deps.ts';
+import { RDF } from '../deps.ts';
 import { jsonld } from '../deps.ts';
 import { defaultQuadstoreBundle } from '../../../flow-service/src/quadstoreDefaultBundle.ts';
 import { jsonldToQuads } from './rdfjs-utils.ts'
+import type { QuadstoreBundle } from '../types.ts';
 
-export function countQuadsInStream(stream: Stream): Promise<number> {
+export function countQuadsInStream(stream: RDF.Stream): Promise<number> {
   return new Promise((resolve, reject) => {
     let count = 0;
     stream.on('data', () => count++);
@@ -16,7 +18,7 @@ export function countQuadsInStream(stream: Stream): Promise<number> {
 //  returns whether there are any quads in the specified named graph.
 
 export async function isGraphEmpty(
-  graph: NamedNode,
+  graph: RDF.NamedNode,
   {
     store
   } = defaultQuadstoreBundle
@@ -31,10 +33,10 @@ export async function isGraphEmpty(
 //  Clears all quads in the specified named graph. Returns the number of quads deleted.
 
 export async function clearGraph(
-  graph: NamedNode,
+  graph: RDF.NamedNode,
   {
     store
-  } = defaultQuadstoreBundle
+  }: { store: Quadstore } = defaultQuadstoreBundle
 ): Promise<number> {
   const matchStream = store.match(undefined, undefined, undefined, graph);
   const count = await countQuadsInStream(matchStream);
@@ -50,82 +52,79 @@ export async function clearGraph(
 // Copies all quads from source graph to target graph.
 
 export async function copyGraph(
-  sourceGraph: NamedNode,
-  targetGraph: NamedNode,
+  sourceGraph: RDF.NamedNode,
+  targetGraph: RDF.NamedNode,
   {
     store,
     df,
-  } = defaultQuadstoreBundle
-): Promise<void> {
+  }: { store: Quadstore, df: DataFactory } = defaultQuadstoreBundle
+): Promise<number> {
   const stream = store.match(undefined, undefined, undefined, sourceGraph);
   // TODO: multiPut
+  let count = 0;
   for await (const q of stream as any) {
     const newQuad = df.quad(q.subject, q.predicate, q.object, targetGraph);
     await store.put(newQuad);
+    count++;
   }
+  return count;
 }
 
 
 // Converts a JSON-LD object to quads and puts them into the specified graph with store.multiPut
 
 export async function putJsonLdToGraph(
-  obj: Record<string, unknown>,
-  graphName: string,
+  inputJsonLd: NodeObject,
+  graphName?: string,
   {
-    store
+    store,
+    df
   } = defaultQuadstoreBundle
-): Promise<void> {
+): Promise<number> {
   // Convert JSON-LD to RDF quads
-  const quads = await jsonldToQuads(obj, graphName);
+  const graph = graphName ? df.namedNode(graphName) : df.defaultGraph();
+  const quads = await jsonldToQuads(inputJsonLd, graph);
 
   // Put quads into the store
   await store.multiPut(quads);
+
+  return quads.length;
 }
 
-// For each (subject, predicate) in the jsonld, remove matching, then insert.
-export async function patchJsonLdToGraph(
-  obj: Record<string, unknown>,
-  graphName: string,
-  {
-    store,
-    df,
-  } = defaultQuadstoreBundle
-): Promise<void> {
-  // Convert JSON-LD to RDF quads
-  const quads = await jsonldToQuads(obj, graphName);
+/**
+ * Creates a new graph from a JSON-LD object, optionally overwriting existing quads.
+ * If overwrite is false, it will throw an error if the target graph is not empty.
+ *
+ * @param obj - The JSON-LD object to convert to RDF quads
+ * @param graphName - The name of the graph to create
+ * @param overwrite - Whether to clear existing quads in the target graph
+ * @param options - Optional store and data factory for quadstore operations
+ * @returns numQuads - The number of quads created in the new graph
+ */
 
-  // Remove matching quads for each subject-predicate pair
-  for (const q of quads) {
-    store.removeMatches(q.subject, q.predicate, undefined, df.namedNode(graphName));
-  }
-
-  // Insert new quads
-  await store.multiPut(quads);
+export interface CreateGraphOptions {
+  overwrite?: boolean;
+  graphName?: string;
+  bundle?: QuadstoreBundle;
 }
 
-// Creates a new graph from a JSON-LD object, 
-// By default, fails if target graph isn't empty, but can overwrite ALL existing quads if specified.
 export async function createNewGraphFromJsonLd(
-  obj: Record<string, unknown>,
-  graphName: string,
-  overwrite: boolean = false,
-  {
-    store,
-    df,
-  } = defaultQuadstoreBundle
-): Promise<void> {
-  if (!overwrite) {
-    const isEmpty = await isGraphEmpty(df.namedNode(graphName));
-    if (!isEmpty) {
-      throw new Error(`Graph ${graphName} is not empty. Use overwrite option to clear it.`);
-    }
-  } else {
-    await clearGraph(df.namedNode(graphName));
-  }
+  inputJsonLd: NodeObject,
+  options: CreateGraphOptions = {}
+): Promise<number> {
+  const {
+    overwrite = false,
+    graphName = null,
+    bundle = defaultQuadstoreBundle,
+  } = options;
 
-  // Convert JSON-LD to RDF quads
-  const quads = await jsonldToQuads(obj, graphName);
+  const { store, df } = bundle;
+  const graph = graphName ? df.namedNode(graphName) : df.defaultGraph();
+  const quads = await jsonldToQuads(inputJsonLd, graph);
+  if (overwrite && graphName) clearGraph(df.namedNode(graphName));
 
   // Put quads into the store
   await store.multiPut(quads);
+
+  return quads.length;
 }

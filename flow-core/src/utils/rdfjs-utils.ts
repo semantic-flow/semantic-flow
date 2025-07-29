@@ -1,19 +1,20 @@
 import { jsonld } from '../deps.ts';
-import type { Quad } from 'npm:@rdfjs/types';
+import { NodeObject } from '../deps.ts';
+import type { RDF } from '../deps.ts';
 import { DataFactory } from 'npm:rdf-data-factory';
 
 const df = new DataFactory();
 
 // Converts a JSON-LD object to an array of RDFJS quads using a local DataFactory instance
 export async function jsonldToQuads(
-  obj: Record<string, unknown>,
-  graphName: string,
-): Promise<Quad[]> {
+  inputJsonLd: NodeObject,
+  graph: RDF.NamedNode | RDF.DefaultGraph = df.defaultGraph(),
+): Promise<RDF.Quad[]> {
   // Expand the JSON-LD object to full form
-  const expanded = await jsonld.expand(obj);
+  const expanded = await jsonld.expand(inputJsonLd);
 
   // Convert expanded JSON-LD to RDFJS quads
-  const quads: Quad[] = [];
+  const quads: RDF.Quad[] = [];
 
   for (const node of expanded) {
     const subject = df.namedNode(node['@id'] as string);
@@ -36,7 +37,7 @@ export async function jsonldToQuads(
         }
 
         const predicate = df.namedNode(key);
-        const quadObj = df.quad(subject, predicate, object, df.namedNode(graphName));
+        const quadObj = df.quad(subject, predicate, object, graph);
         quads.push(quadObj);
       }
     }

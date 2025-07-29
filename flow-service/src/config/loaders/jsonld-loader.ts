@@ -5,11 +5,11 @@
  * Supports both service and node configuration formats.
  */
 
-import type { MeshNodeConfigInput, ServiceConfigInput } from '../types.ts';
-import { ConfigError } from '../types.ts';
+import type { MeshNodeConfigInput, ServiceConfigInput } from '../config-types.ts';
+import { ConfigError } from '../config-types.ts';
 import { handleCaughtError } from '../../utils/logger.ts';
 import { getCurrentConfigDistPath } from '../../../../flow-core/src/utils/mesh-path-utils.ts';
-import { dirname, resolve } from '../../../../flow-core/src/deps.ts';
+import { dirname, NodeObject, resolve } from '../../../../flow-core/src/deps.ts';
 
 /**
  * Loads a service configuration from a JSON-LD file at the specified path.
@@ -271,28 +271,12 @@ export async function isConfigInheritanceEnabled(
  *
  * Throws a ConfigError if the input is not an object or if required properties are missing.
  */
-export function validateJSONLD(data: unknown): void {
-  if (!data || typeof data !== 'object') {
-    throw new ConfigError('Configuration must be a valid JSON object');
-  }
-
-  const obj = data as Record<string, unknown>;
-
-  if (!obj['@type']) {
+export function validateJsonLd(inputJsonLd: NodeObject): void {
+  if (!inputJsonLd['@type']) {
     throw new ConfigError('Configuration must have an "@type" property');
   }
 
-  if (!obj['@context']) {
+  if (!inputJsonLd['@context']) {
     throw new ConfigError('Configuration must have an "@context" property');
   }
-}
-
-/**
- * Creates a deep copy of the given configuration object using JSON serialization.
- *
- * @param config - The configuration object to clone
- * @returns A new object that is a deep clone of the input configuration
- */
-export function cloneConfig<T>(config: T): T {
-  return JSON.parse(JSON.stringify(config));
 }

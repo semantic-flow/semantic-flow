@@ -1,4 +1,4 @@
-import type { ServiceConfigContext, DelegationChain, AttributedTo } from '../types.ts';
+import type { ServiceConfigContext, DelegationChain, AttributedTo } from '../config-types.ts';
 import { getConfigValue } from './service-config-utils.ts';
 
 /**
