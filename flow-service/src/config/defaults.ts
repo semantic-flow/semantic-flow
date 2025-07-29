@@ -5,11 +5,11 @@
  * Based on the existing JSON-LD configuration files.
  */
 
-import type { JSONLDContext, NodeConfig, ServiceConfig } from './types.ts';
+import type { FlowServiceContext, MeshNodeConfig, ServiceConfig } from './types.ts';
 import { mergeConfigs } from '../utils/merge-configs.ts';
 
 // Standard JSON-LD Context
-export const DEFAULT_CONTEXT: JSONLDContext = {
+export const DEFAULT_CONTEXT: FlowServiceContext = {
   fsvc: 'https://semantic-flow.github.io/ontology/flow-service/',
   mesh: 'https://semantic-flow.github.io/ontology/mesh/',
   node: 'https://semantic-flow.github.io/ontology/node/',
@@ -18,9 +18,9 @@ export const DEFAULT_CONTEXT: JSONLDContext = {
 };
 
 // Platform Node Configuration Defaults
-export const PLATFORM_NODE_DEFAULTS: NodeConfig = {
+export const PLATFORM_NODE_DEFAULTS: MeshNodeConfig = {
   '@context': DEFAULT_CONTEXT,
-  '@type': 'conf:NodeConfig',
+  '@type': 'conf:MeshNodeConfig',
   '@id': 'conf:defaultConfig',
   'conf:versioningEnabled': true,
   'conf:configInheritanceEnabled': true,
@@ -48,11 +48,11 @@ export const PLATFORM_NODE_DEFAULTS: NodeConfig = {
  * - Omits @id to avoid conflicts in service context
  */
 export const SERVICE_NODE_DEFAULTS: Omit<
-  NodeConfig,
+  MeshNodeConfig,
   '@id' | 'conf:generateResourcePages' | 'conf:stylesheetPath'
 > = {
   '@context': DEFAULT_CONTEXT,
-  '@type': 'conf:NodeConfig',
+  '@type': 'conf:MeshNodeConfig',
   'conf:versioningEnabled': true,
   'conf:configInheritanceEnabled': true,
   'conf:distributionFormats': [

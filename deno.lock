@@ -11,6 +11,7 @@
     "npm:@scalar/hono-api-reference@*": "0.9.12_hono@4.8.5",
     "npm:@scalar/openapi-to-markdown@*": "0.2.23",
     "npm:@sentry/deno@*": "9.40.0",
+    "npm:@types/jsonld@*": "1.5.15",
     "npm:@types/node@*": "22.15.15",
     "npm:jsonld@*": "8.3.3",
     "npm:memory-level@*": "3.1.0",
@@ -454,6 +455,9 @@
       "dependencies": [
         "@types/unist"
       ]
+    },
+    "@types/jsonld@1.5.15": {
+      "integrity": "sha512-PlAFPZjL+AuGYmwlqwKEL0IMP8M8RexH0NIPGfCVWSQ041H2rR/8OlyZSD7KsCVoN8vCfWdtWDBxX8yBVP+xow=="
     },
     "@types/mdast@4.0.4": {
       "integrity": "sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==",

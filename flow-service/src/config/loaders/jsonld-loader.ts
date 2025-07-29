@@ -5,7 +5,7 @@
  * Supports both service and node configuration formats.
  */
 
-import type { NodeConfigInput, ServiceConfigInput } from '../types.ts';
+import type { MeshNodeConfigInput, ServiceConfigInput } from '../types.ts';
 import { ConfigError } from '../types.ts';
 import { handleCaughtError } from '../../utils/logger.ts';
 import { getCurrentConfigDistPath } from '../../../../flow-core/src/utils/mesh-path-utils.ts';
@@ -29,8 +29,7 @@ export async function loadServiceConfig(
     // Basic validation - ensure it's a service config
     if (parsedConfig['@type'] !== 'fsvc:ServiceConfig') {
       throw new ConfigError(
-        `Invalid service config type: expected "fsvc:ServiceConfig", got "${
-          parsedConfig['@type']
+        `Invalid service config type: expected "fsvc:ServiceConfig", got "${parsedConfig['@type']
         }"`,
       );
     }
@@ -82,9 +81,9 @@ export async function loadServiceConfig(
  * @param nodePath - The directory path of the node whose configuration should be loaded
  * @returns The parsed node configuration object, or `null` if the configuration file does not exist
  */
-export async function loadNodeConfig(
+export async function loadMeshNodeConfig(
   nodePath: string,
-): Promise<NodeConfigInput | null> {
+): Promise<MeshNodeConfigInput | null> {
   // Resolve nodePath to absolute path to avoid relative path issues
   const absoluteNodePath = resolve(nodePath);
   const configPath = getCurrentConfigDistPath(absoluteNodePath);
@@ -96,13 +95,12 @@ export async function loadNodeConfig(
     // Basic validation - ensure it's a node config
     if (parsedConfig['@type'] !== 'flow:ConfigDistribution') {
       throw new ConfigError(
-        `Invalid node config type: expected "flow:ConfigDistribution", got "${
-          parsedConfig['@type']
+        `Invalid node config type: expected "flow:ConfigDistribution", got "${parsedConfig['@type']
         }"`,
       );
     }
 
-    return parsedConfig as NodeConfigInput;
+    return parsedConfig as MeshNodeConfigInput;
   } catch (error) {
     if (error instanceof Deno.errors.NotFound) {
       // Node config doesn't exist - this is OK, return null
@@ -177,9 +175,9 @@ export async function saveServiceConfig(
  *
  * Ensures the target directory exists before writing. Throws a ConfigError if saving fails.
  */
-export async function saveNodeConfig(
+export async function saveMeshNodeConfig(
   nodePath: string,
-  config: NodeConfigInput,
+  config: MeshNodeConfigInput,
 ): Promise<void> {
   const configPath = getCurrentConfigDistPath(nodePath);
 
@@ -253,11 +251,11 @@ export async function isConfigInheritanceEnabled(
   nodePath: string,
 ): Promise<boolean> {
   try {
-    const nodeConfig = await loadNodeConfig(nodePath);
+    const meshNodeConfig = await loadMeshNodeConfig(nodePath);
 
     // If the node has explicit inheritance setting, use it
-    if (nodeConfig?.['conf:configInheritanceEnabled'] !== undefined) {
-      return nodeConfig['conf:configInheritanceEnabled'];
+    if (meshNodeConfig?.['conf:configInheritanceEnabled'] !== undefined) {
+      return meshNodeConfig['conf:configInheritanceEnabled'];
     }
 
     // Default to true if not specified

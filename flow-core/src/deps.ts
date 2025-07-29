@@ -17,7 +17,15 @@ export { Quadstore } from 'npm:quadstore';
 export { DataFactory } from 'npm:rdf-data-factory';
 export { MemoryLevel } from 'npm:memory-level';
 
-export { jsonld } from "npm:jsonld";
+import jsonldDefault from "npm:jsonld";
+export const jsonld = jsonldDefault;
+
+export type {
+  JsonLdDocument,
+  NodeObject,
+  ValueObject,
+  ContextDefinition,
+} from "npm:@types/jsonld";
 
 // exported types
 export type { Quad, NamedNode, Literal, Term, Stream } from 'npm:@rdfjs/types';

@@ -6,7 +6,7 @@
     "conf": "https://semantic-flow.github.io/ontology/config-flow/"
   },
   "@type": "flow:ConfigDistribution",
-  "@id": "conf:defaultNodeConfig",
+  "@id": "conf:defaultMeshNodeConfig",
   "conf:versioningEnabled": true,
   "conf:configInheritanceEnabled": true,
   "conf:distributionFormats": [

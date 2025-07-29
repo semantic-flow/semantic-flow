@@ -68,21 +68,22 @@ export async function copyGraph(
 
 // Converts a JSON-LD object to quads and puts them into the specified graph with store.multiPut
 
-export async function putJsonLDToGraph(
+export async function putJsonLdToGraph(
   obj: Record<string, unknown>,
   graphName: string,
   {
-    store,
-    df,
+    store
   } = defaultQuadstoreBundle
 ): Promise<void> {
+  // Convert JSON-LD to RDF quads
+  const quads = await jsonldToQuads(obj, graphName);
 
+  // Put quads into the store
+  await store.multiPut(quads);
 }
 
 // For each (subject, predicate) in the jsonld, remove matching, then insert.
-
-
-export async function patchJsonLDToGraph(
+export async function patchJsonLdToGraph(
   obj: Record<string, unknown>,
   graphName: string,
   {
@@ -90,14 +91,21 @@ export async function patchJsonLDToGraph(
     df,
   } = defaultQuadstoreBundle
 ): Promise<void> {
+  // Convert JSON-LD to RDF quads
+  const quads = await jsonldToQuads(obj, graphName);
 
+  // Remove matching quads for each subject-predicate pair
+  for (const q of quads) {
+    store.removeMatches(q.subject, q.predicate, undefined, df.namedNode(graphName));
+  }
+
+  // Insert new quads
+  await store.multiPut(quads);
 }
 
 // Creates a new graph from a JSON-LD object, 
 // By default, fails if target graph isn't empty, but can overwrite ALL existing quads if specified.
-// 
-
-export async function createNewGraphFromJsonLD(
+export async function createNewGraphFromJsonLd(
   obj: Record<string, unknown>,
   graphName: string,
   overwrite: boolean = false,
@@ -106,19 +114,18 @@ export async function createNewGraphFromJsonLD(
     df,
   } = defaultQuadstoreBundle
 ): Promise<void> {
-  // Clear existing quads in the graph
-  await clearGraph(df.namedNode(graphName));
+  if (!overwrite) {
+    const isEmpty = await isGraphEmpty(df.namedNode(graphName));
+    if (!isEmpty) {
+      throw new Error(`Graph ${graphName} is not empty. Use overwrite option to clear it.`);
+    }
+  } else {
+    await clearGraph(df.namedNode(graphName));
+  }
 
-  // Convert obj to quads and add to store
-  const id = (obj as Record<string, unknown>)['@id'];
-  if (typeof id !== 'string') {
-    throw new Error('Config object must have a valid @id string');
-  }
-  const subject = df.namedNode(id);
-  for (const [key, value] of Object.entries(configObj)) {
-    if (key === '@context' || key === '@type' || key === '@id') continue;
-    const predicate = df.namedNode(key);
-    const object = typeof value === 'string' ? df.literal(value) : df.literal(JSON.stringify(value));
-    await store.put(df.quad(subject, predicate, object, df.namedNode(graphName)));
-  }
+  // Convert JSON-LD to RDF quads
+  const quads = await jsonldToQuads(obj, graphName);
+
+  // Put quads into the store
+  await store.multiPut(quads);
 }

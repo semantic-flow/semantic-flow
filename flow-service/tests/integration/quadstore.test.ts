@@ -1,6 +1,6 @@
 import { assertEquals } from '../../../flow-core/src/deps.ts';
 import { MemoryLevel, DataFactory, Quadstore, NamedNode } from '../../../flow-core/src/deps.ts';
-import { countQuadsInStream, clearGraph, copyGraph } from '../../../flow-core/src/utils/quadstore/quadstore-utils.ts';
+import { countQuadsInStream, clearGraph, copyGraph } from '../../../flow-core/src/utils/quadstore-utils.ts';
 
 Deno.test('Quadstore clearGraph and copyGraph utilities', async () => {
   const backend = new MemoryLevel();

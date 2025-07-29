@@ -5,8 +5,10 @@
  * Supports sparse input configurations that are validated against complete defaults.
  */
 
+import { NodeObject, ContextDefinition } from '../../../flow-core/src/deps.ts';
+
 // JSON-LD Context and Type Definitions
-export interface JSONLDContext {
+export interface FlowServiceContext extends ContextDefinition {
   readonly fsvc: 'https://semantic-flow.github.io/ontology/flow-service/';
   readonly mesh: 'https://semantic-flow.github.io/ontology/mesh/';
   readonly node: 'https://semantic-flow.github.io/ontology/node/';
@@ -14,14 +16,8 @@ export interface JSONLDContext {
   readonly conf: 'https://semantic-flow.github.io/ontology/config-flow/';
 }
 
-export interface JSONLDBase {
-  readonly '@context': JSONLDContext;
-  readonly '@type': string;
-  readonly '@id'?: string;
-}
-
 // Logging Configuration Types
-export interface LogChannelConfig {
+export interface LogChannelConfig extends NodeObject {
   readonly '@type': 'fsvc:LogChannelConfig';
   readonly 'fsvc:logChannelEnabled': boolean;
   readonly 'fsvc:logLevel': 'debug' | 'info' | 'warn' | 'error';
@@ -39,7 +35,7 @@ export interface LogChannelConfig {
   | 'size-based';
 }
 
-export interface LoggingConfig {
+export interface LoggingConfig extends NodeObject {
   readonly '@type': 'fsvc:LoggingConfig';
   readonly 'fsvc:hasConsoleChannel': LogChannelConfig;
   readonly 'fsvc:hasFileChannel': LogChannelConfig;
@@ -47,7 +43,7 @@ export interface LoggingConfig {
 }
 
 // Contained Services Configuration
-export interface ContainedServicesConfig {
+export interface ContainedServicesConfig extends NodeObject {
   readonly '@type': 'fsvc:ContainedServicesConfig';
   readonly 'fsvc:apiEnabled': boolean;
   readonly 'fsvc:sparqlEnabled': boolean;
@@ -57,13 +53,13 @@ export interface ContainedServicesConfig {
 }
 
 // Node Configuration Types (for service defaults)
-export interface TemplateMapping {
+export interface TemplateMapping extends NodeObject {
   readonly '@type': 'conf:TemplateMapping';
   readonly 'conf:hasResourcePageTemplate': string;
 }
 
-export interface NodeConfig extends JSONLDBase {
-  readonly '@type': 'conf:NodeConfig';
+export interface MeshNodeConfig extends NodeObject {
+  readonly '@type': 'conf:MeshNodeConfig';
   readonly 'conf:versioningEnabled': boolean;
   readonly 'conf:distributionFormats': string[];
   readonly 'conf:templateMappings'?: TemplateMapping;
@@ -76,26 +72,26 @@ export interface NodeConfig extends JSONLDBase {
 }
 
 // Complete Service Configuration
-export interface ServiceConfig extends JSONLDBase {
+export interface ServiceConfig extends NodeObject {
   readonly '@type': 'fsvc:ServiceConfig';
   readonly 'fsvc:port': number;
   readonly 'fsvc:host': string;
   readonly 'fsvc:meshPaths'?: string[];
   readonly 'fsvc:hasLoggingConfig': LoggingConfig;
   readonly 'fsvc:hasContainedServices': ContainedServicesConfig;
-  readonly 'fsvc:rootNodeConfigTemplate'?: NodeConfig;
+  readonly 'fsvc:rootMeshNodeConfigTemplate'?: MeshNodeConfig;
   readonly 'fsvc:defaultDelegationChain'?: DelegationChain;
   readonly 'fsvc:defaultAttributedTo'?: AttributedTo;
 }
 
 // Attribution Configuration
-export interface AttributedTo {
+export interface AttributedTo extends NodeObject {
   readonly '@id': string;
-  [key: string]: unknown;
+  //TODO definition
 }
 
 // Delegation Chain Configuration
-export interface DelegationStep {
+export interface DelegationStep extends NodeObject {
   readonly '@type': 'meta:DelegationStep';
   readonly 'meta:stepOrder': number;
   readonly 'prov:agent': {
@@ -103,26 +99,26 @@ export interface DelegationStep {
   };
 }
 
-export interface DelegationChain {
+export interface DelegationChain extends NodeObject {
   readonly '@type': 'meta:DelegationChain';
   readonly 'meta:hasStep': DelegationStep[];
 }
 
 // Partial Types for Sparse Input Configuration (mutable for construction)
-export interface ServiceConfigInput extends Partial<JSONLDBase> {
+export interface ServiceConfigInput extends Partial<NodeObject> {
   '@type'?: 'fsvc:ServiceConfig';
   'fsvc:port'?: number;
   'fsvc:host'?: string;
   'fsvc:meshPaths'?: string[];
   'fsvc:hasLoggingConfig'?: Partial<LoggingConfig>;
   'fsvc:hasContainedServices'?: Partial<ContainedServicesConfig>;
-  'fsvc:nodeDefaults'?: Partial<NodeConfig>;
+  'fsvc:nodeDefaults'?: Partial<MeshNodeConfig>;
   'fsvc:defaultDelegationChain'?: Partial<DelegationChain>;
   'fsvc:defaultAttributedTo'?: Partial<AttributedTo>;
 }
 
-export interface NodeConfigInput extends Partial<JSONLDBase> {
-  '@type'?: 'conf:NodeConfig';
+export interface MeshNodeConfigInput extends Partial<NodeObject> {
+  '@type'?: 'conf:MeshNodeConfig';
   'conf:versioningEnabled'?: boolean;
   'conf:distributionFormats'?: string[];
   'conf:templateMappings'?: Partial<TemplateMapping>;
@@ -140,9 +136,9 @@ export interface ServiceConfigContext {
   readonly defaultOptions: ServiceConfig;
 }
 
-export interface NodeConfigContext {
-  readonly inputOptions: NodeConfigInput;
-  readonly defaultOptions: NodeConfig;
+export interface MeshNodeConfigContext {
+  readonly inputOptions: MeshNodeConfigInput;
+  readonly defaultOptions: MeshNodeConfig;
 }
 
 // CLI Options Type
@@ -280,7 +276,7 @@ export function getSentryEnabled(context: ServiceConfigContext): boolean {
  *
  * @returns `true` if versioning is enabled; otherwise, `false`
  */
-export function getVersioningEnabled(context: NodeConfigContext): boolean {
+export function getVersioningEnabled(context: MeshNodeConfigContext): boolean {
   return context.inputOptions['conf:versioningEnabled'] ??
     context.defaultOptions['conf:versioningEnabled'];
 }

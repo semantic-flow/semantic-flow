@@ -1,7 +1,7 @@
 import { defaultQuadstoreBundle } from '../../quadstoreDefaultBundle.ts';
-import type { ServiceConfigInput, NodeConfigInput } from '../types.ts';
+import type { ServiceConfigInput, MeshNodeConfigInput } from '../types.ts';
 import { PLATFORM_SERVICE_DEFAULTS, PLATFORM_NODE_DEFAULTS } from '../defaults.ts';
-import { clearGraph, copyGraph } from '../../../../flow-core/src/utils/quadstore/quadstore-utils.ts';
+import { clearGraph, copyGraph, createNewGraphFromJsonLd } from '../../../../flow-core/src/utils/quadstore-utils.ts';
 import { ServiceConfig } from '../index.ts';
 
 /**
@@ -9,9 +9,9 @@ import { ServiceConfig } from '../index.ts';
  */
 export const GRAPH_NAMES = {
   platformServiceDefaults: 'graph/platformServiceDefaults',
-  platformImplicitNodeConfig: 'graph/platformImplicitNodeConfig',
+  platformImplicitMeshNodeConfig: 'graph/platformImplicitMeshNodeConfig',
   inputServiceConfig: 'graph/inputServiceConfig',
-  inputNodeConfig: 'graph/inputNodeConfig',
+  inputMeshNodeConfig: 'graph/inputMeshNodeConfig',
   mergedServiceConfig: 'graph/mergedServiceConfig',
   // Per-node effective configs could be stored with dynamic graph names
 };
@@ -20,22 +20,22 @@ export const GRAPH_NAMES = {
  * Load platform defaults into Quadstore graphs
  */
 export async function loadPlatformDefaults(): Promise<void> {
-  await loadConfigObjectToGraph(PLATFORM_SERVICE_DEFAULTS, GRAPH_NAMES.platformServiceDefaults);
-  await loadConfigObjectToGraph(PLATFORM_NODE_DEFAULTS, GRAPH_NAMES.platformImplicitNodeConfig);
+  await createNewGraphFromJsonLd(PLATFORM_SERVICE_DEFAULTS, GRAPH_NAMES.platformServiceDefaults);
+  await createNewGraphFromJsonLd(PLATFORM_NODE_DEFAULTS, GRAPH_NAMES.platformImplicitMeshNodeConfig);
 }
 
 /**
  * Load input service config into Quadstore graph
  */
 export async function loadInputServiceConfig(inputConfig: ServiceConfigInput): Promise<void> {
-  await loadConfigObjectToGraph(inputConfig, GRAPH_NAMES.inputServiceConfig);
+  await createNewGraphFromJsonLd(inputConfig, GRAPH_NAMES.inputServiceConfig);
 }
 
 /**
  * Load input node config overrides into Quadstore graph
  */
-export async function loadInputNodeConfig(inputNodeConfig: NodeConfigInput): Promise<void> {
-  await loadConfigObjectToGraph(inputNodeConfig, GRAPH_NAMES.inputNodeConfig);
+export async function loadInputMeshNodeConfig(inputMeshNodeConfig: MeshNodeConfigInput): Promise<void> {
+  await createNewGraphFromJsonLd(inputMeshNodeConfig, GRAPH_NAMES.inputMeshNodeConfig);
 }
 
 /**

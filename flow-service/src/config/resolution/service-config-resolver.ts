@@ -17,14 +17,15 @@ import { mergeConfigs } from '../../utils/merge-configs.ts';
 import { handleCaughtError } from '../../utils/logger.ts';
 import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
 import { getConfigValue, mergeConfigContext } from './service-config-utils.ts';
+import { loadPlatformDefaults, loadInputServiceConfig, loadInputMeshNodeConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
 
 /**
  * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.
  *
- * Returns a context object containing both the merged input options and the default options, allowing for side-by-side comparison without merging them.
+ * Returns a ServiceConfigContext object containing both the merged input options and the default options, allowing for side-by-side comparison without merging them.
  *
  * @param cliOptions - Optional CLI-provided service options to override other configuration sources
- * @returns A context object with both input and default configuration options
+ * @returns A ServiceConfigContext object with both input and default configuration options
  * @throws ConfigError if configuration resolution fails or an unexpected error occurs
  */
 export async function resolveServiceConfig(
