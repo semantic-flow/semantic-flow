@@ -1,4 +1,4 @@
-import { defaultQuadstoreBundle } from '../../quadstoreDefaultBundle.ts';
+import { defaultQuadstoreBundle } from '../../quadstore-default-bundle.ts';
 import type { ServiceConfigInput, MeshNodeConfigInput } from '../config-types.ts';
 import { PLATFORM_SERVICE_DEFAULTS, PLATFORM_NODE_DEFAULTS } from '../defaults.ts';
 import { clearGraph, copyGraph, createNewGraphFromJsonLd } from '../../../../flow-core/src/utils/quadstore-utils.ts';

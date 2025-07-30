@@ -1,6 +1,6 @@
 import { assertEquals } from '../../src/deps.ts';
 import { clearGraph, copyGraph, isGraphEmpty, countQuadsInStream, putJsonLdToGraph, createNewGraphFromJsonLd } from '../../src/utils/quadstore-utils.ts';
-import { defaultQuadstoreBundle } from '../../../flow-service/src/quadstoreDefaultBundle.ts';
+import { quadstoreTestBundle } from '../../src/utils/quadstore/quadstore-factory.ts';
 
 Deno.test('countQuadsInStream counts quads correctly', async () => {
   const { store, df } = defaultQuadstoreBundle;

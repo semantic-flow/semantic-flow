@@ -1,7 +1,7 @@
 import { NodeObject, Quadstore, DataFactory } from '../deps.ts';
 import { RDF } from '../deps.ts';
 import { jsonld } from '../deps.ts';
-import { defaultQuadstoreBundle } from '../../../flow-service/src/quadstoreDefaultBundle.ts';
+import { defaultQuadstoreBundle } from '../../../flow-service/src/quadstore-default-bundle.ts';
 import { jsonldToQuads } from './rdfjs-utils.ts'
 import type { QuadstoreBundle } from '../types.ts';
 
@@ -60,14 +60,13 @@ export async function copyGraph(
   }: { store: Quadstore, df: DataFactory } = defaultQuadstoreBundle
 ): Promise<number> {
   const stream = store.match(undefined, undefined, undefined, sourceGraph);
-  // TODO: multiPut
-  let count = 0;
+  const quads = [];
   for await (const q of stream as any) {
     const newQuad = df.quad(q.subject, q.predicate, q.object, targetGraph);
-    await store.put(newQuad);
-    count++;
+    quads.push(newQuad);
   }
-  return count;
+  await store.multiPut(quads);
+  return quads.length;
 }
 
 
