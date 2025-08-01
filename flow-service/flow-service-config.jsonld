@@ -7,10 +7,12 @@
     "conf": "https://semantic-flow.github.io/ontology/config-flow/",
     "meta": "https://semantic-flow.github.io/ontology/meta-flow/",
     "prov": "http://www.w3.org/ns/prov#",
-    "dcterms": "http://purl.org/dc/terms/"
+    "dcterms": "http://purl.org/dc/terms/",
+    "local": "http://localhost/flow-service/"
   },
   "@type": "fsvc:ServiceConfig",
-  "@id": "fsvc:defaultConfig",
+  "@id": "local:serviceConfig",
+  "fsvc:host": "localhost",
   "fsvc:port": 8080,
   "fsvc:meshPaths": [
     "../meshes/test-ns/"

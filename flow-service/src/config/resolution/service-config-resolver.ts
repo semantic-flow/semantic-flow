@@ -23,35 +23,42 @@ import { getConfigValue, mergeConfigContext } from './service-config-utils.ts';
  * @returns A ServiceConfigContext object with both input and default configuration options
  * @throws ConfigError if configuration resolution fails or an unexpected error occurs
  */
+
+import { loadPlatformDefaults, loadInputServiceConfig, loadInputMeshNodeConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
+
 export async function resolveServiceConfig(
   cliOptions?: ServiceOptions,
-): Promise<ServiceConfigContext> {
+): Promise<void> {
   try {
-    let inputOptions: ServiceConfigInput = {};
+    // Load platform defaults into Quadstore graphs
+    await loadPlatformDefaults();
 
+    // Load environment config
     const envConfig = loadEnvConfig();
-    inputOptions = mergeConfigs(inputOptions, envConfig);
 
+    // Load file config if specified
     const serviceConfigPath = getServiceConfigPath(cliOptions?.configPath);
+    let fileConfig: ServiceConfigInput | undefined;
     if (serviceConfigPath) {
-      const fileConfig = await loadServiceConfig(serviceConfigPath);
-      if (fileConfig) {
-        inputOptions = mergeConfigs(inputOptions, fileConfig);
-      }
+      const loadedConfig = await loadServiceConfig(serviceConfigPath);
+      fileConfig = loadedConfig === null ? undefined : loadedConfig;
     }
 
-    if (cliOptions) {
-      const cliConfig = convertCliOptionsToConfig(cliOptions);
-      inputOptions = mergeConfigs(inputOptions, cliConfig);
-    }
+    // Convert CLI options to config
+    const cliConfig = cliOptions ? convertCliOptionsToConfig(cliOptions) : {};
 
-    const environment = Deno.env.get('FLOW_ENV') || 'development';
-    const defaultOptions = getEnvironmentDefaults(environment);
+    // Merge input configs: env, file, CLI
+    const mergedInputConfig = mergeConfigs(mergeConfigs(envConfig, fileConfig ?? {}), cliConfig);
 
-    return {
-      inputOptions,
-      defaultOptions,
-    };
+    // Load merged input config into Quadstore graph
+    await loadInputServiceConfig(mergedInputConfig);
+
+    // TODO: Load input mesh node config if applicable
+    // await loadInputMeshNodeConfig(...);
+
+    // Merge all graphs into mergedServiceConfig graph
+    await mergeServiceConfigGraphs();
+
   } catch (error) {
     if (error instanceof ConfigError) {
       await handleCaughtError(error, `Service configuration resolution failed`);

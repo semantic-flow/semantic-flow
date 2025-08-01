@@ -10,6 +10,9 @@ import { validateLogLevel } from '../../../../flow-core/src/platform-constants.t
  * @param cliOptions - Optional CLI-provided service options
  * @returns Merged service configuration input options
  */
+
+//TODO: dct:conformsTo
+
 export async function loadServiceConfigInput(
   cliOptions?: ServiceOptions,
 ): Promise<ServiceConfigInput> {

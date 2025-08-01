@@ -22,6 +22,8 @@ export const jsonld = jsonldDefault;
 
 export { Engine } from 'npm:quadstore-comunica';
 
+
+
 // exported types
 
 export type {

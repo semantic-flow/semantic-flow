@@ -15,6 +15,7 @@ export const DEFAULT_CONTEXT: FlowServiceContext = {
   node: 'https://semantic-flow.github.io/ontology/node/',
   flow: 'https://semantic-flow.github.io/ontology/flow/',
   conf: 'https://semantic-flow.github.io/ontology/config-flow/',
+  local: 'http://localhost/flow-service/'
 };
 
 // Platform Node Configuration Defaults
@@ -72,17 +73,20 @@ export const SERVICE_NODE_DEFAULTS: Omit<
 export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
   '@context': DEFAULT_CONTEXT,
   '@type': 'fsvc:ServiceConfig',
-  '@id': 'fsvc:defaultConfig',
+  '@id': 'local:serviceConfig',
   'fsvc:port': 3000,
   'fsvc:host': 'localhost',
   'fsvc:hasLoggingConfig': {
+    '@id': 'local:ServiceConfig#loggingConfig',
     '@type': 'fsvc:LoggingConfig',
     'fsvc:hasConsoleChannel': {
+      '@id': 'local:ServiceConfig#consoleChannel',
       '@type': 'fsvc:LogChannelConfig',
       'fsvc:logChannelEnabled': true,
       'fsvc:logLevel': 'info',
     },
     'fsvc:hasFileChannel': {
+      '@id': 'local:ServiceConfig#fileChannel',
       '@type': 'fsvc:LogChannelConfig',
       'fsvc:logChannelEnabled': false,
       'fsvc:logLevel': 'warn',
@@ -94,6 +98,7 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
       'fsvc:logRotationInterval': 'daily',
     },
     'fsvc:hasSentryChannel': {
+      '@id': 'local:ServiceConfig#sentryChannel',
       '@type': 'fsvc:LogChannelConfig',
       'fsvc:logChannelEnabled': false,
       'fsvc:logLevel': 'error',
@@ -101,6 +106,7 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
     },
   },
   'fsvc:hasContainedServices': {
+    '@id': 'local:ServiceConfig#containedServices',
     '@type': 'fsvc:ContainedServicesConfig',
     'fsvc:apiEnabled': true,
     'fsvc:sparqlEnabled': true,

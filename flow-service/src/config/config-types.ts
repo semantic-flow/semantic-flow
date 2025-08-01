@@ -57,7 +57,7 @@ export interface TemplateMapping extends NodeObject {
   readonly '@type': 'conf:TemplateMapping';
   readonly 'conf:hasResourcePageTemplate': string;
 }
-
+// TODO rename to 
 export interface MeshNodeConfig extends NodeObject {
   readonly '@type': 'conf:MeshNodeConfig';
   readonly 'conf:versioningEnabled': boolean;

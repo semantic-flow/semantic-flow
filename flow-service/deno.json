@@ -18,6 +18,6 @@
     "jsxImportSource": "hono/jsx"
   },
   "fmt": {
-    "singleQuote": true
+    "singleQuote": false
   }
 }

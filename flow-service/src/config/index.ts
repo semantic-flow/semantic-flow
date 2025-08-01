@@ -75,20 +75,19 @@ import { mergeConfigContext } from './resolution/service-config-utils.ts';
 import { validateServiceConfig } from './resolution/service-config-validator.ts';
 import { ServiceConfigAccessor } from './resolution/service-config-accessor.ts';
 import { handleCaughtError } from '../utils/logger.ts';
+import { defaultQuadstoreBundle } from '../quadstore-default-bundle.ts';
 
 /**
- * Resolves and validates the service configuration context, returning a `ServiceConfigAccessor` for side-by-side configuration access.
+ * Resolves and validates the service configuration.
  *
  * @param cliOptions - Optional command-line options to influence configuration resolution
- * @returns An accessor for retrieving configuration values from the resolved context
  */
 export async function createServiceConfig(
   cliOptions?: ServiceOptions,
-): Promise<ServiceConfigAccessor> {
+): Promise<void> {
   try {
-    const context = await resolveServiceConfig(cliOptions);
-    validateServiceConfig(context);
-    return new ServiceConfigAccessor(context);
+    await resolveServiceConfig(cliOptions);
+    await validateServiceConfig();
   } catch (error) {
     await handleCaughtError(error, `Failed to create service configuration`);
     throw error;
@@ -96,23 +95,10 @@ export async function createServiceConfig(
 }
 
 /**
- * Resolves, validates, and returns a fully merged service configuration object.
- *
- * @param cliOptions - Optional command-line options to influence configuration resolution
- * @returns The complete, validated service configuration object with all context layers merged
+ * @deprecated This function is no longer needed as the merged config is accessed via Quadstore.
  */
 export async function getCompleteServiceConfig(
   cliOptions?: ServiceOptions,
 ): Promise<ServiceConfig> {
-  try {
-    const context = await resolveServiceConfig(cliOptions);
-    validateServiceConfig(context);
-    return mergeConfigContext(context);
-  } catch (error) {
-    await handleCaughtError(
-      error,
-      `Failed to get complete service configuration`,
-    );
-    throw error;
-  }
+  throw new Error('getCompleteServiceConfig is deprecated. Use ServiceConfigAccessor to query config.');
 }

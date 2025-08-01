@@ -1,39 +1,36 @@
-import type { ServiceConfigContext } from '../config-types.ts';
+
+import { defaultQuadstoreBundle } from '../../quadstore-default-bundle.ts';
+import { DataFactory } from '../../../../flow-core/src/deps.ts';
 import { ConfigError } from '../config-types.ts';
-import { getConfigValue } from './service-config-utils.ts';
+import { GRAPH_NAMES } from '../loaders/quadstore-loader.ts';
 
 /**
- * Validates that required service configuration values are present and correctly formatted.
- *
- * Checks that the port is within the valid range, the host is a non-empty string, and if Sentry logging is enabled, ensures a valid Sentry DSN is configured.
- *
- * @throws ConfigError if any required configuration is missing or invalid.
+ * Validates essential service configuration values in the merged config graph.
+ * Throws ConfigError if validation fails.
  */
-export function validateServiceConfig(context: ServiceConfigContext): void {
-  const port = getConfigValue<number>(context, 'fsvc:port', 'fsvc:port');
-  const host = getConfigValue<string>(context, 'fsvc:host', 'fsvc:host');
+export async function validateServiceConfig(): Promise<void> {
+  const { store, df } = defaultQuadstoreBundle;
+  const graph = df.namedNode(GRAPH_NAMES.mergedServiceConfig);
 
-  if (!port || port <= 0 || port > 65535) {
-    throw new ConfigError(
-      `Invalid port number: ${port}. Must be between 1 and 65535.`,
-    );
-  }
-
-  if (!host || host.trim().length === 0) {
-    throw new ConfigError(`Invalid host: ${host}. Host cannot be empty.`);
-  }
-
-  // Validate Sentry configuration if enabled
-  const loggingConfig = context.inputOptions['fsvc:hasLoggingConfig'] ||
-    context.defaultOptions['fsvc:hasLoggingConfig'];
-  const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
-
-  if (sentryChannel && sentryChannel['fsvc:logChannelEnabled']) {
-    const sentryDsn = sentryChannel['fsvc:sentryDsn'];
-    if (!sentryDsn || !sentryDsn.startsWith('https://')) {
-      throw new ConfigError(
-        'Sentry is enabled but no valid DSN is configured. Please set FLOW_SENTRY_DSN environment variable or configure it in the service config file.',
-      );
+  // Validate port
+  const portQuads = store.match(undefined, df.namedNode('https://semantic-flow.github.io/ontology/flow-service/port'), undefined, graph);
+  for await (const quad of portQuads as any) {
+    const port = Number(quad.object.value);
+    if (isNaN(port) || port < 1 || port > 65535) {
+      throw new ConfigError(`Invalid port number: ${quad.object.value}. Must be between 1 and 65535.`);
     }
   }
+
+  // Validate host presence
+  const hostQuads = store.match(undefined, df.namedNode('https://semantic-flow.github.io/ontology/flow-service/host'), undefined, graph);
+  let hostFound = false;
+  for await (const _ of hostQuads as any) {
+    hostFound = true;
+    break;
+  }
+  if (!hostFound) {
+    throw new ConfigError('Host is missing in service configuration.');
+  }
+
+  // Additional validations can be added here as needed
 }

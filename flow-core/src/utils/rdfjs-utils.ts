@@ -10,38 +10,16 @@ export async function jsonldToQuads(
   inputJsonLd: NodeObject,
   graph: RDF.NamedNode | RDF.DefaultGraph = df.defaultGraph(),
 ): Promise<RDF.Quad[]> {
-  // Expand the JSON-LD object to full form
-  const expanded = await jsonld.expand(inputJsonLd);
+  // Use jsonld.toRDF() to get quads directly - much simpler!
+  const quads = await jsonld.toRDF(inputJsonLd) as RDF.Quad[];
 
-  // Convert expanded JSON-LD to RDFJS quads
-  const quads: RDF.Quad[] = [];
-
-  for (const node of expanded) {
-    const subject = df.namedNode(node['@id'] as string);
-
-    for (const [key, values] of Object.entries(node)) {
-      if (key === '@id' || key === '@type' || key === '@context') continue;
-
-      for (const value of values as any[]) {
-        let object;
-
-        if (value['@id']) {
-          object = df.namedNode(value['@id']);
-        } else if (value['@value'] !== undefined) {
-          const datatype = value['@type'] ? df.namedNode(value['@type']) : undefined;
-          const language = value['@language'];
-          object = df.literal(value['@value'], language || datatype);
-        } else {
-          // For complex nested objects, serialize as JSON string literal
-          object = df.literal(JSON.stringify(value));
-        }
-
-        const predicate = df.namedNode(key);
-        const quadObj = df.quad(subject, predicate, object, graph);
-        quads.push(quadObj);
-      }
-    }
+  // If the desired graph is the default graph, return as-is
+  if (graph.termType === 'DefaultGraph') {
+    return quads;
   }
 
-  return quads;
+  // If a specific named graph is requested, update all quads to use that graph
+  return quads.map(quad =>
+    df.quad(quad.subject, quad.predicate, quad.object, graph)
+  );
 }

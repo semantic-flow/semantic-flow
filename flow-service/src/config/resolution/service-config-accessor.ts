@@ -1,100 +1,79 @@
+
 import type { ServiceConfigContext, DelegationChain, AttributedTo } from '../config-types.ts';
-import { getConfigValue } from './service-config-utils.ts';
+import type { QuadstoreBundle } from '../../../../flow-core/src/types.ts';
+import { defaultQuadstoreBundle } from '../../quadstore-default-bundle.ts';
+import { DataFactory } from '../../../../flow-core/src/deps.ts';
 
-/**
- * Get a typed configuration accessor for common service config values
- */
 export class ServiceConfigAccessor {
-  constructor(private context: ServiceConfigContext) { }
+  private bundle: QuadstoreBundle;
+  private df: DataFactory;
 
-  get port(): number {
-    return getConfigValue<number>(this.context, 'fsvc:port', 'fsvc:port');
+  constructor(bundle: QuadstoreBundle = defaultQuadstoreBundle) {
+    this.bundle = bundle;
+    this.df = bundle.df;
   }
 
-  get host(): string {
-    return getConfigValue<string>(this.context, 'fsvc:host', 'fsvc:host');
+  private async querySingleValue(sparql: string): Promise<string | undefined> {
+    if (!this.bundle.engine) {
+      throw new Error('SPARQL engine not initialized in Quadstore bundle');
+    }
+    const bindingsStream = await this.bundle.engine.queryBindings(sparql, { sources: [this.bundle.store] });
+    for await (const binding of bindingsStream as any) {
+      const value = binding.get('value');
+      if (value) {
+        return value.value;
+      }
+    }
+    return undefined;
   }
 
-  get meshPaths(): string[] {
-    return this.context.inputOptions['fsvc:meshPaths'] || [];
+  async getPort(): Promise<number | undefined> {
+    const sparql = `
+      PREFIX fsvc: <https://semantic-flow.github.io/ontology/flow-service/>
+      SELECT ?value WHERE {
+        GRAPH <graph/mergedServiceConfig> {
+          ?s fsvc:port ?value .
+        }
+      } LIMIT 1
+    `;
+    const result = await this.querySingleValue(sparql);
+    return result ? Number(result) : undefined;
   }
 
-  get consoleLogLevel(): string {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const consoleChannel = loggingConfig?.['fsvc:hasConsoleChannel'];
-    return consoleChannel?.['fsvc:logLevel'] || 'info';
+  async getHost(): Promise<string | undefined> {
+    const sparql = `
+      PREFIX fsvc: <https://semantic-flow.github.io/ontology/flow-service/>
+      SELECT ?value WHERE {
+        GRAPH <graph/mergedServiceConfig> {
+          ?s fsvc:host ?value .
+        }
+      } LIMIT 1
+    `;
+    return this.querySingleValue(sparql);
   }
 
-  get fileLogEnabled(): boolean {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const fileChannel = loggingConfig?.['fsvc:hasFileChannel'];
-    return fileChannel?.['fsvc:logChannelEnabled'] || false;
+  async getMeshPaths(): Promise<string[]> {
+    const sparql = `
+      PREFIX fsvc: <https://semantic-flow.github.io/ontology/flow-service/>
+      SELECT ?value WHERE {
+        GRAPH <graph/mergedServiceConfig> {
+          ?s fsvc:meshPaths ?value .
+        }
+      }
+    `;
+    if (!this.bundle.engine) {
+      throw new Error('SPARQL engine not initialized in Quadstore bundle');
+    }
+    const values: string[] = [];
+    const bindingsStream = await this.bundle.engine.queryBindings(sparql, { sources: [this.bundle.store] });
+    for await (const binding of bindingsStream as any) {
+      const value = binding.get('value');
+      if (value) {
+        values.push(value.value);
+      }
+    }
+    return values;
   }
 
-  get fileLogLevel(): string {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const fileChannel = loggingConfig?.['fsvc:hasFileChannel'];
-    return fileChannel?.['fsvc:logLevel'] || 'warn';
-  }
-
-  get sentryEnabled(): boolean {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
-    return sentryChannel?.['fsvc:logChannelEnabled'] || false;
-  }
-
-  get sentryLogLevel(): string {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
-    return sentryChannel?.['fsvc:logLevel'] || 'error';
-  }
-
-  get sentryDsn(): string | undefined {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
-    return sentryChannel?.['fsvc:sentryDsn'];
-  }
-
-  get apiEnabled(): boolean {
-    const containedServices =
-      this.context.inputOptions['fsvc:hasContainedServices'] ||
-      this.context.defaultOptions['fsvc:hasContainedServices'];
-    return containedServices['fsvc:apiEnabled'] ?? true;
-  }
-
-  get sparqlEnabled(): boolean {
-    const containedServices =
-      this.context.inputOptions['fsvc:hasContainedServices'] ||
-      this.context.defaultOptions['fsvc:hasContainedServices'];
-    return containedServices['fsvc:sparqlEnabled'] ?? true;
-  }
-
-  get queryWidgetEnabled(): boolean {
-    const containedServices =
-      this.context.inputOptions['fsvc:hasContainedServices'] ||
-      this.context.defaultOptions['fsvc:hasContainedServices'];
-    return containedServices['fsvc:queryWidgetEnabled'] ?? true;
-  }
-
-  get defaultDelegationChain(): DelegationChain | undefined {
-    return getConfigValue<DelegationChain | undefined>(
-      this.context,
-      'fsvc:defaultDelegationChain',
-      'fsvc:defaultDelegationChain',
-    );
-  }
-
-  get defaultAttributedTo(): AttributedTo | undefined {
-    return getConfigValue<AttributedTo | undefined>(
-      this.context,
-      'fsvc:defaultAttributedTo',
-      'fsvc:defaultAttributedTo',
-    );
-  }
+  // Additional getters for other config values can be implemented similarly
 }

@@ -44,30 +44,9 @@ interface LogContext {
   [key: string]: unknown;
 }
 
-// Copy the pretty formatting function
-function formatPrettyMessage(
-  level: LogLevel,
-  message: string,
-  context?: LogContext,
-): string {
-  const timestamp = new Date().toISOString();
-  const levelPadded = level.padEnd(5);
+// Import the pretty formatting function from the logger module
+import { formatConsoleMessage } from '../../../src/utils/logger.ts';
 
-  let contextStr = '';
-  if (context && Object.keys(context).length > 0) {
-    const parts = [];
-    if (context.operation) parts.push(`op=${context.operation}`);
-    if (context.meshPath) parts.push(`mesh=${context.meshPath}`);
-    if (context.duration) parts.push(`${context.duration}ms`);
-    if (context.nodeCount) parts.push(`${context.nodeCount} nodes`);
-    if (context.configSource) parts.push(`source=${context.configSource}`);
-    if (context.component) parts.push(`[${context.component}]`);
-
-    contextStr = parts.length > 0 ? ` (${parts.join(', ')})` : '';
-  }
-
-  return `[${timestamp}] ${levelPadded} ${message}${contextStr}`;
-}
 
 // Simple file logger
 class SimpleFileLogger {
@@ -143,7 +122,7 @@ const testCases = [
 
 console.log('📝 Writing pretty formatted logs...');
 for (const testCase of testCases) {
-  const formatted = formatPrettyMessage(
+  const formatted = formatConsoleMessage(
     testCase.level,
     testCase.message,
     testCase.context,
