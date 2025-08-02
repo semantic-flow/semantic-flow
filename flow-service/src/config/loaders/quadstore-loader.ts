@@ -35,17 +35,14 @@ export async function mergeServiceConfigGraphs(
   } = defaultQuadstoreBundle
 ): Promise<void> {
   // Clear merged graph
-  const count = await clearGraph(df.namedNode(CONFIG_GRAPH_NAMES.mergedServiceConfig));
-  if (count > 0) {
-    console.info(`Deleted ${count} quads from mergedServiceConfig graph`);
-  }
+  await clearGraph(df.namedNode(CONFIG_GRAPH_NAMES.mergedServiceConfig));
 
   // Copy input service config quads
   await copyGraph(df.namedNode(CONFIG_GRAPH_NAMES.inputServiceConfig), df.namedNode(CONFIG_GRAPH_NAMES.mergedServiceConfig));
 
   // Copy platform service defaults quads if not overridden
   const platformQuads = store.match(undefined, undefined, undefined, df.namedNode(CONFIG_GRAPH_NAMES.platformServiceDefaults));
-  for await (const q of platformQuads as any) {
+  for await (const q of platformQuads) {
     const exists = await store.countQuads(q.subject, q.predicate, undefined, df.namedNode(CONFIG_GRAPH_NAMES.mergedServiceConfig));
     if (exists === 0) {
       await store.put(df.quad(q.subject, q.predicate, q.object, df.namedNode(CONFIG_GRAPH_NAMES.mergedServiceConfig)));

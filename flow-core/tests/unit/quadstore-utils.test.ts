@@ -43,22 +43,33 @@ Deno.test('isGraphEmpty returns true for empty graph and false otherwise', async
   await clearGraph(graph);
 });
 
-Deno.test('clearGraph deletes all quads and returns count', async () => {
+
+Deno.test('clearGraph deletes all quads', async () => {
   const testQuadstoreBundle = await createQuadstoreBundle();
   const df = testQuadstoreBundle.df;
   const store = testQuadstoreBundle.store;
 
   const graph = df.namedNode('urn:testGraph3');
+
+  const emptyBeforeClear = await isGraphEmpty(graph, testQuadstoreBundle);
   await clearGraph(graph);
+  assertEquals(emptyBeforeClear, true);
 
   const quad = df.quad(df.namedNode('s'), df.namedNode('p'), df.literal('o'), graph);
   await store.put(quad);
 
-  const count = await clearGraph(graph, testQuadstoreBundle);
-  assertEquals(count, 1);
+  const emptyAfterPut = await isGraphEmpty(graph, testQuadstoreBundle);
+  assertEquals(emptyAfterPut, false);
 
-  const empty = await isGraphEmpty(graph, testQuadstoreBundle);
-  assertEquals(empty, true);
+  await clearGraph(graph);
+
+  const matchStream = store.match(undefined, undefined, undefined, graph);
+  const count = await countQuadsInStream(matchStream);
+  console.log(`quads in graph ${graph.value}: ${count}`);
+
+  const emptyAfterClear = await isGraphEmpty(graph, testQuadstoreBundle);
+  assertEquals(emptyAfterClear, true);
+
 });
 
 Deno.test('copyGraph copies quads from source to target graph', async () => {
@@ -69,7 +80,6 @@ Deno.test('copyGraph copies quads from source to target graph', async () => {
   const sourceGraph = df.namedNode('urn:sourceGraph');
   const targetGraph = df.namedNode('urn:targetGraph');
 
-  await clearGraph(sourceGraph, testQuadstoreBundle);
   await clearGraph(targetGraph, testQuadstoreBundle);
 
   const quad = df.quad(df.namedNode('s'), df.namedNode('p'), df.literal('o'), sourceGraph);

@@ -14,7 +14,7 @@ export async function validateServiceConfig(): Promise<void> {
 
   // Validate port
   const portQuads = store.match(undefined, df.namedNode('https://semantic-flow.github.io/ontology/flow-service/port'), undefined, graph);
-  for await (const quad of portQuads as any) {
+  for await (const quad of portQuads) {
     const port = Number(quad.object.value);
     if (isNaN(port) || port < 1 || port > 65535) {
       throw new ConfigError(`Invalid port number: ${quad.object.value}. Must be between 1 and 65535.`);
@@ -24,7 +24,7 @@ export async function validateServiceConfig(): Promise<void> {
   // Validate host presence
   const hostQuads = store.match(undefined, df.namedNode('https://semantic-flow.github.io/ontology/flow-service/host'), undefined, graph);
   let hostFound = false;
-  for await (const _ of hostQuads as any) {
+  for await (const _ of hostQuads) {
     hostFound = true;
     break;
   }

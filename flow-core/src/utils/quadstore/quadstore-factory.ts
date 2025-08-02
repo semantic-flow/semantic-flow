@@ -11,7 +11,15 @@ export async function createQuadstoreBundle(): Promise<QuadstoreBundle> {
   const store = new Quadstore({ backend, dataFactory: df });
   const engine = new Engine(store);
 
-  await store.open();
+
+  try {
+    await store.open();
+  } catch (err) {
+    // Use preferred error handling approach
+
+    await handleCaughtError(err, 'Failed to open quadstore');
+    throw new Error(`Failed to open quadstore: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   return { store, df, backend, engine };
 }

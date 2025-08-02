@@ -30,24 +30,25 @@ export async function isGraphEmpty(
 }
 
 
-//  Clears all quads in the specified named graph. Returns the number of quads deleted.
+//  Clears all quads in the specified named graph.
 
 export async function clearGraph(
   graph: RDF.NamedNode,
   {
     store
   }: { store: Quadstore } = defaultQuadstoreBundle
-): Promise<number> {
+): Promise<void> {
   const matchStream = store.match(undefined, undefined, undefined, graph);
-  const count = await countQuadsInStream(matchStream);
+  //const count = await countQuadsInStream(matchStream);
+  //console.log(`Number of quads before delStream in graph ${graph.value}: ${count}`);
+  await store.delStream(matchStream);
+  const matchStream2 = store.match(undefined, undefined, undefined, graph);
+  const count2 = await countQuadsInStream(matchStream2
 
-  if (count > 0) {
-    const delStream = store.match(undefined, undefined, undefined, graph);
-    await store.delStream(delStream as any);
-  }
-
-  return count;
+  );
+  console.log(`Number of quads in graph ${graph.value}: ${count2}`);
 }
+
 
 // Copies all quads from source graph to target graph.
 
@@ -61,7 +62,7 @@ export async function copyGraph(
 ): Promise<number> {
   const stream = store.match(undefined, undefined, undefined, sourceGraph);
   const quads = [];
-  for await (const q of stream as any) {
+  for await (const q of stream) {
     const newQuad = df.quad(q.subject, q.predicate, q.object, targetGraph);
     quads.push(newQuad);
   }

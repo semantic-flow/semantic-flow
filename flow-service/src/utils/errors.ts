@@ -30,7 +30,7 @@ export class ConfigurationError extends FlowServiceError {
   }
 }
 
-// Enhanced error handler with automatic Sentry integration
+// Enhanced error handler 
 export function handleServiceError(
   error: unknown,
   context?: string,
