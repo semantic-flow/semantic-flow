@@ -17,8 +17,6 @@ import { initializeMeshRegistry } from '../utils/mesh-utils.ts';
 
 export const createMeshesRoutes = (): OpenAPIHono => {
   const meshes = new OpenAPIHono();
-  const meshRegistry: Record<string, string> = {};
-  initializeMeshRegistry();
 
   // Schemas for Mesh Registration (POST /api/meshes)
   const MeshRegistrationRequest = z.object({

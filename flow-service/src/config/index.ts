@@ -68,11 +68,6 @@ export {
   resolveServiceConfig,
 } from './resolution/service-config-resolver.ts';
 
-export {
-  getConfigValue,
-  mergeConfigContext,
-} from './resolution/service-config-utils.ts';
-
 export { validateServiceConfig } from './resolution/service-config-validator.ts';
 
 export { singletonServiceConfigAccessor } from './resolution/service-config-accessor.ts';
@@ -81,12 +76,10 @@ export { singletonServiceConfigAccessor } from './resolution/service-config-acce
 export { mergeConfigs } from '../utils/merge-configs.ts';
 
 // Import the implementations for the helper functions
-import type { ServiceConfig, ServiceOptions } from './config-types.ts';
+import type { ServiceOptions } from './config-types.ts';
 import { resolveServiceConfig } from './resolution/service-config-resolver.ts';
-import { mergeConfigContext } from './resolution/service-config-utils.ts';
 import { validateServiceConfig } from './resolution/service-config-validator.ts';
 import { handleCaughtError } from '../utils/logger.ts';
-import { defaultQuadstoreBundle } from '../quadstore-default-bundle.ts';
 
 /**
  * Resolves and validates the service configuration.
@@ -103,13 +96,4 @@ export async function createServiceConfig(
     await handleCaughtError(error, `Failed to create service configuration`);
     throw error;
   }
-}
-
-/**
- * @deprecated This function is no longer needed as the merged config is accessed via Quadstore.
- */
-export async function getCompleteServiceConfig(
-  cliOptions?: ServiceOptions,
-): Promise<ServiceConfig> {
-  throw new Error('getCompleteServiceConfig is deprecated. Use ServiceConfigAccessor to query config.');
 }

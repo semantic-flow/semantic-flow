@@ -1,5 +1,4 @@
 import type {
-  ServiceConfigContext,
   ServiceConfigInput,
   ServiceOptions,
 } from '../config-types.ts';
@@ -12,7 +11,6 @@ import { ConfigError } from '../config-types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';
 import { handleCaughtError } from '../../utils/logger.ts';
 import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
-import { getConfigValue, mergeConfigContext } from './service-config-utils.ts';
 
 /**
  * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.
@@ -126,5 +124,3 @@ function convertCliOptionsToConfig(
 
   return config;
 }
-
-export { getConfigValue, mergeConfigContext };

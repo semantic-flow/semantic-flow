@@ -83,7 +83,7 @@ import { createMeshesRoutes } from './src/routes/meshes.ts';
 import { createWeaveRoutes } from './src/routes/weave.ts';
 
 const meshes = createMeshesRoutes();
-const weave = createWeaveRoutes(singletonServiceConfigAccessor);
+const weave = createWeaveRoutes();
 
 app.route('/api', meshes);
 app.route('/api', weave);

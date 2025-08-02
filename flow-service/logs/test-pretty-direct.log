@@ -1,4 +1,4 @@
-[90m[2025-07-30T01:03:13.334Z][0m [32mINFO[0m File logging test started (op=startup, [config-resolver])
-[90m[2025-07-30T01:03:13.339Z][0m [33mWARN[0m Configuration override detected (op=config-resolve)
-[90m[2025-07-30T01:03:13.339Z][0m [31mERROR[0m Database connection failed (op=startup, 5000ms)
-[90m[2025-07-30T01:03:13.340Z][0m [34mDEBUG[0m Processing mesh nodes (op=scan, mesh=/data/mesh, 1250ms, 42 nodes)
+[90m[2025-08-02T05:45:58.391Z][0m [32mINFO[0m File logging test started (op=startup, [config-resolver])
+[90m[2025-08-02T05:45:58.393Z][0m [33mWARN[0m Configuration override detected (op=config-resolve)
+[90m[2025-08-02T05:45:58.393Z][0m [31mERROR[0m Database connection failed (op=startup, 5000ms)
+[90m[2025-08-02T05:45:58.393Z][0m [34mDEBUG[0m Processing mesh nodes (op=scan, mesh=/data/mesh, 1250ms, 42 nodes)
