@@ -24,7 +24,7 @@ import { getConfigValue, mergeConfigContext } from './service-config-utils.ts';
  * @throws ConfigError if configuration resolution fails or an unexpected error occurs
  */
 
-import { loadPlatformDefaults, loadInputServiceConfig, loadInputMeshNodeConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
+import { loadPlatformDefaults, loadInputServiceConfig, loadInputMeshRootNodeConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
 
 export async function resolveServiceConfig(
   cliOptions?: ServiceOptions,
@@ -54,7 +54,7 @@ export async function resolveServiceConfig(
     await loadInputServiceConfig(mergedInputConfig);
 
     // TODO: Load input mesh node config if applicable
-    // await loadInputMeshNodeConfig(...);
+    // await loadInputMeshRootNodeConfig(...);
 
     // Merge all graphs into mergedServiceConfig graph
     await mergeServiceConfigGraphs();

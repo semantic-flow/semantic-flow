@@ -5,7 +5,7 @@
  * Supports both service and node configuration formats.
  */
 
-import type { MeshNodeConfigInput, ServiceConfigInput } from '../config-types.ts';
+import type { MeshRootNodeConfigInput, ServiceConfigInput } from '../config-types.ts';
 import { ConfigError } from '../config-types.ts';
 import { handleCaughtError } from '../../utils/logger.ts';
 import { getCurrentConfigDistPath } from '../../../../flow-core/src/utils/mesh-path-utils.ts';
@@ -81,9 +81,9 @@ export async function loadServiceConfig(
  * @param nodePath - The directory path of the node whose configuration should be loaded
  * @returns The parsed node configuration object, or `null` if the configuration file does not exist
  */
-export async function loadMeshNodeConfig(
+export async function loadMeshRootNodeConfig(
   nodePath: string,
-): Promise<MeshNodeConfigInput | null> {
+): Promise<MeshRootNodeConfigInput | null> {
   // Resolve nodePath to absolute path to avoid relative path issues
   const absoluteNodePath = resolve(nodePath);
   const configPath = getCurrentConfigDistPath(absoluteNodePath);
@@ -100,7 +100,7 @@ export async function loadMeshNodeConfig(
       );
     }
 
-    return parsedConfig as MeshNodeConfigInput;
+    return parsedConfig as MeshRootNodeConfigInput;
   } catch (error) {
     if (error instanceof Deno.errors.NotFound) {
       // Node config doesn't exist - this is OK, return null
@@ -175,9 +175,9 @@ export async function saveServiceConfig(
  *
  * Ensures the target directory exists before writing. Throws a ConfigError if saving fails.
  */
-export async function saveMeshNodeConfig(
+export async function saveMeshRootNodeConfig(
   nodePath: string,
-  config: MeshNodeConfigInput,
+  config: MeshRootNodeConfigInput,
 ): Promise<void> {
   const configPath = getCurrentConfigDistPath(nodePath);
 
@@ -251,7 +251,7 @@ export async function isConfigInheritanceEnabled(
   nodePath: string,
 ): Promise<boolean> {
   try {
-    const meshNodeConfig = await loadMeshNodeConfig(nodePath);
+    const meshNodeConfig = await loadMeshRootNodeConfig(nodePath);
 
     // If the node has explicit inheritance setting, use it
     if (meshNodeConfig?.['conf:configInheritanceEnabled'] !== undefined) {

@@ -1,10 +1,9 @@
-
-import type { ServiceConfigContext, DelegationChain, AttributedTo } from '../config-types.ts';
 import type { QuadstoreBundle } from '../../../../flow-core/src/types.ts';
 import { defaultQuadstoreBundle } from '../../quadstore-default-bundle.ts';
 import { DataFactory } from '../../../../flow-core/src/deps.ts';
+import { GRAPH_NAMES } from '../loaders/quadstore-loader.ts';
 
-export class ServiceConfigAccessor {
+export const singletonServiceConfigAccessor = new (class ServiceConfigAccessor {
   private bundle: QuadstoreBundle;
   private df: DataFactory;
 
@@ -31,7 +30,7 @@ export class ServiceConfigAccessor {
     const sparql = `
       PREFIX fsvc: <https://semantic-flow.github.io/ontology/flow-service/>
       SELECT ?value WHERE {
-        GRAPH <graph/mergedServiceConfig> {
+        GRAPH <${GRAPH_NAMES.mergedServiceConfig}> {
           ?s fsvc:port ?value .
         }
       } LIMIT 1
@@ -44,7 +43,7 @@ export class ServiceConfigAccessor {
     const sparql = `
       PREFIX fsvc: <https://semantic-flow.github.io/ontology/flow-service/>
       SELECT ?value WHERE {
-        GRAPH <graph/mergedServiceConfig> {
+        GRAPH <${GRAPH_NAMES.mergedServiceConfig}> {
           ?s fsvc:host ?value .
         }
       } LIMIT 1
@@ -56,7 +55,7 @@ export class ServiceConfigAccessor {
     const sparql = `
       PREFIX fsvc: <https://semantic-flow.github.io/ontology/flow-service/>
       SELECT ?value WHERE {
-        GRAPH <graph/mergedServiceConfig> {
+        GRAPH <${GRAPH_NAMES.mergedServiceConfig}> {
           ?s fsvc:meshPaths ?value .
         }
       }
@@ -76,4 +75,4 @@ export class ServiceConfigAccessor {
   }
 
   // Additional getters for other config values can be implemented similarly
-}
+})();

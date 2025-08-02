@@ -1,5 +1,5 @@
 import { defaultQuadstoreBundle } from '../../quadstore-default-bundle.ts';
-import type { ServiceConfigInput, MeshNodeConfigInput } from '../config-types.ts';
+import type { ServiceConfigInput, MeshRootNodeConfigInput } from '../config-types.ts';
 import { PLATFORM_SERVICE_DEFAULTS, PLATFORM_NODE_DEFAULTS } from '../defaults.ts';
 import { clearGraph, copyGraph, createNewGraphFromJsonLd } from '../../../../flow-core/src/utils/quadstore-utils.ts';
 
@@ -7,11 +7,11 @@ import { clearGraph, copyGraph, createNewGraphFromJsonLd } from '../../../../flo
  * Named graph terms for Quadstore config graphs
  */
 export const GRAPH_NAMES = {
-  platformServiceDefaults: 'graph/platformServiceDefaults',
-  platformImplicitMeshNodeConfig: 'graph/platformImplicitMeshNodeConfig',
-  inputServiceConfig: 'graph/inputServiceConfig',
-  inputMeshNodeConfig: 'graph/inputMeshNodeConfig',
-  mergedServiceConfig: 'graph/mergedServiceConfig',
+  platformServiceDefaults: 'http://localhost/graph/platformServiceDefaults',
+  platformImplicitMeshRootNodeConfig: 'http://localhost/graph/platformImplicitMeshRootNodeConfig',
+  inputServiceConfig: 'http://localhost/graph/inputServiceConfig',
+  inputMeshRootNodeConfig: 'http://localhost/graph/inputMeshRootNodeConfig',
+  mergedServiceConfig: 'http://localhost/graph/mergedServiceConfig',
   // Per-node effective configs could be stored with dynamic graph names
 };
 
@@ -20,7 +20,7 @@ export const GRAPH_NAMES = {
  */
 export async function loadPlatformDefaults(): Promise<void> {
   await createNewGraphFromJsonLd(PLATFORM_SERVICE_DEFAULTS, { graphName: GRAPH_NAMES.platformServiceDefaults });
-  await createNewGraphFromJsonLd(PLATFORM_NODE_DEFAULTS, { graphName: GRAPH_NAMES.platformImplicitMeshNodeConfig });
+  await createNewGraphFromJsonLd(PLATFORM_NODE_DEFAULTS, { graphName: GRAPH_NAMES.platformImplicitMeshRootNodeConfig });
 }
 
 /**
@@ -33,8 +33,8 @@ export async function loadInputServiceConfig(inputConfig: ServiceConfigInput): P
 /**
  * Load input node config overrides into Quadstore graph
  */
-export async function loadInputMeshNodeConfig(inputMeshNodeConfig: MeshNodeConfigInput): Promise<void> {
-  await createNewGraphFromJsonLd(inputMeshNodeConfig, { graphName: GRAPH_NAMES.inputMeshNodeConfig });
+export async function loadInputMeshRootNodeConfig(inputMeshRootNodeConfig: MeshRootNodeConfigInput): Promise<void> {
+  await createNewGraphFromJsonLd(inputMeshRootNodeConfig, { graphName: GRAPH_NAMES.inputMeshRootNodeConfig });
 }
 
 /**

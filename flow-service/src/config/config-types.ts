@@ -58,8 +58,8 @@ export interface TemplateMapping extends NodeObject {
   readonly 'conf:hasResourcePageTemplate': string;
 }
 // TODO rename to 
-export interface MeshNodeConfig extends NodeObject {
-  readonly '@type': 'conf:MeshNodeConfig';
+export interface MeshRootNodeConfig extends NodeObject {
+  readonly '@type': 'conf:MeshRootNodeConfig';
   readonly 'conf:versioningEnabled': boolean;
   readonly 'conf:distributionFormats': string[];
   readonly 'conf:templateMappings'?: TemplateMapping;
@@ -79,7 +79,7 @@ export interface ServiceConfig extends NodeObject {
   readonly 'fsvc:meshPaths'?: string[];
   readonly 'fsvc:hasLoggingConfig': LoggingConfig;
   readonly 'fsvc:hasContainedServices': ContainedServicesConfig;
-  readonly 'fsvc:rootMeshNodeConfigTemplate'?: MeshNodeConfig;
+  readonly 'fsvc:rootMeshRootNodeConfigTemplate'?: MeshRootNodeConfig;
   readonly 'fsvc:defaultDelegationChain'?: DelegationChain;
   readonly 'fsvc:defaultAttributedTo'?: AttributedTo;
 }
@@ -112,13 +112,13 @@ export interface ServiceConfigInput extends Partial<NodeObject> {
   'fsvc:meshPaths'?: string[];
   'fsvc:hasLoggingConfig'?: Partial<LoggingConfig>;
   'fsvc:hasContainedServices'?: Partial<ContainedServicesConfig>;
-  'fsvc:nodeDefaults'?: Partial<MeshNodeConfig>;
+  'fsvc:nodeDefaults'?: Partial<MeshRootNodeConfig>;
   'fsvc:defaultDelegationChain'?: Partial<DelegationChain>;
   'fsvc:defaultAttributedTo'?: Partial<AttributedTo>;
 }
 
-export interface MeshNodeConfigInput extends Partial<NodeObject> {
-  '@type'?: 'conf:MeshNodeConfig';
+export interface MeshRootNodeConfigInput extends Partial<NodeObject> {
+  '@type'?: 'conf:MeshRootNodeConfig';
   'conf:versioningEnabled'?: boolean;
   'conf:distributionFormats'?: string[];
   'conf:templateMappings'?: Partial<TemplateMapping>;
@@ -136,9 +136,9 @@ export interface ServiceConfigContext {
   readonly defaultOptions: ServiceConfig;
 }
 
-export interface MeshNodeConfigContext {
-  readonly inputOptions: MeshNodeConfigInput;
-  readonly defaultOptions: MeshNodeConfig;
+export interface MeshRootNodeConfigContext {
+  readonly inputOptions: MeshRootNodeConfigInput;
+  readonly defaultOptions: MeshRootNodeConfig;
 }
 
 // CLI Options Type

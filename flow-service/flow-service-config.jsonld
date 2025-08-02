@@ -8,10 +8,10 @@
     "meta": "https://semantic-flow.github.io/ontology/meta-flow/",
     "prov": "http://www.w3.org/ns/prov#",
     "dcterms": "http://purl.org/dc/terms/",
-    "local": "http://localhost/flow-service/"
+    "mergedServiceConfig": "http://localhost/graph/mergedServiceConfig/"
   },
   "@type": "fsvc:ServiceConfig",
-  "@id": "local:serviceConfig",
+  "@id": "mergedServiceConfig:serviceConfig",
   "fsvc:host": "localhost",
   "fsvc:port": 8080,
   "fsvc:meshPaths": [

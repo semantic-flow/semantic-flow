@@ -2,7 +2,7 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import { apiReference } from 'npm:@scalar/hono-api-reference';
 import { health } from './src/routes/health.ts';
 import { createMarkdownFromOpenApi } from 'npm:@scalar/openapi-to-markdown';
-import { createServiceConfig } from './src/config/index.ts';
+import { createServiceConfig, singletonServiceConfigAccessor } from './src/config/index.ts';
 import {
   logStartupConfiguration,
   logStartupUrls,
@@ -11,9 +11,8 @@ import { handleCaughtError } from './src/utils/logger.ts';
 import { MESH } from '../flow-core/src/mesh-constants.ts';
 
 // Initialize configuration system
-let config;
 try {
-  config = await createServiceConfig();
+  await createServiceConfig();
 } catch (error) {
   await handleCaughtError(error, 'Failed to initialize service configuration');
   console.error(
@@ -24,7 +23,7 @@ try {
 
 // Log service startup with configuration info
 try {
-  logStartupConfiguration(config);
+  logStartupConfiguration();
 } catch (error) {
   await handleCaughtError(error, 'Failed to log startup configuration');
   console.error('⚠️  Configuration logging failed, but continuing startup...');
@@ -46,7 +45,7 @@ const content = {
   },
   servers: [
     {
-      url: `http://${config.host}:${config.port}`,
+      url: `http://${await singletonServiceConfigAccessor.getHost()}:${await singletonServiceConfigAccessor.getPort()}`,
       description: 'Configured server',
     },
   ],
@@ -83,15 +82,15 @@ app.route('/api', health);
 import { createMeshesRoutes } from './src/routes/meshes.ts';
 import { createWeaveRoutes } from './src/routes/weave.ts';
 
-const meshes = createMeshesRoutes(config);
-const weave = createWeaveRoutes(config);
+const meshes = createMeshesRoutes(singletonServiceConfigAccessor);
+const weave = createWeaveRoutes(singletonServiceConfigAccessor);
 
 app.route('/api', meshes);
 app.route('/api', weave);
 
 // Startup logging
 try {
-  logStartupUrls(config);
+  logStartupUrls(singletonServiceConfigAccessor);
 } catch (error) {
   await handleCaughtError(error, 'Failed to log startup URLs');
   console.error('⚠️  URL logging failed, but continuing startup...');
@@ -99,8 +98,8 @@ try {
 
 try {
   Deno.serve({
-    port: config.port,
-    hostname: config.host,
+    port: await singletonServiceConfigAccessor.getPort(),
+    hostname: await singletonServiceConfigAccessor.getHost(),
   }, app.fetch);
 } catch (error) {
   await handleCaughtError(error, 'Failed to start HTTP server');

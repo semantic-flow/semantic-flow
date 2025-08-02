@@ -224,7 +224,7 @@ export function loadEnvConfig(): ServiceConfigInput {
   }
 
   if (hasNodeDefaults) {
-    nodeDefaults['@type'] = 'conf:MeshNodeConfig';
+    nodeDefaults['@type'] = 'conf:MeshRootNodeConfig';
     configInput['fsvc:nodeDefaults'] = nodeDefaults;
   }
 

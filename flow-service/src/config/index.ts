@@ -12,9 +12,9 @@ export type {
   LogChannelConfig,
   LoggingConfig,
   LogLevel,
-  MeshNodeConfig,
-  MeshNodeConfigContext,
-  MeshNodeConfigInput,
+  MeshRootNodeConfig,
+  MeshRootNodeConfigContext,
+  MeshRootNodeConfigInput,
   ServiceConfig,
   ServiceConfigContext,
   ServiceConfigInput,
@@ -44,9 +44,9 @@ export {
   configExists,
   getNodeHierarchy,
   isConfigInheritanceEnabled,
-  loadMeshNodeConfig,
+  loadMeshRootNodeConfig,
   loadServiceConfig,
-  saveMeshNodeConfig,
+  saveMeshRootNodeConfig,
   saveServiceConfig,
   validateJsonLd,
 } from './loaders/jsonld-loader.ts';
@@ -63,7 +63,7 @@ export {
 
 export { validateServiceConfig } from './resolution/service-config-validator.ts';
 
-export { ServiceConfigAccessor } from './resolution/service-config-accessor.ts';
+export { singletonServiceConfigAccessor } from './resolution/service-config-accessor.ts';
 
 // Shared Utilities
 export { mergeConfigs } from '../utils/merge-configs.ts';
@@ -73,7 +73,6 @@ import type { ServiceConfig, ServiceOptions } from './config-types.ts';
 import { resolveServiceConfig } from './resolution/service-config-resolver.ts';
 import { mergeConfigContext } from './resolution/service-config-utils.ts';
 import { validateServiceConfig } from './resolution/service-config-validator.ts';
-import { ServiceConfigAccessor } from './resolution/service-config-accessor.ts';
 import { handleCaughtError } from '../utils/logger.ts';
 import { defaultQuadstoreBundle } from '../quadstore-default-bundle.ts';
 
