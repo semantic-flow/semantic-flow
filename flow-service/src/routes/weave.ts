@@ -1,7 +1,6 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { logger } from '../utils/logger.ts';
 import { MESH } from '../../../flow-core/src/mesh-constants.ts';
-import { ServiceConfigAccessor } from '../config/index.ts';
 
 // Utility function to validate node specifier using QName rules (simplified regex for example)
 const isValidNodeSpecifier = (specifier: string): boolean => {
@@ -18,7 +17,6 @@ const parseNodeSpecifier = (specifier: string): string[] => {
 };
 
 export const createWeaveRoutes = (
-  config: ServiceConfigAccessor,
 ): OpenAPIHono => {
   const weave = new OpenAPIHono();
 
@@ -92,8 +90,7 @@ export const createWeaveRoutes = (
 
     const nodeSegments = parseNodeSpecifier(nodeSpecifier);
     logger.info(
-      `Starting weave process for node specifier: ${nodeSpecifier} (segments: ${
-        nodeSegments.join(', ')
+      `Starting weave process for node specifier: ${nodeSpecifier} (segments: ${nodeSegments.join(', ')
       })`,
     );
 

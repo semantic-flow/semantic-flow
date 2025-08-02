@@ -17,10 +17,7 @@ import { getConfigValue, mergeConfigContext } from './service-config-utils.ts';
 /**
  * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.
  *
- * Returns a ServiceConfigContext object containing both the merged input options and the default options, allowing for side-by-side comparison without merging them.
- *
  * @param cliOptions - Optional CLI-provided service options to override other configuration sources
- * @returns A ServiceConfigContext object with both input and default configuration options
  * @throws ConfigError if configuration resolution fails or an unexpected error occurs
  */
 

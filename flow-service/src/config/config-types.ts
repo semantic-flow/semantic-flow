@@ -130,12 +130,6 @@ export interface MeshRootNodeConfigInput extends Partial<NodeObject> {
   'conf:defaultAttribution'?: string;
 }
 
-// Configuration Context Types (Side-by-Side Pattern)
-export interface ServiceConfigContext {
-  readonly inputOptions: ServiceConfigInput;
-  readonly defaultOptions: ServiceConfig;
-}
-
 export interface MeshRootNodeConfigContext {
   readonly inputOptions: MeshRootNodeConfigInput;
   readonly defaultOptions: MeshRootNodeConfig;

@@ -2,7 +2,7 @@
 import { defaultQuadstoreBundle } from '../../quadstore-default-bundle.ts';
 import { DataFactory } from '../../../../flow-core/src/deps.ts';
 import { ConfigError } from '../config-types.ts';
-import { GRAPH_NAMES } from '../loaders/quadstore-loader.ts';
+import { CONFIG_GRAPH_NAMES } from '../index.ts';
 
 /**
  * Validates essential service configuration values in the merged config graph.
@@ -10,7 +10,7 @@ import { GRAPH_NAMES } from '../loaders/quadstore-loader.ts';
  */
 export async function validateServiceConfig(): Promise<void> {
   const { store, df } = defaultQuadstoreBundle;
-  const graph = df.namedNode(GRAPH_NAMES.mergedServiceConfig);
+  const graph = df.namedNode(CONFIG_GRAPH_NAMES.mergedServiceConfig);
 
   // Validate port
   const portQuads = store.match(undefined, df.namedNode('https://semantic-flow.github.io/ontology/flow-service/port'), undefined, graph);

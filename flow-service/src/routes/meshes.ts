@@ -10,18 +10,15 @@ import {
 import { normalizeFolderPath } from '../../../flow-core/src/utils/path-utils.ts';
 import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 import { dirname, existsSync, join } from '../../../flow-core/src/deps.ts';
-import { ServiceConfigAccessor } from '../config/index.ts';
 import { composeMetadataContent } from '../services/metadata-composer.ts';
 import { initializeMeshRegistry } from '../utils/mesh-utils.ts';
 
 //import { Context } from '@hono/hono';
 
-export const createMeshesRoutes = (
-  config: ServiceConfigAccessor,
-): OpenAPIHono => {
+export const createMeshesRoutes = (): OpenAPIHono => {
   const meshes = new OpenAPIHono();
   const meshRegistry: Record<string, string> = {};
-  initializeMeshRegistry(config, meshRegistry);
+  initializeMeshRegistry();
 
   // Schemas for Mesh Registration (POST /api/meshes)
   const MeshRegistrationRequest = z.object({
@@ -136,9 +133,8 @@ export const createMeshesRoutes = (
     if (meshRegistry[name]) {
       return c.json({
         error: 'Bad Request',
-        message: `Mesh '${name}' is already registered at path: ${
-          meshRegistry[name]
-        }`,
+        message: `Mesh '${name}' is already registered at path: ${meshRegistry[name]
+          }`,
       }, 400);
     }
 
@@ -335,7 +331,6 @@ export const createMeshesRoutes = (
       slug,
       nodeType,
       initialData,
-      config,
       startTime,
     );
 

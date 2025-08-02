@@ -10,8 +10,8 @@
     "dcterms": "http://purl.org/dc/terms/",
     "mergedServiceConfig": "http://localhost/graph/mergedServiceConfig/"
   },
+  "@id": "local:serviceConfig",
   "@type": "fsvc:ServiceConfig",
-  "@id": "mergedServiceConfig:serviceConfig",
   "fsvc:host": "localhost",
   "fsvc:port": 8080,
   "fsvc:meshPaths": [

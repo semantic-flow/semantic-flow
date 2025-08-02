@@ -1,4 +1,5 @@
-import { ServiceConfigAccessor } from '../config/index.ts';
+import { singletonServiceConfigAccessor as config } from '../config/resolution/service-config-accessor.ts';
+
 //import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 
 /**
@@ -7,14 +8,12 @@ import { ServiceConfigAccessor } from '../config/index.ts';
  * @param slug - The slug identifier for the node
  * @param nodeType - The type of the node (e.g., Namespace, Reference, Dataset)
  * @param initialData - An object containing the initial metadata for the node
- * @param config - The service configuration accessor
  * @returns The metadata content JSON object
  */
 export function composeMetadataContent(
   slug: string,
   nodeType: string,
   initialData: Record<string, unknown>,
-  config: ServiceConfigAccessor,
   startedAtTime?: string,
 ): Record<string, unknown> {
   const title = typeof initialData.title === 'string'

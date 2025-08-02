@@ -82,7 +82,7 @@ app.route('/api', health);
 import { createMeshesRoutes } from './src/routes/meshes.ts';
 import { createWeaveRoutes } from './src/routes/weave.ts';
 
-const meshes = createMeshesRoutes(singletonServiceConfigAccessor);
+const meshes = createMeshesRoutes();
 const weave = createWeaveRoutes(singletonServiceConfigAccessor);
 
 app.route('/api', meshes);
@@ -90,7 +90,7 @@ app.route('/api', weave);
 
 // Startup logging
 try {
-  logStartupUrls(singletonServiceConfigAccessor);
+  logStartupUrls();
 } catch (error) {
   await handleCaughtError(error, 'Failed to log startup URLs');
   console.error('⚠️  URL logging failed, but continuing startup...');
