@@ -1,12 +1,11 @@
-import { ServiceConfigAccessor } from '../config/index.ts';
 import { logger } from './logger.ts';
 import { basename, dirname, existsSync } from '../../../flow-core/src/deps.ts';
+import { singletonServiceConfigAccessor as config } from '../config/resolution/service-config-accessor.ts';
 
 export const initializeMeshRegistry = (
-  config: ServiceConfigAccessor,
   meshRegistry: Record<string, string>,
 ) => {
-  const meshPaths = config.meshPaths;
+  const meshPaths = config.getMeshPaths;
   if (meshPaths && Array.isArray(meshPaths)) {
     for (const meshPath of meshPaths) {
       const meshName = basename(meshPath);
@@ -27,8 +26,7 @@ export const initializeMeshRegistry = (
 
       if (meshRegistry[meshName]) {
         logger.warn(
-          `Mesh name collision detected: '${meshName}' already exists at path '${
-            meshRegistry[meshName]
+          `Mesh name collision detected: '${meshName}' already exists at path '${meshRegistry[meshName]
           }'. Skipping '${meshPath}'.`,
         );
         continue;

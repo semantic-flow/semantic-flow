@@ -218,7 +218,7 @@ function formatStructuredMessage(
   return JSON.stringify(baseEntry);
 }
 
-function formatConsoleMessage(
+export function formatConsoleMessage(
   level: LogLevel,
   message: string,
   context?: LogContext,

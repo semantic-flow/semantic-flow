@@ -5,8 +5,10 @@
  * Supports sparse input configurations that are validated against complete defaults.
  */
 
+import { NodeObject, ContextDefinition } from '../../../flow-core/src/deps.ts';
+
 // JSON-LD Context and Type Definitions
-export interface JSONLDContext {
+export interface FlowServiceContext extends ContextDefinition {
   readonly fsvc: 'https://semantic-flow.github.io/ontology/flow-service/';
   readonly mesh: 'https://semantic-flow.github.io/ontology/mesh/';
   readonly node: 'https://semantic-flow.github.io/ontology/node/';
@@ -14,14 +16,8 @@ export interface JSONLDContext {
   readonly conf: 'https://semantic-flow.github.io/ontology/config-flow/';
 }
 
-export interface JSONLDBase {
-  readonly '@context': JSONLDContext;
-  readonly '@type': string;
-  readonly '@id'?: string;
-}
-
 // Logging Configuration Types
-export interface LogChannelConfig {
+export interface LogChannelConfig extends NodeObject {
   readonly '@type': 'fsvc:LogChannelConfig';
   readonly 'fsvc:logChannelEnabled': boolean;
   readonly 'fsvc:logLevel': 'debug' | 'info' | 'warn' | 'error';
@@ -33,13 +29,13 @@ export interface LogChannelConfig {
   readonly 'fsvc:logMaxFiles'?: number;
   readonly 'fsvc:logMaxFileSize'?: number;
   readonly 'fsvc:logRotationInterval'?:
-    | 'daily'
-    | 'weekly'
-    | 'monthly'
-    | 'size-based';
+  | 'daily'
+  | 'weekly'
+  | 'monthly'
+  | 'size-based';
 }
 
-export interface LoggingConfig {
+export interface LoggingConfig extends NodeObject {
   readonly '@type': 'fsvc:LoggingConfig';
   readonly 'fsvc:hasConsoleChannel': LogChannelConfig;
   readonly 'fsvc:hasFileChannel': LogChannelConfig;
@@ -47,7 +43,7 @@ export interface LoggingConfig {
 }
 
 // Contained Services Configuration
-export interface ContainedServicesConfig {
+export interface ContainedServicesConfig extends NodeObject {
   readonly '@type': 'fsvc:ContainedServicesConfig';
   readonly 'fsvc:apiEnabled': boolean;
   readonly 'fsvc:sparqlEnabled': boolean;
@@ -57,13 +53,13 @@ export interface ContainedServicesConfig {
 }
 
 // Node Configuration Types (for service defaults)
-export interface TemplateMapping {
+export interface TemplateMapping extends NodeObject {
   readonly '@type': 'conf:TemplateMapping';
   readonly 'conf:hasResourcePageTemplate': string;
 }
-
-export interface NodeConfig extends JSONLDBase {
-  readonly '@type': 'conf:NodeConfig';
+// TODO rename to 
+export interface MeshRootNodeConfig extends NodeObject {
+  readonly '@type': 'conf:MeshRootNodeConfig';
   readonly 'conf:versioningEnabled': boolean;
   readonly 'conf:distributionFormats': string[];
   readonly 'conf:templateMappings'?: TemplateMapping;
@@ -76,26 +72,26 @@ export interface NodeConfig extends JSONLDBase {
 }
 
 // Complete Service Configuration
-export interface ServiceConfig extends JSONLDBase {
+export interface ServiceConfig extends NodeObject {
   readonly '@type': 'fsvc:ServiceConfig';
   readonly 'fsvc:port': number;
   readonly 'fsvc:host': string;
   readonly 'fsvc:meshPaths'?: string[];
   readonly 'fsvc:hasLoggingConfig': LoggingConfig;
   readonly 'fsvc:hasContainedServices': ContainedServicesConfig;
-  readonly 'fsvc:nodeDefaults': NodeConfig;
+  readonly 'fsvc:rootMeshRootNodeConfigTemplate'?: MeshRootNodeConfig;
   readonly 'fsvc:defaultDelegationChain'?: DelegationChain;
   readonly 'fsvc:defaultAttributedTo'?: AttributedTo;
 }
 
 // Attribution Configuration
-export interface AttributedTo {
+export interface AttributedTo extends NodeObject {
   readonly '@id': string;
-  [key: string]: unknown;
+  //TODO definition
 }
 
 // Delegation Chain Configuration
-export interface DelegationStep {
+export interface DelegationStep extends NodeObject {
   readonly '@type': 'meta:DelegationStep';
   readonly 'meta:stepOrder': number;
   readonly 'prov:agent': {
@@ -103,26 +99,26 @@ export interface DelegationStep {
   };
 }
 
-export interface DelegationChain {
+export interface DelegationChain extends NodeObject {
   readonly '@type': 'meta:DelegationChain';
   readonly 'meta:hasStep': DelegationStep[];
 }
 
 // Partial Types for Sparse Input Configuration (mutable for construction)
-export interface ServiceConfigInput extends Partial<JSONLDBase> {
+export interface ServiceConfigInput extends Partial<NodeObject> {
   '@type'?: 'fsvc:ServiceConfig';
   'fsvc:port'?: number;
   'fsvc:host'?: string;
   'fsvc:meshPaths'?: string[];
   'fsvc:hasLoggingConfig'?: Partial<LoggingConfig>;
   'fsvc:hasContainedServices'?: Partial<ContainedServicesConfig>;
-  'fsvc:nodeDefaults'?: Partial<NodeConfig>;
+  'fsvc:nodeDefaults'?: Partial<MeshRootNodeConfig>;
   'fsvc:defaultDelegationChain'?: Partial<DelegationChain>;
   'fsvc:defaultAttributedTo'?: Partial<AttributedTo>;
 }
 
-export interface NodeConfigInput extends Partial<JSONLDBase> {
-  '@type'?: 'conf:NodeConfig';
+export interface MeshRootNodeConfigInput extends Partial<NodeObject> {
+  '@type'?: 'conf:MeshRootNodeConfig';
   'conf:versioningEnabled'?: boolean;
   'conf:distributionFormats'?: string[];
   'conf:templateMappings'?: Partial<TemplateMapping>;
@@ -134,15 +130,9 @@ export interface NodeConfigInput extends Partial<JSONLDBase> {
   'conf:defaultAttribution'?: string;
 }
 
-// Configuration Context Types (Side-by-Side Pattern)
-export interface ServiceConfigContext {
-  readonly inputOptions: ServiceConfigInput;
-  readonly defaultOptions: ServiceConfig;
-}
-
-export interface NodeConfigContext {
-  readonly inputOptions: NodeConfigInput;
-  readonly defaultOptions: NodeConfig;
+export interface MeshRootNodeConfigContext {
+  readonly inputOptions: MeshRootNodeConfigInput;
+  readonly defaultOptions: MeshRootNodeConfig;
 }
 
 // CLI Options Type
@@ -154,6 +144,7 @@ export interface ServiceOptions {
   readonly logLevel?: LogLevel;
   readonly sentryEnabled?: boolean;
 }
+
 
 // Environment Variable Mapping
 export interface EnvironmentConfig {
@@ -200,74 +191,3 @@ export class ConfigValidationError extends ConfigError {
 // Utility Types for Configuration Access
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-/**
- * Retrieves the service port from the input options if specified; otherwise, returns the default port.
- *
- * @returns The configured service port number
- */
-export function getServicePort(context: ServiceConfigContext): number {
-  return context.inputOptions['fsvc:port'] ??
-    context.defaultOptions['fsvc:port'];
-}
-
-/**
- * Retrieves the service host from the input options if provided; otherwise, returns the default host.
- *
- * @returns The configured service host name or address.
- */
-export function getServiceHost(context: ServiceConfigContext): string {
-  return context.inputOptions['fsvc:host'] ??
-    context.defaultOptions['fsvc:host'];
-}
-
-/**
- * Retrieves the console log level from the service configuration context, preferring input options over defaults.
- *
- * @returns The log level for the console channel.
- */
-export function getConsoleLogLevel(context: ServiceConfigContext): LogLevel {
-  return context.inputOptions['fsvc:hasLoggingConfig']
-    ?.['fsvc:hasConsoleChannel']?.['fsvc:logLevel'] ??
-    context
-      .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasConsoleChannel'][
-        'fsvc:logLevel'
-      ];
-}
-
-/**
- * Determines whether file logging is enabled, preferring the input options if specified, otherwise using the default options.
- *
- * @returns `true` if file logging is enabled; otherwise, `false`
- */
-export function getFileLogEnabled(context: ServiceConfigContext): boolean {
-  return context.inputOptions['fsvc:hasLoggingConfig']?.['fsvc:hasFileChannel']
-    ?.['fsvc:logChannelEnabled'] ??
-    context
-      .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasFileChannel'][
-        'fsvc:logChannelEnabled'
-      ];
-}
-
-/**
- * Determines whether Sentry logging is enabled, preferring the input configuration if specified.
- *
- * @returns `true` if Sentry logging is enabled; otherwise, `false`
- */
-export function getSentryEnabled(context: ServiceConfigContext): boolean {
-  return context.inputOptions['fsvc:hasLoggingConfig']
-    ?.['fsvc:hasSentryChannel']?.['fsvc:logChannelEnabled'] ??
-    context
-      .defaultOptions['fsvc:hasLoggingConfig']['fsvc:hasSentryChannel'][
-        'fsvc:logChannelEnabled'
-      ];
-}
-
-/**
- * Determines whether versioning is enabled for a node, preferring input options over defaults.
- *
- * @returns `true` if versioning is enabled; otherwise, `false`
- */
-export function getVersioningEnabled(context: NodeConfigContext): boolean {
-  return context.inputOptions['conf:versioningEnabled'] ??
-    context.defaultOptions['conf:versioningEnabled'];
-}

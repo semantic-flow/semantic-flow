@@ -4,7 +4,7 @@
  * Simple test script to verify file logging functionality
  */
 
-import { logger } from '../../src/utils/logger.ts';
+import { logger } from '../../../src/utils/logger.ts';
 
 async function testFileLogging() {
   console.log('🧪 Testing file logging functionality...\n');
