@@ -2,7 +2,7 @@ import { NodeObject, Quadstore, DataFactory } from '../deps.ts';
 import { RDF } from '../deps.ts';
 import { jsonld } from '../deps.ts';
 import { defaultQuadstoreBundle } from '../../../flow-service/src/quadstore-default-bundle.ts';
-import { jsonldToQuads } from './rdfjs-utils.ts'
+import { jsonldToQuads } from './rdfjs-utils.ts';
 import type { QuadstoreBundle } from '../types.ts';
 
 export function countQuadsInStream(stream: RDF.Stream): Promise<number> {
@@ -37,16 +37,16 @@ export async function clearGraph(
   {
     store
   }: { store: Quadstore } = defaultQuadstoreBundle
-): Promise<void> {
+): Promise<number> {
   const matchStream = store.match(undefined, undefined, undefined, graph);
-  //const count = await countQuadsInStream(matchStream);
-  //console.log(`Number of quads before delStream in graph ${graph.value}: ${count}`);
-  await store.delStream(matchStream);
+  const count = await countQuadsInStream(matchStream);
+  console.log(`Number of quads before delStream in graph ${graph.value}: ${count}`);
   const matchStream2 = store.match(undefined, undefined, undefined, graph);
-  const count2 = await countQuadsInStream(matchStream2
-
-  );
+  await store.delStream(matchStream2);
+  const matchStream3 = store.match(undefined, undefined, undefined, graph);
+  const count2 = await countQuadsInStream(matchStream3);
   console.log(`Number of quads in graph ${graph.value}: ${count2}`);
+  return count;
 }
 
 

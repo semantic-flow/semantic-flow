@@ -68,7 +68,7 @@ export interface MeshRootNodeConfig extends NodeObject {
   readonly 'conf:generateAggregatedDataset': boolean;
   readonly 'conf:generateResourcePages'?: boolean;
   readonly 'conf:stylesheetPath'?: string;
-  readonly 'conf:defaultAttribution'?: string;
+  readonly 'conf:defaultAttributedTo'?: string;
 }
 
 // Complete Service Configuration
@@ -81,13 +81,7 @@ export interface ServiceConfig extends NodeObject {
   readonly 'fsvc:hasContainedServices': ContainedServicesConfig;
   readonly 'fsvc:rootMeshRootNodeConfigTemplate'?: MeshRootNodeConfig;
   readonly 'fsvc:defaultDelegationChain'?: DelegationChain;
-  readonly 'fsvc:defaultAttributedTo'?: AttributedTo;
-}
-
-// Attribution Configuration
-export interface AttributedTo extends NodeObject {
-  readonly '@id': string;
-  //TODO definition
+  readonly 'fsvc:defaultAttributedTo'?: string;
 }
 
 // Delegation Chain Configuration
@@ -114,7 +108,7 @@ export interface ServiceConfigInput extends Partial<NodeObject> {
   'fsvc:hasContainedServices'?: Partial<ContainedServicesConfig>;
   'fsvc:nodeDefaults'?: Partial<MeshRootNodeConfig>;
   'fsvc:defaultDelegationChain'?: Partial<DelegationChain>;
-  'fsvc:defaultAttributedTo'?: Partial<AttributedTo>;
+  'fsvc:defaultAttributedTo'?: string;
 }
 
 export interface MeshRootNodeConfigInput extends Partial<NodeObject> {
@@ -127,7 +121,7 @@ export interface MeshRootNodeConfigInput extends Partial<NodeObject> {
   'conf:generateAggregatedDataset'?: boolean;
   'conf:generateResourcePages'?: boolean;
   'conf:stylesheetPath'?: string;
-  'conf:defaultAttribution'?: string;
+  'conf:defaultAttributedTo'?: string;
 }
 
 export interface MeshRootNodeConfigContext {

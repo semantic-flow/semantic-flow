@@ -5,7 +5,7 @@
  * This demonstrates the comprehensive error handling capabilities
  */
 
-import { handleCaughtError } from '../../../src/utils/logger.ts';
+import { handleCaughtError } from '../../../src/utils/service-logger.ts';
 import {
   ConfigurationError,
   FlowServiceError,

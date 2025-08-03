@@ -44,8 +44,8 @@ interface LogContext {
   [key: string]: unknown;
 }
 
-// Import the pretty formatting function from the logger module
-import { formatConsoleMessage } from '../../../src/utils/logger.ts';
+// Import the pretty formatting function from the formatters module
+import { formatConsoleMessage } from '../../../src/utils/service-logger.ts';
 
 
 // Simple file logger

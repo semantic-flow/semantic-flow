@@ -3,12 +3,12 @@
 /**
  * Simple test to verify pretty formatting works without Sentry configuration issues
  */
-
+// TODO: flow-service-dev.log
 // Disable Sentry for this test
 Deno.env.set('FLOW_SENTRY_ENABLED', 'false');
 Deno.env.set('FLOW_ENV', 'development');
 
-import { logger } from '../../../src/utils/logger.ts';
+import { logger } from '../../../src/utils/service-logger.ts';
 
 console.log('🧪 Testing pretty file logging format (Sentry disabled)...\n');
 
@@ -21,19 +21,23 @@ try {
 }
 
 // Test different log levels with various contexts
-await logger.info('File logging test started', {
+logger.info('File logging test started', {
   operation: 'startup',
   component: 'config-resolver',
 });
 
-await logger.warn('Configuration override detected', {
+logger.warn('Configuration override detected', {
   operation: 'config-resolve',
-  configSource: 'environment',
+  configContext: {
+    configPath: 'environment',
+  },
 });
 
-await logger.error('Database connection failed', undefined, {
+logger.error('Database connection failed', {
   operation: 'startup',
-  duration: 5000,
+  performanceMetrics: {
+    duration: 5000,
+  },
 });
 
 console.log('\n✅ Test logging complete!');

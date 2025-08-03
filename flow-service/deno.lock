@@ -16,14 +16,12 @@
     "npm:@sentry/deno@*": "8.55.0",
     "npm:@sentry/deno@8": "8.55.0",
     "npm:@types/jsonld@*": "1.5.15",
-    "npm:@types/node@*": "22.15.15",
     "npm:abstract-level@*": "3.1.0",
     "npm:hono@*": "4.8.4",
     "npm:jsonld@*": "8.3.3",
     "npm:memory-level@*": "3.1.0",
-    "npm:quadstore-comunica@*": "6.2.0_asynciterator@3.9.0_quadstore@15.3.0",
-    "npm:quadstore@*": "15.3.0",
-    "npm:quadstore@15.4.0-beta.0": "15.4.0-beta.0",
+    "npm:quadstore-comunica@*": "6.3.0_asynciterator@3.9.0_quadstore@15.4.0",
+    "npm:quadstore@*": "15.4.0",
     "npm:rdf-data-factory@*": "2.0.2",
     "npm:zod@^3.22.0": "3.25.76"
   },
@@ -1619,27 +1617,18 @@
     "property-information@7.1.0": {
       "integrity": "sha512-TwEZ+X+yCJmYfL7TPUOcvBZ4QfoT5YenQiJuX//0th53DE6w0xxLEtfK3iyryQFddXuvkIk51EEgrJQ0WJkOmQ=="
     },
-    "quadstore-comunica@6.2.0_asynciterator@3.9.0_quadstore@15.3.0": {
-      "integrity": "sha512-diibvQsX9i8VHHX47a0+3W/P0oXm9LYC0fQgZ+hsEJ3wvBXrWs4AFZlSy7A+0ze1FSnHnvRtRu5/FohdtlkyAg==",
+    "quadstore-comunica@6.3.0_asynciterator@3.9.0_quadstore@15.4.0": {
+      "integrity": "sha512-2Yy5eIVqWYgbvWOI5/T1GA5zxGhISvrmAMavY/zBghVLyJeOCSw0fPbU3+wPYCGKgSMg65/Kg/nh2QnaMs3uvg==",
       "dependencies": [
         "@rdfjs/types@2.0.1",
         "asynciterator",
-        "quadstore@15.3.0",
+        "quadstore",
         "sparqlalgebrajs",
         "sparqljs"
       ]
     },
-    "quadstore@15.3.0": {
-      "integrity": "sha512-KeFNurvPg61nO/WgdFYxbO/Sj80ne1gmzMGnWI0ukIXabdLggZ7i9TERRzPoyLHiUJP+Kkc1J2lZ+wl7n8hNBA==",
-      "dependencies": [
-        "@rdfjs/types@2.0.1",
-        "abstract-level",
-        "asynciterator",
-        "js-sorted-set"
-      ]
-    },
-    "quadstore@15.4.0-beta.0": {
-      "integrity": "sha512-RFDcXdLxlXtqFoSGFbgc+1xmJQu9g3E/fyMFeCGaVTxftDqfkNj6BuatWCF74moAUBG/EtbhqvytJKm1IGny5w==",
+    "quadstore@15.4.0": {
+      "integrity": "sha512-YlIksV9r7GTMfuawA1vqCEqtd88rX9SnYz+HAqDSdbGDSogyVTnOvJKe2qisy2FWuXrc3PpbKLDEOjJ/wEpgtA==",
       "dependencies": [
         "@rdfjs/types@2.0.1",
         "abstract-level",
@@ -2545,7 +2534,8 @@
       "npm:@hono/zod-openapi@0.18",
       "npm:@scalar/hono-api-reference@~0.9.10",
       "npm:@scalar/openapi-to-markdown@*",
-      "npm:@sentry/deno@8"
+      "npm:@sentry/deno@8",
+      "npm:quadstore@*"
     ]
   }
 }

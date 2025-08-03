@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
-import { logger } from '../utils/logger.ts';
+import { logger } from '../utils/service-logger.ts';
 import { getUptimeInfo } from '../utils/uptime.ts';
 
 const health = new OpenAPIHono();
@@ -36,8 +36,13 @@ const healthRoute = createRoute({
 
 health.openapi(healthRoute, (c) => {
   logger.debug('Health check requested', {
-    userAgent: c.req.header('user-agent'),
-    ip: c.req.header('x-forwarded-for') || 'unknown',
+    operation: 'api-request',
+    apiContext: {
+      method: 'GET',
+      path: '/health',
+      userAgent: c.req.header('user-agent'),
+      ip: c.req.header('x-forwarded-for') || 'unknown',
+    },
   });
 
   const uptimeInfo = getUptimeInfo();
@@ -50,7 +55,10 @@ health.openapi(healthRoute, (c) => {
     uptime: uptimeInfo,
   };
 
-  logger.info('Health check completed', { status: response.status });
+  logger.info('Health check completed', {
+    operation: 'api-request',
+    metadata: { status: response.status },
+  });
   return c.json(response);
 });
 

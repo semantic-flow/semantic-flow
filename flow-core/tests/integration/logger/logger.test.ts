@@ -4,7 +4,10 @@
  * Simple test script to verify file logging functionality
  */
 
-import { logger } from '../../../src/utils/service-logger.ts';
+import { createDefaultEnhancedLogger } from '../../../src/utils/logger/index.ts';
+
+// Create logger instance for testing
+const logger = createDefaultEnhancedLogger('flow-core-test', '1.0.0');
 
 async function testFileLogging() {
   console.log('🧪 Testing file logging functionality...\n');

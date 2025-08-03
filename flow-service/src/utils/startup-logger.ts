@@ -44,7 +44,7 @@ export async function logStartupConfiguration(): Promise<void> {
   console.log(`   File Logging: disabled`);
   console.log(`   Sentry Logging: disabled`);
 
-  const enabledServices = [];
+  const enabledServices: string[] = [];
   // TODO: Query service enablement flags from config
   // if (await config.apiEnabled()) enabledServices.push('API');
   // if (await config.sparqlEnabled()) enabledServices.push('SPARQL Endpoint');

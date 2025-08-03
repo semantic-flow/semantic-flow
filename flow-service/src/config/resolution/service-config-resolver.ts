@@ -9,7 +9,8 @@ import {
 } from '../defaults.ts';
 import { ConfigError } from '../config-types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';
-import { handleCaughtError } from '../../utils/logger.ts';
+import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
+import { LogContext } from '../../../../flow-core/src/utils/logger/types.ts';
 import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
 
 /**
@@ -24,6 +25,9 @@ import { loadPlatformDefaults, loadInputServiceConfig, loadInputMeshRootNodeConf
 export async function resolveServiceConfig(
   cliOptions?: ServiceOptions,
 ): Promise<void> {
+  // Define serviceConfigPath outside try block for error handling access
+  const serviceConfigPath = getServiceConfigPath(cliOptions?.configPath);
+
   try {
     // Load platform defaults into Quadstore graphs
     await loadPlatformDefaults();
@@ -32,7 +36,6 @@ export async function resolveServiceConfig(
     const envConfig = loadEnvConfig();
 
     // Load file config if specified
-    const serviceConfigPath = getServiceConfigPath(cliOptions?.configPath);
     let fileConfig: ServiceConfigInput | undefined;
     if (serviceConfigPath) {
       const loadedConfig = await loadServiceConfig(serviceConfigPath);
@@ -55,12 +58,25 @@ export async function resolveServiceConfig(
     await mergeServiceConfigGraphs();
 
   } catch (error) {
+    const context: LogContext = {
+      operation: 'config-resolve',
+      component: 'service-config-resolution',
+      configContext: {
+        configPath: serviceConfigPath || 'none',
+        configType: 'service-config'
+      },
+      serviceContext: {
+        serviceName: 'flow-service',
+        serviceVersion: '0.1.0'
+      }
+    };
+
     if (error instanceof ConfigError) {
-      await handleCaughtError(error, `Service configuration resolution failed`);
+      await handleCaughtError(error, `Service configuration resolution failed`, context);
       throw error;
     }
 
-    await handleCaughtError(error, `Failed to resolve service configuration`);
+    await handleCaughtError(error, `Failed to resolve service configuration`, context);
     const errorMessage = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? error : undefined;
     throw new ConfigError(
@@ -124,3 +140,4 @@ function convertCliOptionsToConfig(
 
   return config;
 }
+

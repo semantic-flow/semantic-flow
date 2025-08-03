@@ -79,7 +79,8 @@ export { mergeConfigs } from '../utils/merge-configs.ts';
 import type { ServiceOptions } from './config-types.ts';
 import { resolveServiceConfig } from './resolution/service-config-resolver.ts';
 import { validateServiceConfig } from './resolution/service-config-validator.ts';
-import { handleCaughtError } from '../utils/logger.ts';
+import { handleCaughtError } from '../../../flow-core/src/utils/logger/error-handlers.ts';
+import { LogContext } from '../../../flow-core/src/utils/logger/types.ts';
 
 /**
  * Resolves and validates the service configuration.
@@ -93,7 +94,16 @@ export async function createServiceConfig(
     await resolveServiceConfig(cliOptions);
     await validateServiceConfig();
   } catch (error) {
-    await handleCaughtError(error, `Failed to create service configuration`);
+    const context: LogContext = {
+      operation: 'config-create',
+      component: 'service-config-creation',
+      serviceContext: {
+        serviceName: 'flow-service',
+        serviceVersion: '0.1.0'
+      },
+      metadata: { cliOptions }
+    };
+    await handleCaughtError(error, `Failed to create service configuration`, context);
     throw error;
   }
 }

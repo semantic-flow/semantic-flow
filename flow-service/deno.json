@@ -5,7 +5,8 @@
     "hono/testing": "jsr:@hono/hono@^4.8.4/testing",
     "@scalar/hono-api-reference": "npm:@scalar/hono-api-reference@^0.9.10",
     "@scalar/openapi-to-markdown": "npm:@scalar/openapi-to-markdown",
-    "@sentry/deno": "npm:@sentry/deno@^8.0.0"
+    "@sentry/deno": "npm:@sentry/deno@^8.0.0",
+    "npm:quadstore": "npm:quadstore"
   },
   "tasks": {
     "start": "deno run --allow-net --allow-env --allow-read --allow-write=../meshes,./logs --env-file main.ts",

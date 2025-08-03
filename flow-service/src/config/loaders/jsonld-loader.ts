@@ -7,7 +7,7 @@
 
 import type { MeshRootNodeConfigInput, ServiceConfigInput } from '../config-types.ts';
 import { ConfigError } from '../config-types.ts';
-import { handleCaughtError } from '../../utils/logger.ts';
+import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
 import { getCurrentConfigDistPath } from '../../../../flow-core/src/utils/mesh-path-utils.ts';
 import { dirname, NodeObject, resolve } from '../../../../flow-core/src/deps.ts';
 

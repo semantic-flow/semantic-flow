@@ -20,6 +20,5 @@
   "conf:generateUnifiedDataset": false,
   "conf:generateAggregatedDataset": false,
   "conf:generateResourcePages": true,
-  "conf:stylesheetPath": "/_assets/css/default-resource-page.css",
-  "conf:defaultAttribution": "https://example.com/some-agent"
+  "conf:stylesheetPath": "/_assets/css/default-resource-page.css"
 }

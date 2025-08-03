@@ -1,6 +1,7 @@
 // quadstoreFactory.ts
 import { Quadstore, MemoryLevel, DataFactory, Engine } from '../../deps.ts';
 import { QuadstoreBundle } from '../../types.ts';
+import { handleCaughtError } from '../logger/error-handlers.ts';
 
 /**
  * Creates and opens a new in-memory QuadstoreBundle.
