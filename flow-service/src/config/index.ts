@@ -5,6 +5,8 @@
  * and side-by-side configuration context.
  */
 
+import { createServiceLogContext } from "../utils/service-log-context.ts";
+
 /**
  * Named graph terms for Quadstore config graphs
  */
@@ -94,16 +96,14 @@ export async function createServiceConfig(
     await resolveServiceConfig(cliOptions);
     await validateServiceConfig();
   } catch (error) {
-    const context: LogContext = {
+    const context = createServiceLogContext({
       operation: 'config-create',
       component: 'service-config-creation',
-      serviceContext: {
-        serviceName: 'flow-service',
-        serviceVersion: '0.1.0'
-      },
       metadata: { cliOptions }
-    };
+
+    });
     await handleCaughtError(error, `Failed to create service configuration`, context);
     throw error;
   }
 }
+

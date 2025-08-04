@@ -8,7 +8,7 @@
     "meta": "https://semantic-flow.github.io/ontology/meta-flow/",
     "prov": "http://www.w3.org/ns/prov#",
     "dcterms": "http://purl.org/dc/terms/",
-    "mergedServiceConfig": "http://localhost/graph/mergedServiceConfig/"
+    "local": "http://localhost/graph/mergedServiceConfig/"
   },
   "@id": "local:serviceConfig",
   "@type": "fsvc:ServiceConfig",

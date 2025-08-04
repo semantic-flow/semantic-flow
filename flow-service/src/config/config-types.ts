@@ -74,6 +74,7 @@ export interface MeshRootNodeConfig extends NodeObject {
 // Complete Service Configuration
 export interface ServiceConfig extends NodeObject {
   readonly '@type': 'fsvc:ServiceConfig';
+  readonly 'fsvc:scheme': 'http' | 'https';
   readonly 'fsvc:port': number;
   readonly 'fsvc:host': string;
   readonly 'fsvc:meshPaths'?: string[];
@@ -101,6 +102,7 @@ export interface DelegationChain extends NodeObject {
 // Partial Types for Sparse Input Configuration (mutable for construction)
 export interface ServiceConfigInput extends Partial<NodeObject> {
   '@type'?: 'fsvc:ServiceConfig';
+  'fsvc:scheme'?: 'http' | 'https';
   'fsvc:port'?: number;
   'fsvc:host'?: string;
   'fsvc:meshPaths'?: string[];
@@ -132,6 +134,7 @@ export interface MeshRootNodeConfigContext {
 // CLI Options Type
 export interface ServiceOptions {
   readonly configPath?: string;
+  readonly scheme?: 'http' | 'https';
   readonly port?: number;
   readonly host?: string;
   readonly meshPaths?: string[];
@@ -143,6 +146,7 @@ export interface ServiceOptions {
 // Environment Variable Mapping
 export interface EnvironmentConfig {
   readonly FLOW_CONFIG_PATH?: string;
+  readonly FLOW_SERVICE_SCHEME?: string;
   readonly FLOW_SERVICE_PORT?: string;
   readonly FLOW_SERVICE_HOST?: string;
   readonly FLOW_MESH_PATHS?: string;

@@ -12,6 +12,7 @@ import { mergeConfigs } from '../../utils/merge-configs.ts';
 import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
 import { LogContext } from '../../../../flow-core/src/utils/logger/types.ts';
 import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
+import { createServiceLogContext } from '../../utils/service-log-context.ts';
 
 /**
  * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.
@@ -58,18 +59,14 @@ export async function resolveServiceConfig(
     await mergeServiceConfigGraphs();
 
   } catch (error) {
-    const context: LogContext = {
+    const context: LogContext = createServiceLogContext({
       operation: 'config-resolve',
       component: 'service-config-resolution',
       configContext: {
         configPath: serviceConfigPath || 'none',
         configType: 'service-config'
-      },
-      serviceContext: {
-        serviceName: 'flow-service',
-        serviceVersion: '0.1.0'
       }
-    };
+    });
 
     if (error instanceof ConfigError) {
       await handleCaughtError(error, `Service configuration resolution failed`, context);
@@ -140,4 +137,3 @@ function convertCliOptionsToConfig(
 
   return config;
 }
-

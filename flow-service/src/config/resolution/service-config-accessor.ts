@@ -3,7 +3,7 @@ import { defaultQuadstoreBundle } from '../../quadstore-default-bundle.ts';
 import { DataFactory } from '../../../../flow-core/src/deps.ts';
 import { CONFIG_GRAPH_NAMES } from '../index.ts';
 import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
-import { LogContext } from '../../../../flow-core/src/utils/logger/types.ts';
+import { createServiceLogContext } from '../../utils/service-log-context.ts';
 
 export const singletonServiceConfigAccessor = new (class ServiceConfigAccessor {
   private bundle: QuadstoreBundle;
@@ -28,15 +28,11 @@ export const singletonServiceConfigAccessor = new (class ServiceConfigAccessor {
         }
       }
     } catch (error) {
-      const context: LogContext = {
+      const context = createServiceLogContext({
         operation: 'config-query',
         component: 'service-config-accessor',
-        serviceContext: {
-          serviceName: 'flow-service',
-          serviceVersion: '0.1.0'
-        },
         metadata: { sparql }
-      };
+      });
       await handleCaughtError(error, 'Failed to execute SPARQL query', context);
       throw new Error('Failed to execute SPARQL query');
     }
