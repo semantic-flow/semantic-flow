@@ -3,26 +3,43 @@ import type { ServiceConfigInput, MeshRootNodeConfigInput } from '../config-type
 import { PLATFORM_SERVICE_DEFAULTS, PLATFORM_NODE_DEFAULTS } from '../defaults.ts';
 import { clearGraph, copyGraph, createNewGraphFromJsonLd } from '../../../../flow-core/src/utils/quadstore-utils.ts';
 import { CONFIG_GRAPH_NAMES } from '../index.ts';
+import { expandRelativeIds } from "../../../../flow-core/src/utils/rdfjs-utils.ts";
+import { getCurrentServiceUri } from "../../utils/service-uri-builder.ts";
 /**
  * Load platform defaults into Quadstore graphs
  */
-export async function loadPlatformDefaults(): Promise<void> {
-  await createNewGraphFromJsonLd(PLATFORM_SERVICE_DEFAULTS, { graphName: CONFIG_GRAPH_NAMES.platformServiceDefaults });
-  await createNewGraphFromJsonLd(PLATFORM_NODE_DEFAULTS, { graphName: CONFIG_GRAPH_NAMES.platformImplicitMeshRootNodeConfig });
+export async function loadPlatformServiceDefaults(): Promise<void> {
+
+  const uri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.platformServiceDefaults);
+  const expandedPlatformServiceDefaults = expandRelativeIds(PLATFORM_SERVICE_DEFAULTS, uri);
+  // use the Service URI for the graph name
+  await createNewGraphFromJsonLd(expandedPlatformServiceDefaults, { graphName: uri });
+}
+
+export async function loadPlatformImplicitMeshRootNodeConfig(): Promise<void> {
+  const uri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.platformImplicitMeshRootNodeConfig);
+  const expandedPlatformNodeDefaults = expandRelativeIds(PLATFORM_NODE_DEFAULTS, uri);
+  await createNewGraphFromJsonLd(expandedPlatformNodeDefaults, { graphName: uri });
 }
 
 /**
  * Load input service config into Quadstore graph
  */
 export async function loadInputServiceConfig(inputConfig: ServiceConfigInput): Promise<void> {
-  await createNewGraphFromJsonLd(inputConfig, { graphName: CONFIG_GRAPH_NAMES.inputServiceConfig });
+  //console.log(inputConfig);
+  const uri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.inputServiceConfig);
+  const expandedInputServiceConfig = expandRelativeIds(inputConfig, uri);
+  //console.log(expandedInputServiceConfig)
+  await createNewGraphFromJsonLd(expandedInputServiceConfig, { graphName: uri });
 }
 
 /**
  * Load input node config overrides into Quadstore graph
  */
 export async function loadInputMeshRootNodeConfig(inputMeshRootNodeConfig: MeshRootNodeConfigInput): Promise<void> {
-  await createNewGraphFromJsonLd(inputMeshRootNodeConfig, { graphName: CONFIG_GRAPH_NAMES.inputMeshRootNodeConfig });
+  const uri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.inputMeshRootNodeConfig);
+  const expandedInputMeshRootNodeConfig = expandRelativeIds(inputMeshRootNodeConfig, uri);
+  await createNewGraphFromJsonLd(expandedInputMeshRootNodeConfig, { graphName: uri });
 }
 
 /**
@@ -34,20 +51,28 @@ export async function mergeServiceConfigGraphs(
     df,
   } = defaultQuadstoreBundle
 ): Promise<void> {
+
+  const inputUri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.inputServiceConfig);
+  const mergedUri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.mergedServiceConfig);
+  const defaultUri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.platformServiceDefaults);
   // Clear merged graph
-  await clearGraph(df.namedNode(CONFIG_GRAPH_NAMES.mergedServiceConfig));
+  await clearGraph(df.namedNode(mergedUri));
 
   // Copy input service config quads
-  await copyGraph(df.namedNode(CONFIG_GRAPH_NAMES.inputServiceConfig), df.namedNode(CONFIG_GRAPH_NAMES.mergedServiceConfig));
+  await copyGraph(df.namedNode(inputUri), df.namedNode(mergedUri));
 
   // Copy platform service defaults quads if not overridden
-  const platformQuads = store.match(undefined, undefined, undefined, df.namedNode(CONFIG_GRAPH_NAMES.platformServiceDefaults));
+  const platformQuads = store.match(undefined, undefined, undefined, df.namedNode(defaultUri));
   for await (const q of platformQuads) {
-    const exists = await store.countQuads(q.subject, q.predicate, undefined, df.namedNode(CONFIG_GRAPH_NAMES.mergedServiceConfig));
+    const exists = await store.countQuads(q.subject, q.predicate, undefined, df.namedNode(mergedUri));
     if (exists === 0) {
-      await store.put(df.quad(q.subject, q.predicate, q.object, df.namedNode(CONFIG_GRAPH_NAMES.mergedServiceConfig)));
+      console.log(`platform quad copied: ${q.subject.value} ${q.predicate.value} ${q.object.value} in graph ${mergedUri}`);
+
+      await store.put(df.quad(q.subject, q.predicate, q.object, df.namedNode(mergedUri)));
     }
   }
+
+
 }
 
 

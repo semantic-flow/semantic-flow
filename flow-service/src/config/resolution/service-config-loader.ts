@@ -12,6 +12,7 @@ import { validateLogLevel } from '../../../../flow-core/src/platform-constants.t
  */
 
 //TODO: dct:conformsTo
+// currently unused, see "resolveServiceConfig"
 
 export async function loadServiceConfigInput(
   cliOptions?: ServiceOptions,

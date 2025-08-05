@@ -22,38 +22,16 @@ export function buildServiceBaseUri(config: ServiceUriConfig): string {
     ? ''
     : `:${config.port}`;
 
-  return `${config.scheme}://${config.host}${port}`;
+  return `${config.scheme}://${config.host}${port}/`;
 }
-
-/**
- * Builds a service graph URI for the given graph name
- */
-export function buildServiceGraphUri(config: ServiceUriConfig, graphName: string): string {
-  const baseUri = buildServiceBaseUri(config);
-  return `${baseUri}/graph/${graphName}`;
-}
-
-/**
- * Builds the complete set of config graph names based on service configuration
- */
-export function buildConfigGraphNames(config: ServiceUriConfig) {
-  return {
-    platformServiceDefaults: buildServiceGraphUri(config, 'platformServiceDefaults'),
-    platformImplicitMeshRootNodeConfig: buildServiceGraphUri(config, 'platformImplicitMeshRootNodeConfig'),
-    inputServiceConfig: buildServiceGraphUri(config, 'inputServiceConfig'),
-    inputMeshRootNodeConfig: buildServiceGraphUri(config, 'inputMeshRootNodeConfig'),
-    mergedServiceConfig: buildServiceGraphUri(config, 'mergedServiceConfig'),
-  };
-}
-
 
 /**
  * Builds a service-relative URI for the given path
  */
 export function buildServiceUri(config: ServiceUriConfig, path: string): string {
   const baseUri = buildServiceBaseUri(config);
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `${baseUri}${cleanPath}`;
+  const cleanPath = path.replace(/^\/+/, '');
+  return `${baseUri}${cleanPath}/`;
 }
 
 /**
@@ -62,13 +40,11 @@ export function buildServiceUri(config: ServiceUriConfig, path: string): string 
  */
 class ServiceUriConfigManager {
   private _config: ServiceUriConfig | null = null;
-  private _cachedGraphNames: ReturnType<typeof buildConfigGraphNames> | null = null;
   private _cachedBaseUri: string | null = null;
 
   setConfig(config: ServiceUriConfig): void {
     this._config = config;
     // Update cached values when config changes
-    this._cachedGraphNames = buildConfigGraphNames(config);
     this._cachedBaseUri = buildServiceBaseUri(config);
   }
 
@@ -77,13 +53,6 @@ class ServiceUriConfigManager {
       throw new Error('Service URI configuration not initialized. Call setConfig() first.');
     }
     return this._config;
-  }
-
-  getConfigGraphNames() {
-    if (!this._cachedGraphNames) {
-      throw new Error('Service URI configuration not initialized. Call setConfig() first.');
-    }
-    return this._cachedGraphNames;
   }
 
   getServiceBaseUri(): string {
@@ -99,7 +68,6 @@ class ServiceUriConfigManager {
 
   reset(): void {
     this._config = null;
-    this._cachedGraphNames = null;
     this._cachedBaseUri = null;
   }
 }
@@ -113,11 +81,6 @@ export function getCurrentServiceBaseUri(): string {
   return serviceUriConfigManager.getServiceBaseUri();
 }
 
-export function getCurrentConfigGraphNames() {
-  return serviceUriConfigManager.getConfigGraphNames();
-}
-
 export function getCurrentServiceUri(path: string): string {
   return buildServiceUri(serviceUriConfigManager.getConfig(), path);
 }
-

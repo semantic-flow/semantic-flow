@@ -31,7 +31,7 @@ export const DEFAULT_CONTEXT: FlowServiceContext = {
 };
 
 export const PLATFORM_NODE_DEFAULTS: MeshRootNodeConfig = {
-  "@id": "local:meshRootNodeConfig",
+  "@id": "_service-config/meshRootNodeConfig",
   "@context": DEFAULT_CONTEXT,
   "@type": "conf:MeshRootNodeConfig",
   "conf:versioningEnabled": true,
@@ -72,32 +72,28 @@ export const SERVICE_NODE_DEFAULTS: Omit<
     "application/trig",
     "application/ld+json",
   ],
-  "conf:templateMappings": {
-    "@type": "conf:TemplateMapping",
-    "conf:hasResourcePageTemplate": "/_assets/_templates/default-resource-page.html", // Service-relative path
-  },
   "conf:generateUnifiedDataset": false,
   "conf:generateAggregatedDataset": false,
 };
 
 export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
-  "@id": "serviceConfig",
+  "@id": "_service-config/",
   "@context": DEFAULT_CONTEXT,
   "@type": "fsvc:ServiceConfig",
   "fsvc:scheme": "http",
   "fsvc:port": 31415,
   "fsvc:host": "localhost",
   "fsvc:hasLoggingConfig": {
-    "@id": "local:ServiceConfig#loggingConfig",
+    "@id": "_service-config/loggingConfig",
     "@type": "fsvc:LoggingConfig",
     "fsvc:hasConsoleChannel": {
-      "@id": "local:ServiceConfig#consoleChannel",
+      "@id": "_service-config/loggingConfig/consoleChannel",
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": true,
       "fsvc:logLevel": "info",
     },
     "fsvc:hasFileChannel": {
-      "@id": "local:ServiceConfig#fileChannel",
+      "@id": "_service-config/loggingConfig/fileChannel",
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": false,
       "fsvc:logLevel": "warn",
@@ -109,7 +105,7 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
       "fsvc:logRotationInterval": "daily",
     },
     "fsvc:hasSentryChannel": {
-      "@id": "local:ServiceConfig#sentryChannel",
+      "@id": "_service-config/loggingConfig/sentryChannel",
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": false,
       "fsvc:logLevel": "error",
@@ -117,7 +113,7 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
     },
   },
   "fsvc:hasContainedServices": {
-    "@id": "local:ServiceConfig#containedServices",
+    "@id": "_service-config/containedServices",
     "@type": "fsvc:ContainedServicesConfig",
     "fsvc:apiEnabled": true,
     "fsvc:sparqlEnabled": true,
@@ -129,7 +125,7 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
 
 // Development Environment Overrides
 export const DEVELOPMENT_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
-  "@id": "local:serviceConfig",
+  "@id": "_service-config/",
   "fsvc:hasLoggingConfig": {
     "@type": "fsvc:LoggingConfig",
     "fsvc:hasConsoleChannel": {

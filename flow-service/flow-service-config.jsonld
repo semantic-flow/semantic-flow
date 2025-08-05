@@ -1,31 +1,27 @@
 {
   "@context": {
     "fsvc": "https://semantic-flow.github.io/ontology/flow-service/",
-    "mesh": "https://semantic-flow.github.io/ontology/mesh/",
-    "node": "https://semantic-flow.github.io/ontology/node/",
-    "flow": "https://semantic-flow.github.io/ontology/flow/",
-    "conf": "https://semantic-flow.github.io/ontology/config-flow/",
     "meta": "https://semantic-flow.github.io/ontology/meta-flow/",
     "prov": "http://www.w3.org/ns/prov#"
   },
-  "@id": "_service-config",
+  "@id": "_service-config/",
   "@type": "fsvc:ServiceConfig",
   "fsvc:scheme": "http",
   "fsvc:host": "localhost",
-  "fsvc:port": 31415,
+  "fsvc:port": 8080,
   "fsvc:meshPaths": [
     "../meshes/test-ns/"
   ],
   "fsvc:defaultLicense": "https://creativecommons.org/licenses/by-sa/4.0/",
   "fsvc:defaultAttributedTo": "http://djradon.github.io/ns/djradon",
-  "fsvc:defaultRightsHolder": "https://spectacular-voyage.github.io/ns/spectacular-voyage",
+  "fsvc:defaultRightsHolder": "http://djradon.github.io/ns/djradon",
   "fsvc:defaultRights": "Copyright 2025 David Richardson. Licensed under CC BY-SA 4.0.",
   "fsvc:defaultDelegationChain": {
-    "@id": "_service/defaultDelegationChain",
+    "@id": "_service-config/defaultDelegationChain",
     "@type": "meta:DelegationChain",
     "meta:hasStep": [
       {
-        "@id": "_service/defaultDelegationChain#1",
+        "@id": "_service-config/defaultDelegationChain#1",
         "@type": "meta:DelegationStep",
         "meta:stepOrder": 1,
         "prov:agent": {
@@ -33,7 +29,7 @@
         }
       },
       {
-        "@id": "_service/defaultDelegationChain#2",
+        "@id": "_service-config/defaultDelegationChain#2",
         "@type": "meta:DelegationStep",
         "meta:stepOrder": 2,
         "prov:agent": {

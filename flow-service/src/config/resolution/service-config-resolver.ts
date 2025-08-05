@@ -23,7 +23,7 @@ import { serviceUriConfigManager, type ServiceUriConfig } from '../../utils/serv
  * @throws ConfigError if configuration resolution fails or an unexpected error occurs
  */
 
-import { loadPlatformDefaults, loadInputServiceConfig, loadInputMeshRootNodeConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
+import { loadPlatformServiceDefaults, loadInputServiceConfig, loadInputMeshRootNodeConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
 
 export async function resolveServiceConfig(
   cliOptions?: ServiceOptions,
@@ -34,7 +34,7 @@ export async function resolveServiceConfig(
   try {
     // Load environment config
     const envConfig = loadEnvConfig();
-
+    //console.log(envConfig)
     // Load file config if specified
     let fileConfig: ServiceConfigInput | undefined;
     if (serviceConfigPath) {
@@ -58,8 +58,8 @@ export async function resolveServiceConfig(
     // Initialize the service URI configuration manager early, before any quadstore operations
     serviceUriConfigManager.setConfig(serviceUriConfig);
 
-    // Load platform defaults into Quadstore graphs (now uses dynamic URIs)
-    await loadPlatformDefaults();
+    // Load platform defaults into Quadstore graphs
+    await loadPlatformServiceDefaults();
 
     // Load merged input config into Quadstore graph
     await loadInputServiceConfig(mergedInputConfig);

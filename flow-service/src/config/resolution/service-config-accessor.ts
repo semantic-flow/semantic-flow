@@ -4,6 +4,7 @@ import { DataFactory } from '../../../../flow-core/src/deps.ts';
 import { CONFIG_GRAPH_NAMES } from '../index.ts';
 import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
 import { createServiceLogContext } from '../../utils/service-log-context.ts';
+import { getCurrentServiceUri } from '../../utils/service-uri-builder.ts';
 
 export const singletonServiceConfigAccessor = new (class ServiceConfigAccessor {
   private bundle: QuadstoreBundle;
@@ -43,7 +44,7 @@ export const singletonServiceConfigAccessor = new (class ServiceConfigAccessor {
     const sparql = `
       PREFIX fsvc: <https://semantic-flow.github.io/ontology/flow-service/>
       SELECT ?value WHERE {
-        GRAPH <${CONFIG_GRAPH_NAMES.mergedServiceConfig}> {
+        GRAPH <${getCurrentServiceUri(CONFIG_GRAPH_NAMES.mergedServiceConfig)}> {
           ?s fsvc:port ?value .
         }
       } LIMIT 1
@@ -56,7 +57,7 @@ export const singletonServiceConfigAccessor = new (class ServiceConfigAccessor {
     const sparql = `
       PREFIX fsvc: <https://semantic-flow.github.io/ontology/flow-service/>
       SELECT ?value WHERE {
-        GRAPH <${CONFIG_GRAPH_NAMES.mergedServiceConfig}> {
+        GRAPH <${getCurrentServiceUri(CONFIG_GRAPH_NAMES.mergedServiceConfig)}> {
           ?s fsvc:host ?value .
         }
       } LIMIT 1
@@ -68,7 +69,7 @@ export const singletonServiceConfigAccessor = new (class ServiceConfigAccessor {
     const sparql = `
       PREFIX fsvc: <https://semantic-flow.github.io/ontology/flow-service/>
       SELECT ?value WHERE {
-        GRAPH <${CONFIG_GRAPH_NAMES.mergedServiceConfig}> {
+        GRAPH <${getCurrentServiceUri(CONFIG_GRAPH_NAMES.mergedServiceConfig)}> {
           ?s fsvc:meshPaths ?value .
         }
       }

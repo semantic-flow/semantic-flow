@@ -1,6 +1,5 @@
 import { NodeObject, Quadstore, DataFactory } from '../deps.ts';
 import { RDF } from '../deps.ts';
-import { jsonld } from '../deps.ts';
 import { defaultQuadstoreBundle } from '../../../flow-service/src/quadstore-default-bundle.ts';
 import { jsonldToQuads } from './rdfjs-utils.ts';
 import type { QuadstoreBundle } from '../types.ts';
@@ -40,12 +39,13 @@ export async function clearGraph(
 ): Promise<number> {
   const matchStream = store.match(undefined, undefined, undefined, graph);
   const count = await countQuadsInStream(matchStream);
-  console.log(`Number of quads before delStream in graph ${graph.value}: ${count}`);
+  //console.log(`Number of quads before delStream in graph ${graph.value}: ${count}`);
   const matchStream2 = store.match(undefined, undefined, undefined, graph);
   await store.delStream(matchStream2);
-  const matchStream3 = store.match(undefined, undefined, undefined, graph);
+  /*const matchStream3 = store.match(undefined, undefined, undefined, graph);
   const count2 = await countQuadsInStream(matchStream3);
   console.log(`Number of quads in graph ${graph.value}: ${count2}`);
+  */
   return count;
 }
 
@@ -63,6 +63,7 @@ export async function copyGraph(
   const stream = store.match(undefined, undefined, undefined, sourceGraph);
   const quads = [];
   for await (const q of stream) {
+    //console.log(`Copying quad: ${q.subject.value} ${q.predicate.value} ${q.object.value} to graph ${targetGraph.value}`);
     const newQuad = df.quad(q.subject, q.predicate, q.object, targetGraph);
     quads.push(newQuad);
   }
@@ -121,6 +122,15 @@ export async function createNewGraphFromJsonLd(
   const { store, df } = bundle;
   const graph = graphName ? df.namedNode(graphName) : df.defaultGraph();
   const quads = await jsonldToQuads(inputJsonLd, graph);
+  for (const quad of quads) {
+    if (quad.subject.value.startsWith("_:") || quad.object.value.startsWith("_:")) {
+      console.warn(`Quad with blank node: ${quad.subject.value} ${quad.predicate.value} ${quad.object.value} in graph ${graph.value}`);
+    }
+    // Uncomment the next line to log each quad being processed
+    //console.log(`Quad: ${quad.subject.value} ${quad.predicate.value} ${quad.object.value} in graph ${graph.value}`);
+  }
+
+
   if (overwrite && graphName) clearGraph(df.namedNode(graphName));
 
   // Put quads into the store
