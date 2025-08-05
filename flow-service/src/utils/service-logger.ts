@@ -134,7 +134,7 @@ export function createMeshLogger(
 /**
  * Create a logger with configuration operation context
  * @param configPath - Path to configuration file
- * @param configType - Type of configuration (e.g., 'service', 'mesh', 'env')
+ * @param configType - Type of configuration (e.g., 'service', 'node')
  * @param validationStage - Current validation stage
  * @returns Logger instance with config context
  */

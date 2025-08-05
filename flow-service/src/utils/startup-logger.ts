@@ -62,7 +62,8 @@ export async function logStartupConfiguration(): Promise<void> {
 export async function logStartupUrls(): Promise<void> {
   const host = await config.getHost();
   const port = await config.getPort();
-  const baseUrl = `http://${host}:${port}`;
+  const scheme = await config.getScheme() || 'http';
+  const baseUrl = `${scheme}://${host}:${port}`;
 
   console.log(`📍 Root: ${baseUrl}/`);
   console.log(`� API documentation: ${baseUrl}${MESH.API_PORTAL_ROUTE}`);
