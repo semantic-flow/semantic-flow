@@ -4,7 +4,7 @@
  */
 
 import { Sentry } from '../../deps.ts';
-import type { LogContext } from './types.ts';
+import type { LogContext } from './logger-types.ts';
 import type { LogLevel } from './formatters.ts';
 import { extractErrorContext } from './formatters.ts';
 

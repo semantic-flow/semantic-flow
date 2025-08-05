@@ -10,7 +10,7 @@ import {
   handleError,
   createDefaultEnhancedLogger
 } from '../../../src/utils/logger/index.ts';
-import type { LogContext } from '../../../src/utils/logger/types.ts';
+import type { LogContext } from '../../../src/utils/logger/logger-types.ts';
 
 console.log('🧪 Testing handleCaughtError and handleError functions with LogContext...\n');
 

@@ -8,7 +8,7 @@ import {
   logStartupUrls,
 } from './src/utils/startup-logger.ts';
 import { handleCaughtError } from '../flow-core/src/utils/logger/error-handlers.ts';
-import type { LogContext } from '../flow-core/src/utils/logger/types.ts';
+import type { LogContext } from '../flow-core/src/utils/logger/logger-types.ts';
 import { createServiceLogContext } from './src/utils/service-log-context.ts';
 import { MESH } from '../flow-core/src/mesh-constants.ts';
 

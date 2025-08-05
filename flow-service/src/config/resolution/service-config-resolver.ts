@@ -8,7 +8,7 @@ import { PLATFORM_SERVICE_DEFAULTS } from '../defaults.ts';
 import { ConfigError } from '../config-types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';
 import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
-import { LogContext } from '../../../../flow-core/src/utils/logger/types.ts';
+import { LogContext } from '../../../../flow-core/src/utils/logger/logger-types.ts';
 import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
 import { createServiceLogContext } from '../../utils/service-log-context.ts';
 import { serviceUriConfigManager, type ServiceUriConfig } from '../../utils/service-uri-builder.ts';

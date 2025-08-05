@@ -3,7 +3,7 @@
  * Provides consistent formatting for console output, file logging, and structured data.
  */
 
-import type { LogContext } from './types.ts';
+import type { LogContext } from './logger-types.ts';
 
 /**
  * Log level type using string literals

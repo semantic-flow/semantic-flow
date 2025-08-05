@@ -3,7 +3,7 @@
  * Integrates console output, file logging, and Sentry error reporting with structured context.
  */
 
-import type { LogContext, StructuredLogger, LoggerConfig } from './types.ts';
+import type { LogContext, StructuredLogger, LoggerConfig } from './logger-types.ts';
 import type { LogLevel } from './formatters.ts';
 import {
   formatConsoleMessage,

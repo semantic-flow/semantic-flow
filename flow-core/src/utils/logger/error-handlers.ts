@@ -4,7 +4,7 @@
  * better error tracking and debugging across the platform.
  */
 
-import type { LogContext, ErrorHandlingOptions } from './types.ts';
+import type { LogContext, ErrorHandlingOptions } from './logger-types.ts';
 import { createEnhancedLogger } from './structured-logger.ts';
 import { mergeLogContext } from './formatters.ts';
 

@@ -1,4 +1,4 @@
-import type { LogContext } from '../../../flow-core/src/utils/logger/types.ts';
+import type { LogContext } from '../../../flow-core/src/utils/logger/logger-types.ts';
 import { FLOW_SERVICE_VERSION, FLOW_SERVICE_NAME } from '../service-constants.ts';
 
 /**
