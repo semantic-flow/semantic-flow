@@ -2,6 +2,7 @@ import { defaultQuadstoreBundle } from '../../quadstore-default-bundle.ts';
 import type { ServiceConfigInput, MeshRootNodeConfigInput } from '../config-types.ts';
 import { PLATFORM_SERVICE_DEFAULTS, PLATFORM_NODE_DEFAULTS } from '../defaults.ts';
 import { clearGraph, copyGraph, createNewGraphFromJsonLd } from '../../../../flow-core/src/utils/quadstore-utils.ts';
+import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
 import { CONFIG_GRAPH_NAMES } from '../index.ts';
 import { expandRelativeIds } from "../../../../flow-core/src/utils/rdfjs-utils.ts";
 import { getCurrentServiceUri } from "../../utils/service-uri-builder.ts";
@@ -10,10 +11,25 @@ import { getCurrentServiceUri } from "../../utils/service-uri-builder.ts";
  */
 export async function loadPlatformServiceDefaults(): Promise<void> {
 
-  const uri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.platformServiceDefaults);
-  const expandedPlatformServiceDefaults = expandRelativeIds(PLATFORM_SERVICE_DEFAULTS, uri);
-  // use the Service URI for the graph name
-  await createNewGraphFromJsonLd(expandedPlatformServiceDefaults, { graphName: uri });
+  try {
+    const uri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.platformServiceDefaults);
+    const expandedPlatformServiceDefaults = expandRelativeIds(PLATFORM_SERVICE_DEFAULTS, uri);
+    // use the Service URI for the graph name
+    await createNewGraphFromJsonLd(expandedPlatformServiceDefaults, { graphName: uri });
+  } catch (error) {
+    await handleCaughtError(
+      error,
+      'Error loading platform service defaults into Quadstore',
+      {
+        operation: 'config-load',
+        component: 'platform-default-loader',
+        configContext: {
+          configType: 'platform-defaults',
+        },
+      }
+    );
+    // Optionally rethrow or handle as needed
+  }
 }
 
 export async function loadPlatformImplicitMeshRootNodeConfig(): Promise<void> {

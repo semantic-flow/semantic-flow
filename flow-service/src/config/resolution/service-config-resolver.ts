@@ -4,10 +4,7 @@ import type {
 } from '../config-types.ts';
 import { getServiceConfigPath, loadEnvConfig } from '../loaders/env-loader.ts';
 import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
-import {
-  getEnvironmentDefaults,
-  PLATFORM_SERVICE_DEFAULTS,
-} from '../defaults.ts';
+import { PLATFORM_SERVICE_DEFAULTS } from '../defaults.ts';
 import { ConfigError } from '../config-types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';
 import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';

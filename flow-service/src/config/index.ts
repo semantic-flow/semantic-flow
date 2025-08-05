@@ -81,7 +81,6 @@ import type { ServiceOptions } from './config-types.ts';
 import { resolveServiceConfig } from './resolution/service-config-resolver.ts';
 import { validateServiceConfig } from './resolution/service-config-validator.ts';
 import { handleCaughtError } from '../../../flow-core/src/utils/logger/error-handlers.ts';
-import { LogContext } from '../../../flow-core/src/utils/logger/types.ts';
 
 /**
  * Resolves and validates the service configuration.
