@@ -24,7 +24,6 @@ export interface LogChannelConfig extends NodeObject {
   readonly "fsvc:logFormat"?: "json" | "pretty";
   readonly "fsvc:logFilePath"?: string;
   readonly "fsvc:sentryDsn"?: string;
-  readonly "fsvc:sentryLoggingEnabled"?: boolean;
   readonly "fsvc:logRetentionDays"?: number;
   readonly "fsvc:logMaxFiles"?: number;
   readonly "fsvc:logMaxFileSize"?: number;
@@ -83,6 +82,8 @@ export interface ServiceConfig extends NodeObject {
   readonly "fsvc:rootMeshRootNodeConfigTemplate"?: MeshRootNodeConfig;
   readonly "fsvc:defaultDelegationChain"?: DelegationChain;
   readonly "fsvc:defaultAttributedTo"?: string;
+  readonly "fsvc:defaultRights"?: string[];
+  readonly "fsvc:defaultRightsHolder"?: string;
 }
 
 // Delegation Chain Configuration

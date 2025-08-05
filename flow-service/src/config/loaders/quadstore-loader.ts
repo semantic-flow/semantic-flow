@@ -14,6 +14,7 @@ export async function loadPlatformServiceDefaults(): Promise<void> {
   try {
     const uri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.platformServiceDefaults);
     const expandedPlatformServiceDefaults = expandRelativeIds(PLATFORM_SERVICE_DEFAULTS, uri);
+    //console.log(`Loading platform service defaults into graph:\n ${JSON.stringify(expandedPlatformServiceDefaults)}`);
     // use the Service URI for the graph name
     await createNewGraphFromJsonLd(expandedPlatformServiceDefaults, { graphName: uri });
   } catch (error) {
@@ -39,14 +40,19 @@ export async function loadPlatformImplicitMeshRootNodeConfig(): Promise<void> {
 }
 
 /**
- * Load input service config into Quadstore graph
+ * Load input service config into Quadstore graphs (both into inputServiceConfig and as a base for mergedServiceConfig)
  */
 export async function loadInputServiceConfig(inputConfig: ServiceConfigInput): Promise<void> {
   //console.log(inputConfig);
-  const uri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.inputServiceConfig);
-  const expandedInputServiceConfig = expandRelativeIds(inputConfig, uri);
+  const inputUri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.inputServiceConfig);
+  const mergedUri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.mergedServiceConfig);
+
+  const expandedInputServiceConfig = expandRelativeIds(inputConfig, inputUri);
   //console.log(expandedInputServiceConfig)
-  await createNewGraphFromJsonLd(expandedInputServiceConfig, { graphName: uri });
+  await createNewGraphFromJsonLd(expandedInputServiceConfig, { graphName: inputUri });
+
+  const expandedMergedServiceConfig = expandRelativeIds(inputConfig, mergedUri);
+  await createNewGraphFromJsonLd(expandedMergedServiceConfig, { graphName: mergedUri });
 }
 
 /**
@@ -68,27 +74,26 @@ export async function mergeServiceConfigGraphs(
   } = defaultQuadstoreBundle
 ): Promise<void> {
 
-  const inputUri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.inputServiceConfig);
   const mergedUri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.mergedServiceConfig);
   const defaultUri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.platformServiceDefaults);
-  // Clear merged graph
-  await clearGraph(df.namedNode(mergedUri));
-
-  // Copy input service config quads
-  await copyGraph(df.namedNode(inputUri), df.namedNode(mergedUri));
 
   // Copy platform service defaults quads if not overridden
   const platformQuads = store.match(undefined, undefined, undefined, df.namedNode(defaultUri));
+  let platformQuadsCopied = 0;
   for await (const q of platformQuads) {
-    const exists = await store.countQuads(q.subject, q.predicate, undefined, df.namedNode(mergedUri));
-    if (exists === 0) {
-      console.log(`platform quad copied: ${q.subject.value} ${q.predicate.value} ${q.object.value} in graph ${mergedUri}`);
+    const existingQuads = await store.get({ subject: q.subject, predicate: q.predicate, object: undefined, graph: df.namedNode(mergedUri) });
+    //console.log(`${existingQuads.items}\n`)
+
+    if (existingQuads.items.length === 0) {
+      //console.log(`platform quad copied: ${q.subject.value} ${q.predicate.value} ${q.object.value} in graph ${mergedUri}`);
 
       await store.put(df.quad(q.subject, q.predicate, q.object, df.namedNode(mergedUri)));
+      platformQuadsCopied++;
+    } else if (existingQuads.items.length > 1) {
+      console.error(`Multiple quads found for ${q.subject.value} ${q.predicate.value} in graph ${mergedUri}. This may indicate a configuration error.`);
     }
   }
-
-
+  //console.log(`platform quads copied: ${platformQuadsCopied}`);
 }
 
 

@@ -41,7 +41,7 @@ export async function clearGraph(
   const count = await countQuadsInStream(matchStream);
   //console.log(`Number of quads before delStream in graph ${graph.value}: ${count}`);
   const matchStream2 = store.match(undefined, undefined, undefined, graph);
-  await store.delStream(matchStream2);
+  await store.delStream(matchStream2 as any);
   /*const matchStream3 = store.match(undefined, undefined, undefined, graph);
   const count2 = await countQuadsInStream(matchStream3);
   console.log(`Number of quads in graph ${graph.value}: ${count2}`);
@@ -62,8 +62,9 @@ export async function copyGraph(
 ): Promise<number> {
   const stream = store.match(undefined, undefined, undefined, sourceGraph);
   const quads = [];
-  for await (const q of stream) {
-    //console.log(`Copying quad: ${q.subject.value} ${q.predicate.value} ${q.object.value} to graph ${targetGraph.value}`);
+  console.log("COPIED QUADS:");
+  for await (const q of stream as any) {
+    console.log(`${q.subject.value} ${q.predicate.value} ${q.object.value} to graph ${targetGraph.value}`);
     const newQuad = df.quad(q.subject, q.predicate, q.object, targetGraph);
     quads.push(newQuad);
   }

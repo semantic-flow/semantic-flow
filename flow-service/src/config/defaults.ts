@@ -108,8 +108,7 @@ export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
       "@id": "_service-config/loggingConfig/sentryChannel",
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": false,
-      "fsvc:logLevel": "error",
-      "fsvc:sentryLoggingEnabled": true,
+      "fsvc:logLevel": "error"
     },
   },
   "fsvc:hasContainedServices": {
@@ -147,8 +146,7 @@ export const DEVELOPMENT_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
     "fsvc:hasSentryChannel": {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": true,
-      "fsvc:logLevel": "warn",
-      "fsvc:sentryLoggingEnabled": true,
+      "fsvc:logLevel": "warn"
     },
   },
 };
@@ -177,8 +175,7 @@ export const PRODUCTION_SERVICE_OVERRIDES: Partial<ServiceConfig> = {
     "fsvc:hasSentryChannel": {
       "@type": "fsvc:LogChannelConfig",
       "fsvc:logChannelEnabled": true, // Enable Sentry in production
-      "fsvc:logLevel": "error",
-      "fsvc:sentryLoggingEnabled": true,
+      "fsvc:logLevel": "error"
     },
   },
 };

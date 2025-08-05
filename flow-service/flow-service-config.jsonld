@@ -8,7 +8,6 @@
   "@type": "fsvc:ServiceConfig",
   "fsvc:scheme": "http",
   "fsvc:host": "localhost",
-  "fsvc:port": 8080,
   "fsvc:meshPaths": [
     "../meshes/test-ns/",
     "../meshes/ns/"

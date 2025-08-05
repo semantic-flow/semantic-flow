@@ -8,12 +8,19 @@ import { singletonServiceConfigAccessor as config } from '../config/index.ts';
 import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 import { resolve } from '../../../flow-core/src/deps.ts';
 
+
 /**
  * Logs the service startup configuration details with a timestamp in US locale.
  *
  * Outputs mesh paths, logging levels, and feature enablement statuses to the console for the provided configuration.
  */
 export async function logStartupConfiguration(): Promise<void> {
+  if (!config.isInitialized()) {
+    console.error('⚠️ Service configuration is not initialized. Skipping startup logging.');
+    Deno.exit(0);
+  }
+
+
   const now = new Date();
   const timestamp = now.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -39,10 +46,28 @@ export async function logStartupConfiguration(): Promise<void> {
     console.log(`   Mesh Paths: none configured`);
   }
 
-  // TODO: Add methods to accessor for these properties or query directly
-  console.log(`   Console Logging: info`);
-  console.log(`   File Logging: disabled`);
-  console.log(`   Sentry Logging: disabled`);
+
+  // Use custom config accessors for logging channels
+  try {
+    const consoleConfig = await config.getConsoleLoggingConfig();
+    console.log(`   Console Logging: ${consoleConfig.enabled ? (consoleConfig.level ?? 'enabled') : 'disabled'}`);
+  } catch {
+    console.log(`   Console Logging: error fetching config`);
+  }
+
+  try {
+    const fileConfig = await config.getFileLoggingConfig();
+    console.log(`   File Logging: ${fileConfig.enabled ? (fileConfig.level ?? 'enabled') : 'disabled'}`);
+  } catch {
+    console.log(`   File Logging: error fetching config`);
+  }
+
+  try {
+    const sentryConfig = await config.getSentryLoggingConfig();
+    console.log(`   Sentry Logging: ${sentryConfig.enabled ? (sentryConfig.level ?? 'enabled') : 'disabled'}`);
+  } catch {
+    console.log(`   Sentry Logging: error fetching config`);
+  }
 
   const enabledServices: string[] = [];
   // TODO: Query service enablement flags from config
@@ -66,5 +91,5 @@ export async function logStartupUrls(): Promise<void> {
   const baseUrl = `${scheme}://${host}:${port}`;
 
   console.log(`📍 Root: ${baseUrl}/`);
-  console.log(`� API documentation: ${baseUrl}${MESH.API_PORTAL_ROUTE}`);
+  console.log(`📍 API documentation: ${baseUrl}${MESH.API_PORTAL_ROUTE}`);
 }

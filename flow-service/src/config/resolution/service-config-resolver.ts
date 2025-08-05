@@ -21,6 +21,7 @@ import { serviceUriConfigManager, type ServiceUriConfig } from '../../utils/serv
  */
 
 import { loadPlatformServiceDefaults, loadInputServiceConfig, loadInputMeshRootNodeConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
+import { singletonServiceConfigAccessor } from "./service-config-accessor.ts";
 
 export async function resolveServiceConfig(
   cliOptions?: ServiceOptions,
@@ -46,6 +47,7 @@ export async function resolveServiceConfig(
     const mergedInputConfig = mergeConfigs(mergeConfigs(envConfig, fileConfig ?? {}), cliConfig);
 
     // Extract service URI configuration from merged config, using platform defaults as fallback
+    // TODO: 
     const serviceUriConfig: ServiceUriConfig = {
       scheme: mergedInputConfig['fsvc:scheme'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:scheme'],
       host: mergedInputConfig['fsvc:host'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:host'],
@@ -80,16 +82,18 @@ export async function resolveServiceConfig(
     if (error instanceof ConfigError) {
       await handleCaughtError(error, `Service configuration resolution failed`, context);
       throw error;
+    } else {
+      await handleCaughtError(error, `Failed to resolve service configuration`, context);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const cause = error instanceof Error ? error : undefined;
+      throw new ConfigError(
+        `Failed to resolve service configuration: ${errorMessage}`,
+        cause,
+      );
     }
-
-    await handleCaughtError(error, `Failed to resolve service configuration`, context);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const cause = error instanceof Error ? error : undefined;
-    throw new ConfigError(
-      `Failed to resolve service configuration: ${errorMessage}`,
-      cause,
-    );
   }
+  // mark the singletonServiceConfigAccessor as initialized
+  singletonServiceConfigAccessor.setInitialized(true);
 }
 
 /**

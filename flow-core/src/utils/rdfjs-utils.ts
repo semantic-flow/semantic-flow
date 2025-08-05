@@ -26,6 +26,29 @@ export async function jsonldToQuads(
   );
 }
 
+export function relativeizeIds(inputQuads: RDF.Quad[], baseIRI: string): RDF.Quad[] {
+  // Validate baseIRI format
+  if (!baseIRI.startsWith("http://") && !baseIRI.startsWith("https://")) {
+    throw new Error(`Invalid baseIRI: must start with http:// or https://, got: ${baseIRI}`);
+  }
+  if (!baseIRI.endsWith("/")) {
+    throw new Error(`Invalid baseIRI: must end with "/", got: ${baseIRI}`);
+  }
+
+  return inputQuads.map(quad => {
+    const subject = quad.subject.value.replace(baseIRI, '');
+    const predicate = quad.predicate.value.replace(baseIRI, '');
+    const object = quad.object.value.replace(baseIRI, '');
+    const graph = quad.graph ? quad.graph.value.replace(baseIRI, '') : undefined;
+
+    return {
+      '@id': subject,
+      [predicate]: object,
+      '@graph': graph,
+    };
+  });
+}
+
 export function expandRelativeIds(inputJsonLd: NodeObject, baseIRI: string): any {
   // Validate baseIRI format
   if (!baseIRI.startsWith("http://") && !baseIRI.startsWith("https://")) {
