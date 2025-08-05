@@ -5,35 +5,39 @@
  * and side-by-side configuration context.
  */
 
+import { createServiceLogContext } from "../utils/service-log-context.ts";
+
+/**
+ * Named graph terms for Quadstore config graphs
+ */
+export const CONFIG_GRAPH_NAMES = {
+  platformServiceDefaults: 'platformServiceDefaults',
+  platformImplicitMeshRootNodeConfig: 'platformImplicitMeshRootNodeConfig',
+  inputServiceConfig: 'inputServiceConfig',
+  inputMeshRootNodeConfig: 'inputMeshRootNodeConfig',
+  mergedServiceConfig: 'mergedServiceConfig',
+}
+
+
 // Core Types
 export type {
   ContainedServicesConfig,
-  JSONLDContext,
+  FlowServiceContext,
   LogChannelConfig,
   LoggingConfig,
   LogLevel,
-  NodeConfig,
-  NodeConfigContext,
-  NodeConfigInput,
+  MeshRootNodeConfig,
+  MeshRootNodeConfigContext,
+  MeshRootNodeConfigInput,
   ServiceConfig,
-  ServiceConfigContext,
   ServiceConfigInput,
   ServiceOptions,
   TemplateMapping,
-} from './types.ts';
+} from './config-types.ts';
 
 // Error Types
-export { ConfigError, ConfigValidationError } from './types.ts';
+export { ConfigError, ConfigValidationError } from './config-types.ts';
 
-// Helper Functions
-export {
-  getConsoleLogLevel,
-  getFileLogEnabled,
-  getSentryEnabled,
-  getServiceHost,
-  getServicePort,
-  getVersioningEnabled,
-} from './types.ts';
 
 // Default Configurations
 export {
@@ -50,76 +54,54 @@ export { getServiceConfigPath, loadEnvConfig } from './loaders/env-loader.ts';
 
 // JSON-LD File Loading
 export {
-  cloneConfig,
   configExists,
   getNodeHierarchy,
   isConfigInheritanceEnabled,
-  loadNodeConfig,
+  loadMeshRootNodeConfig,
   loadServiceConfig,
-  saveNodeConfig,
+  saveMeshRootNodeConfig,
   saveServiceConfig,
-  validateJSONLD,
+  validateJsonLd,
 } from './loaders/jsonld-loader.ts';
 
 // Service Configuration Resolution (Cascading Pattern)
 export {
-  getConfigValue,
-  mergeConfigContext,
   resolveServiceConfig,
-  ServiceConfigAccessor,
-  validateServiceConfig,
 } from './resolution/service-config-resolver.ts';
+
+export { validateServiceConfig } from './resolution/service-config-validator.ts';
+
+export { singletonServiceConfigAccessor } from './resolution/service-config-accessor.ts';
 
 // Shared Utilities
 export { mergeConfigs } from '../utils/merge-configs.ts';
 
 // Import the implementations for the helper functions
-import type { ServiceConfig, ServiceOptions } from './types.ts';
-import {
-  mergeConfigContext,
-  resolveServiceConfig,
-  ServiceConfigAccessor,
-  validateServiceConfig,
-} from './resolution/service-config-resolver.ts';
-import { handleCaughtError } from '../utils/logger.ts';
+import type { ServiceOptions } from './config-types.ts';
+import { resolveServiceConfig } from './resolution/service-config-resolver.ts';
+import { validateServiceConfig } from './resolution/service-config-validator.ts';
+import { handleCaughtError } from '../../../flow-core/src/utils/logger/error-handlers.ts';
 
 /**
- * Resolves and validates the service configuration context, returning a `ServiceConfigAccessor` for side-by-side configuration access.
+ * Resolves and validates the service configuration.
  *
  * @param cliOptions - Optional command-line options to influence configuration resolution
- * @returns An accessor for retrieving configuration values from the resolved context
  */
 export async function createServiceConfig(
   cliOptions?: ServiceOptions,
-): Promise<ServiceConfigAccessor> {
+): Promise<void> {
   try {
-    const context = await resolveServiceConfig(cliOptions);
-    validateServiceConfig(context);
-    return new ServiceConfigAccessor(context);
+    await resolveServiceConfig(cliOptions);
+    await validateServiceConfig();
   } catch (error) {
-    await handleCaughtError(error, `Failed to create service configuration`);
+    const context = createServiceLogContext({
+      operation: 'config-create',
+      component: 'service-config-creation',
+      metadata: { cliOptions }
+
+    });
+    await handleCaughtError(error, `Failed to create service configuration`, context);
     throw error;
   }
 }
 
-/**
- * Resolves, validates, and returns a fully merged service configuration object.
- *
- * @param cliOptions - Optional command-line options to influence configuration resolution
- * @returns The complete, validated service configuration object with all context layers merged
- */
-export async function getCompleteServiceConfig(
-  cliOptions?: ServiceOptions,
-): Promise<ServiceConfig> {
-  try {
-    const context = await resolveServiceConfig(cliOptions);
-    validateServiceConfig(context);
-    return mergeConfigContext(context);
-  } catch (error) {
-    await handleCaughtError(
-      error,
-      `Failed to get complete service configuration`,
-    );
-    throw error;
-  }
-}

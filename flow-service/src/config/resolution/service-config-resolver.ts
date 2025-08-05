@@ -1,79 +1,88 @@
-/**
- * Service Configuration Resolver
- *
- * Implements cascading configuration resolution for service configs.
- * Merges CLI options → Environment variables → Config file → Platform defaults
- */
-
 import type {
-  AttributedTo,
-  DelegationChain,
-  LogLevel,
-  ServiceConfigContext,
   ServiceConfigInput,
   ServiceOptions,
-} from '../types.ts';
+} from '../config-types.ts';
 import { getServiceConfigPath, loadEnvConfig } from '../loaders/env-loader.ts';
 import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
-import {
-  getEnvironmentDefaults,
-  PLATFORM_SERVICE_DEFAULTS,
-} from '../defaults.ts';
-import { ConfigError } from '../types.ts';
+import { PLATFORM_SERVICE_DEFAULTS } from '../defaults.ts';
+import { ConfigError } from '../config-types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';
-import { handleCaughtError } from '../../utils/logger.ts';
+import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
+import { LogContext } from '../../../../flow-core/src/utils/logger/types.ts';
+import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
+import { createServiceLogContext } from '../../utils/service-log-context.ts';
+import { serviceUriConfigManager, type ServiceUriConfig } from '../../utils/service-uri-builder.ts';
 
 /**
  * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.
  *
- * Returns a context object containing both the merged input options and the default options, allowing for side-by-side comparison without merging them.
- *
  * @param cliOptions - Optional CLI-provided service options to override other configuration sources
- * @returns A context object with both input and default configuration options
  * @throws ConfigError if configuration resolution fails or an unexpected error occurs
  */
+
+import { loadPlatformServiceDefaults, loadInputServiceConfig, loadInputMeshRootNodeConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
+
 export async function resolveServiceConfig(
   cliOptions?: ServiceOptions,
-): Promise<ServiceConfigContext> {
+): Promise<void> {
+  // Define serviceConfigPath outside try block for error handling access
+  const serviceConfigPath = getServiceConfigPath(cliOptions?.configPath);
+
   try {
-    // 1. Start with empty input options
-    let inputOptions: ServiceConfigInput = {};
-
-    // 2. Merge environment variables (cascading pattern)
+    // Load environment config
     const envConfig = loadEnvConfig();
-    inputOptions = mergeConfigs(inputOptions, envConfig);
-
-    // 3. Load and merge service config file (cascading pattern)
-    const serviceConfigPath = getServiceConfigPath(cliOptions?.configPath);
+    //console.log(envConfig)
+    // Load file config if specified
+    let fileConfig: ServiceConfigInput | undefined;
     if (serviceConfigPath) {
-      const fileConfig = await loadServiceConfig(serviceConfigPath);
-      if (fileConfig) {
-        inputOptions = mergeConfigs(inputOptions, fileConfig);
-      }
+      const loadedConfig = await loadServiceConfig(serviceConfigPath);
+      fileConfig = loadedConfig === null ? undefined : loadedConfig;
     }
 
-    // 4. Apply CLI overrides (cascading pattern)
-    if (cliOptions) {
-      const cliConfig = convertCliOptionsToConfig(cliOptions);
-      inputOptions = mergeConfigs(inputOptions, cliConfig);
-    }
+    // Convert CLI options to config
+    const cliConfig = cliOptions ? convertCliOptionsToConfig(cliOptions) : {};
 
-    // 5. Get environment-specific defaults
-    const environment = Deno.env.get('FLOW_ENV') || 'development';
-    const defaultOptions = getEnvironmentDefaults(environment);
+    // Merge input configs: env, file, CLI
+    const mergedInputConfig = mergeConfigs(mergeConfigs(envConfig, fileConfig ?? {}), cliConfig);
 
-    // 6. Return side-by-side context (no merge)
-    return {
-      inputOptions,
-      defaultOptions,
+    // Extract service URI configuration from merged config, using platform defaults as fallback
+    const serviceUriConfig: ServiceUriConfig = {
+      scheme: mergedInputConfig['fsvc:scheme'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:scheme'],
+      host: mergedInputConfig['fsvc:host'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:host'],
+      port: mergedInputConfig['fsvc:port'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:port'],
     };
+
+    // Initialize the service URI configuration manager early, before any quadstore operations
+    serviceUriConfigManager.setConfig(serviceUriConfig);
+
+    // Load platform defaults into Quadstore graphs
+    await loadPlatformServiceDefaults();
+
+    // Load merged input config into Quadstore graph
+    await loadInputServiceConfig(mergedInputConfig);
+
+    // TODO: Load input mesh node config if applicable
+    // await loadInputMeshRootNodeConfig(...);
+
+    // Merge all graphs into mergedServiceConfig graph
+    await mergeServiceConfigGraphs();
+
   } catch (error) {
+    const context: LogContext = createServiceLogContext({
+      operation: 'config-resolve',
+      component: 'service-config-resolution',
+      configContext: {
+        configPath: serviceConfigPath || 'none',
+        configType: 'service-config'
+      }
+    });
+
     if (error instanceof ConfigError) {
-      await handleCaughtError(error, `Service configuration resolution failed`);
+      await handleCaughtError(error, `Service configuration resolution failed`, context);
       throw error;
     }
 
-    await handleCaughtError(error, `Failed to resolve service configuration`);
+    await handleCaughtError(error, `Failed to resolve service configuration`, context);
     const errorMessage = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? error : undefined;
     throw new ConfigError(
@@ -81,23 +90,6 @@ export async function resolveServiceConfig(
       cause,
     );
   }
-}
-
-/**
- * Validates that the provided log level is one of the allowed values.
- *
- * @param level - The log level to validate, as a string or LogLevel
- * @returns The validated log level as a LogLevel type
- * @throws ConfigError if the log level is not valid
- */
-function validateLogLevel(level: string | LogLevel): LogLevel {
-  const validLevels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
-  if (!validLevels.includes(level as LogLevel)) {
-    throw new ConfigError(
-      `Invalid log level: ${level}. Must be one of: ${validLevels.join(', ')}`,
-    );
-  }
-  return level as LogLevel;
 }
 
 /**
@@ -112,6 +104,10 @@ function convertCliOptionsToConfig(
   cliOptions: ServiceOptions,
 ): ServiceConfigInput {
   const config: ServiceConfigInput = {};
+
+  if (cliOptions.scheme !== undefined) {
+    config['fsvc:scheme'] = cliOptions.scheme;
+  }
 
   if (cliOptions.port !== undefined) {
     config['fsvc:port'] = cliOptions.port;
@@ -153,173 +149,4 @@ function convertCliOptionsToConfig(
   }
 
   return config;
-}
-
-/**
- * Retrieves a configuration value from the context, returning the value from input options if defined, or falling back to the default options.
- *
- * @param context - The service configuration context containing both input and default options
- * @param inputKey - The key to look up in the input options
- * @param defaultKey - The key to look up in the default options if the input value is undefined
- * @returns The resolved configuration value
- */
-export function getConfigValue<T>(
-  context: ServiceConfigContext,
-  inputKey: keyof ServiceConfigInput,
-  defaultKey: keyof typeof PLATFORM_SERVICE_DEFAULTS,
-): T {
-  const inputValue = context.inputOptions[inputKey];
-  const defaultValue = context.defaultOptions[defaultKey];
-
-  return (inputValue !== undefined ? inputValue : defaultValue) as T;
-}
-
-/**
- * Merges the default and input options from the configuration context into a single resolved configuration object.
- *
- * Use this function when a fully merged configuration is required, rather than separate input and default options.
- *
- * @returns The complete configuration object with input options overriding defaults.
- */
-export function mergeConfigContext(
-  context: ServiceConfigContext,
-): typeof PLATFORM_SERVICE_DEFAULTS {
-  return mergeConfigs(
-    context.defaultOptions,
-    context.inputOptions as Partial<typeof PLATFORM_SERVICE_DEFAULTS>,
-  );
-}
-
-/**
- * Validates that required service configuration values are present and correctly formatted.
- *
- * Checks that the port is within the valid range, the host is a non-empty string, and if Sentry logging is enabled, ensures a valid Sentry DSN is configured.
- *
- * @throws ConfigError if any required configuration is missing or invalid.
- */
-export function validateServiceConfig(context: ServiceConfigContext): void {
-  const port = getConfigValue<number>(context, 'fsvc:port', 'fsvc:port');
-  const host = getConfigValue<string>(context, 'fsvc:host', 'fsvc:host');
-
-  if (!port || port <= 0 || port > 65535) {
-    throw new ConfigError(
-      `Invalid port number: ${port}. Must be between 1 and 65535.`,
-    );
-  }
-
-  if (!host || host.trim().length === 0) {
-    throw new ConfigError(`Invalid host: ${host}. Host cannot be empty.`);
-  }
-
-  // Validate Sentry configuration if enabled
-  const loggingConfig = context.inputOptions['fsvc:hasLoggingConfig'] ||
-    context.defaultOptions['fsvc:hasLoggingConfig'];
-  const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
-
-  if (sentryChannel && sentryChannel['fsvc:logChannelEnabled']) {
-    const sentryDsn = sentryChannel['fsvc:sentryDsn'];
-    if (!sentryDsn || !sentryDsn.startsWith('https://')) {
-      throw new ConfigError(
-        'Sentry is enabled but no valid DSN is configured. Please set FLOW_SENTRY_DSN environment variable or configure it in the service config file.',
-      );
-    }
-  }
-}
-
-/**
- * Get a typed configuration accessor for common service config values
- */
-export class ServiceConfigAccessor {
-  constructor(private context: ServiceConfigContext) {}
-
-  get port(): number {
-    return getConfigValue<number>(this.context, 'fsvc:port', 'fsvc:port');
-  }
-
-  get host(): string {
-    return getConfigValue<string>(this.context, 'fsvc:host', 'fsvc:host');
-  }
-
-  get meshPaths(): string[] {
-    return this.context.inputOptions['fsvc:meshPaths'] || [];
-  }
-
-  get consoleLogLevel(): string {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const consoleChannel = loggingConfig?.['fsvc:hasConsoleChannel'];
-    return consoleChannel?.['fsvc:logLevel'] || 'info';
-  }
-
-  get fileLogEnabled(): boolean {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const fileChannel = loggingConfig?.['fsvc:hasFileChannel'];
-    return fileChannel?.['fsvc:logChannelEnabled'] || false;
-  }
-
-  get fileLogLevel(): string {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const fileChannel = loggingConfig?.['fsvc:hasFileChannel'];
-    return fileChannel?.['fsvc:logLevel'] || 'warn';
-  }
-
-  get sentryEnabled(): boolean {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
-    return sentryChannel?.['fsvc:logChannelEnabled'] || false;
-  }
-
-  get sentryLogLevel(): string {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
-    return sentryChannel?.['fsvc:logLevel'] || 'error';
-  }
-
-  get sentryDsn(): string | undefined {
-    const loggingConfig = this.context.inputOptions['fsvc:hasLoggingConfig'] ||
-      this.context.defaultOptions['fsvc:hasLoggingConfig'];
-    const sentryChannel = loggingConfig?.['fsvc:hasSentryChannel'];
-    return sentryChannel?.['fsvc:sentryDsn'];
-  }
-
-  get apiEnabled(): boolean {
-    const containedServices =
-      this.context.inputOptions['fsvc:hasContainedServices'] ||
-      this.context.defaultOptions['fsvc:hasContainedServices'];
-    return containedServices['fsvc:apiEnabled'] ?? true;
-  }
-
-  get sparqlEnabled(): boolean {
-    const containedServices =
-      this.context.inputOptions['fsvc:hasContainedServices'] ||
-      this.context.defaultOptions['fsvc:hasContainedServices'];
-    return containedServices['fsvc:sparqlEnabled'] ?? true;
-  }
-
-  get queryWidgetEnabled(): boolean {
-    const containedServices =
-      this.context.inputOptions['fsvc:hasContainedServices'] ||
-      this.context.defaultOptions['fsvc:hasContainedServices'];
-    return containedServices['fsvc:queryWidgetEnabled'] ?? true;
-  }
-
-  get defaultDelegationChain(): DelegationChain | undefined {
-    return getConfigValue<DelegationChain | undefined>(
-      this.context,
-      'fsvc:defaultDelegationChain',
-      'fsvc:defaultDelegationChain',
-    );
-  }
-
-  get defaultAttributedTo(): AttributedTo | undefined {
-    return getConfigValue<AttributedTo | undefined>(
-      this.context,
-      'fsvc:defaultAttributedTo',
-      'fsvc:defaultAttributedTo',
-    );
-  }
 }

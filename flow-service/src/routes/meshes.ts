@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
-import { logger } from '../utils/logger.ts';
+import { logger } from '../utils/service-logger.ts';
 import {
   getAssetsPath,
   getCurrentMetaDistPath,
@@ -10,18 +10,13 @@ import {
 import { normalizeFolderPath } from '../../../flow-core/src/utils/path-utils.ts';
 import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 import { dirname, existsSync, join } from '../../../flow-core/src/deps.ts';
-import { ServiceConfigAccessor } from '../config/index.ts';
 import { composeMetadataContent } from '../services/metadata-composer.ts';
-import { initializeMeshRegistry } from '../utils/mesh-utils.ts';
+import { initializeMeshRegistry, meshRegistry } from '../utils/mesh-utils.ts';
 
 //import { Context } from '@hono/hono';
 
-export const createMeshesRoutes = (
-  config: ServiceConfigAccessor,
-): OpenAPIHono => {
+export const createMeshesRoutes = (): OpenAPIHono => {
   const meshes = new OpenAPIHono();
-  const meshRegistry: Record<string, string> = {};
-  initializeMeshRegistry(config, meshRegistry);
 
   // Schemas for Mesh Registration (POST /api/meshes)
   const MeshRegistrationRequest = z.object({
@@ -136,13 +131,16 @@ export const createMeshesRoutes = (
     if (meshRegistry[name]) {
       return c.json({
         error: 'Bad Request',
-        message: `Mesh '${name}' is already registered at path: ${
-          meshRegistry[name]
-        }`,
+        message: `Mesh '${name}' is already registered at path: ${meshRegistry[name]
+          }`,
       }, 400);
     }
 
-    logger.info(`Attempting to register mesh '${name}' at path: ${path}`);
+    logger.info(`Attempting to register mesh '${name}' at path: ${path}`, {
+      operation: 'api-request',
+      component: 'mesh-management',
+      metadata: { meshName: name, meshPath: path },
+    });
 
     try {
       const stats = await Deno.stat(path);
@@ -166,6 +164,11 @@ export const createMeshesRoutes = (
     if (!existsSync(join(path, '.git'))) {
       logger.info(
         `Mesh root folder '${path}' exists but is not under git control (no '.git' folder found).`,
+        {
+          operation: 'api-request',
+          component: 'mesh-management',
+          metadata: { meshName: name, meshPath: path },
+        },
       );
     }
 
@@ -281,7 +284,17 @@ export const createMeshesRoutes = (
     const logMessage = isRootNode
       ? `Attempting to create node at mesh root (${meshName})`
       : `Attempting to create node in mesh '${meshName}' at path '${fileSystemNodePath}' (physical: ${meshParentPath})`;
-    logger.info(logMessage);
+    logger.info(logMessage, {
+      operation: 'api-request',
+      component: 'node-management',
+      metadata: {
+        meshName,
+        apiNodePath,
+        fileSystemNodePath,
+        nodeType,
+        isRootNode,
+      },
+    });
 
     const slug = apiNodePath.split(MESH.API_IDENTIFIER_PATH_SEPARATOR).pop() ||
       meshName;
@@ -335,7 +348,6 @@ export const createMeshesRoutes = (
       slug,
       nodeType,
       initialData,
-      config,
       startTime,
     );
 

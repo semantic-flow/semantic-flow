@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.38.0",
+    "eslint": "^9.32.0"
+  },
+  "dependencies": {
+    "quadstore": "^15.4.0-beta.0"
+  }
+}

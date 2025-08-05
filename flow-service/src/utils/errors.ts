@@ -1,4 +1,5 @@
-import { handleError, logger } from './logger.ts';
+import { logger } from './service-logger.ts';
+import { handleError } from '../../../flow-core/src/utils/logger/error-handlers.ts';
 
 // Define custom error types (simplified from your weave implementation)
 export class FlowServiceError extends Error {
@@ -30,22 +31,40 @@ export class ConfigurationError extends FlowServiceError {
   }
 }
 
-// Enhanced error handler with automatic Sentry integration
+// Enhanced error handler 
 export function handleServiceError(
   error: unknown,
   context?: string,
   meta?: Record<string, unknown>,
 ): void {
   if (error instanceof FlowServiceError) {
-    // Log structured error with context
-    logger.error(`${context ? context + ': ' : ''}${error.message}`, error, {
-      code: error.code,
-      context: error.context,
-      ...meta,
-    });
+    // Log structured error with context using basic logger interface
+    logger.error(
+      `${context ? context + ': ' : ''}${error.message}`,
+      {
+        operation: context || 'service-error',
+        component: 'error-handler',
+        errorContext: {
+          errorCode: error.code,
+          errorType: error.name,
+          stackTrace: error.stack,
+          originalError: error,
+        },
+        metadata: {
+          field: error instanceof ValidationError ? error.field : undefined,
+          originalContext: error.context,
+          ...meta,
+        },
+      }
+    );
   } else {
-    // Use the base error handler from logger
-    handleError(error, context, meta);
+    // Use the base error handler from logger with proper parameters
+    const logContext = {
+      operation: context || 'service-error',
+      component: 'error-handler',
+      metadata: meta,
+    };
+    handleError(error, context, logContext);
   }
 }
 

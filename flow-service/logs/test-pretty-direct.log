@@ -1,0 +1,4 @@
+[90m[2025-08-03T15:27:54.395Z][0m [32mINFO[0m File logging test started (op=startup, [config-resolver])
+[90m[2025-08-03T15:27:54.396Z][0m [33mWARN[0m Configuration override detected (op=config-resolve)
+[90m[2025-08-03T15:27:54.397Z][0m [31mERROR[0m Database connection failed (op=startup)
+[90m[2025-08-03T15:27:54.398Z][0m [34mDEBUG[0m Processing mesh nodes (op=scan)

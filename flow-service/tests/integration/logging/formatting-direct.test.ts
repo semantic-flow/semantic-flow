@@ -7,19 +7,19 @@
 // Import the formatting functions directly from the logger module
 // We'll need to extract them for testing
 
-import { dirname, ensureDir } from '../../../flow-core/src/deps.ts';
+import { dirname, ensureDir } from '../../../../flow-core/src/deps.ts';
 
 type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL';
 
 interface LogContext {
   operation?:
-    | 'scan'
-    | 'weave'
-    | 'validate'
-    | 'config-resolve'
-    | 'api-request'
-    | 'startup'
-    | 'error-handling';
+  | 'scan'
+  | 'weave'
+  | 'validate'
+  | 'config-resolve'
+  | 'api-request'
+  | 'startup'
+  | 'error-handling';
   requestId?: string;
   meshPath?: string;
   nodePath?: string;
@@ -37,41 +37,20 @@ interface LogContext {
   statusCode?: number;
   userAgent?: string;
   component?:
-    | 'mesh-scanner'
-    | 'api-handler'
-    | 'config-resolver'
-    | 'weave-processor';
+  | 'mesh-scanner'
+  | 'api-handler'
+  | 'config-resolver'
+  | 'weave-processor';
   [key: string]: unknown;
 }
 
-// Copy the pretty formatting function
-function formatPrettyMessage(
-  level: LogLevel,
-  message: string,
-  context?: LogContext,
-): string {
-  const timestamp = new Date().toISOString();
-  const levelPadded = level.padEnd(5);
+// Import the pretty formatting function from the formatters module
+import { formatConsoleMessage } from '../../../src/utils/service-logger.ts';
 
-  let contextStr = '';
-  if (context && Object.keys(context).length > 0) {
-    const parts = [];
-    if (context.operation) parts.push(`op=${context.operation}`);
-    if (context.meshPath) parts.push(`mesh=${context.meshPath}`);
-    if (context.duration) parts.push(`${context.duration}ms`);
-    if (context.nodeCount) parts.push(`${context.nodeCount} nodes`);
-    if (context.configSource) parts.push(`source=${context.configSource}`);
-    if (context.component) parts.push(`[${context.component}]`);
-
-    contextStr = parts.length > 0 ? ` (${parts.join(', ')})` : '';
-  }
-
-  return `[${timestamp}] ${levelPadded} ${message}${contextStr}`;
-}
 
 // Simple file logger
 class SimpleFileLogger {
-  constructor(private logFile: string) {}
+  constructor(private logFile: string) { }
 
   async ensureLogDirectory(): Promise<void> {
     try {
@@ -143,7 +122,7 @@ const testCases = [
 
 console.log('📝 Writing pretty formatted logs...');
 for (const testCase of testCases) {
-  const formatted = formatPrettyMessage(
+  const formatted = formatConsoleMessage(
     testCase.level,
     testCase.message,
     testCase.context,
