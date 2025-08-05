@@ -12,14 +12,6 @@ export interface ServiceUriConfig {
   readonly port: number;
 }
 
-/**
- * Default configuration for URI building when config is not yet available
- */
-export const DEFAULT_SERVICE_URI_CONFIG: ServiceUriConfig = {
-  scheme: 'http',
-  host: 'localhost',
-  port: 3000,
-};
 
 /**
  * Builds a base service URI from the given configuration
@@ -54,23 +46,6 @@ export function buildConfigGraphNames(config: ServiceUriConfig) {
   };
 }
 
-/**
- * Builds a JSON-LD context with dynamic local URI
- */
-export function buildServiceContext(config: ServiceUriConfig) {
-  const baseUri = buildServiceBaseUri(config);
-  return {
-    "fsvc": "https://semantic-flow.github.io/ontology/flow-service/",
-    "mesh": "https://semantic-flow.github.io/ontology/mesh/",
-    "node": "https://semantic-flow.github.io/ontology/node/",
-    "flow": "https://semantic-flow.github.io/ontology/flow/",
-    "conf": "https://semantic-flow.github.io/ontology/config-flow/",
-    "meta": "https://semantic-flow.github.io/ontology/meta-flow/",
-    "prov": "http://www.w3.org/ns/prov#",
-    "dcterms": "http://purl.org/dc/terms/",
-    "local": `${baseUri}/graph/mergedServiceConfig/`
-  };
-}
 
 /**
  * Builds a service-relative URI for the given path
@@ -86,25 +61,46 @@ export function buildServiceUri(config: ServiceUriConfig, path: string): string 
  * This is updated during service configuration resolution
  */
 class ServiceUriConfigManager {
-  private _config: ServiceUriConfig = DEFAULT_SERVICE_URI_CONFIG;
-  private _isInitialized = false;
+  private _config: ServiceUriConfig | null = null;
+  private _cachedGraphNames: ReturnType<typeof buildConfigGraphNames> | null = null;
+  private _cachedBaseUri: string | null = null;
 
   setConfig(config: ServiceUriConfig): void {
     this._config = config;
-    this._isInitialized = true;
+    // Update cached values when config changes
+    this._cachedGraphNames = buildConfigGraphNames(config);
+    this._cachedBaseUri = buildServiceBaseUri(config);
   }
 
   getConfig(): ServiceUriConfig {
+    if (!this._config) {
+      throw new Error('Service URI configuration not initialized. Call setConfig() first.');
+    }
     return this._config;
   }
 
+  getConfigGraphNames() {
+    if (!this._cachedGraphNames) {
+      throw new Error('Service URI configuration not initialized. Call setConfig() first.');
+    }
+    return this._cachedGraphNames;
+  }
+
+  getServiceBaseUri(): string {
+    if (!this._cachedBaseUri) {
+      throw new Error('Service URI configuration not initialized. Call setConfig() first.');
+    }
+    return this._cachedBaseUri;
+  }
+
   isInitialized(): boolean {
-    return this._isInitialized;
+    return this._config !== null;
   }
 
   reset(): void {
-    this._config = DEFAULT_SERVICE_URI_CONFIG;
-    this._isInitialized = false;
+    this._config = null;
+    this._cachedGraphNames = null;
+    this._cachedBaseUri = null;
   }
 }
 
@@ -114,17 +110,14 @@ export const serviceUriConfigManager = new ServiceUriConfigManager();
  * Convenience functions that use the current service configuration
  */
 export function getCurrentServiceBaseUri(): string {
-  return buildServiceBaseUri(serviceUriConfigManager.getConfig());
+  return serviceUriConfigManager.getServiceBaseUri();
 }
 
 export function getCurrentConfigGraphNames() {
-  return buildConfigGraphNames(serviceUriConfigManager.getConfig());
-}
-
-export function getCurrentServiceContext() {
-  return buildServiceContext(serviceUriConfigManager.getConfig());
+  return serviceUriConfigManager.getConfigGraphNames();
 }
 
 export function getCurrentServiceUri(path: string): string {
   return buildServiceUri(serviceUriConfigManager.getConfig(), path);
 }
+

@@ -7,20 +7,29 @@
 
 import type { FlowServiceContext, MeshRootNodeConfig, ServiceConfig } from "./config-types.ts";
 import { mergeConfigs } from "../utils/merge-configs.ts";
+import { getCurrentServiceBaseUri } from "../utils/service-uri-builder.ts";
 
-// Standard JSON-LD Context
-// TODO: make local context use the config host and port
+// Function that returns JSON-LD Context with dynamic "local" property
+export function getDynamicLocalContext(): FlowServiceContext {
+  return {
+    "fsvc": "https://semantic-flow.github.io/ontology/flow-service/",
+    "mesh": "https://semantic-flow.github.io/ontology/mesh/",
+    "node": "https://semantic-flow.github.io/ontology/node/",
+    "flow": "https://semantic-flow.github.io/ontology/flow/",
+    "conf": "https://semantic-flow.github.io/ontology/config-flow/",
+    "local": `${getCurrentServiceBaseUri()}/`
+  };
+}
+
+// Static fallback context (for backward compatibility)
 export const DEFAULT_CONTEXT: FlowServiceContext = {
   "fsvc": "https://semantic-flow.github.io/ontology/flow-service/",
   "mesh": "https://semantic-flow.github.io/ontology/mesh/",
   "node": "https://semantic-flow.github.io/ontology/node/",
   "flow": "https://semantic-flow.github.io/ontology/flow/",
   "conf": "https://semantic-flow.github.io/ontology/config-flow/",
-  "local": "http://localhost/graph/"
 };
 
-// Platform Node Configuration Defaults
-// TODO: Rename to indicate it's for the root MeshNodes of new Meshes
 export const PLATFORM_NODE_DEFAULTS: MeshRootNodeConfig = {
   "@id": "local:meshRootNodeConfig",
   "@context": DEFAULT_CONTEXT,
@@ -71,12 +80,12 @@ export const SERVICE_NODE_DEFAULTS: Omit<
   "conf:generateAggregatedDataset": false,
 };
 
-// Platform Service Configuration Defaults
 export const PLATFORM_SERVICE_DEFAULTS: ServiceConfig = {
-  "@id": "local:serviceConfig",
+  "@id": "serviceConfig",
   "@context": DEFAULT_CONTEXT,
   "@type": "fsvc:ServiceConfig",
-  "fsvc:port": 3000,
+  "fsvc:scheme": "http",
+  "fsvc:port": 31415,
   "fsvc:host": "localhost",
   "fsvc:hasLoggingConfig": {
     "@id": "local:ServiceConfig#loggingConfig",

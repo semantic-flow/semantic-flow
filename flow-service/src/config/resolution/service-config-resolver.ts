@@ -6,6 +6,7 @@ import { getServiceConfigPath, loadEnvConfig } from '../loaders/env-loader.ts';
 import { loadServiceConfig } from '../loaders/jsonld-loader.ts';
 import {
   getEnvironmentDefaults,
+  PLATFORM_SERVICE_DEFAULTS,
 } from '../defaults.ts';
 import { ConfigError } from '../config-types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';
@@ -13,6 +14,7 @@ import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-
 import { LogContext } from '../../../../flow-core/src/utils/logger/types.ts';
 import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
 import { createServiceLogContext } from '../../utils/service-log-context.ts';
+import { serviceUriConfigManager, type ServiceUriConfig } from '../../utils/service-uri-builder.ts';
 
 /**
  * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.
@@ -30,9 +32,6 @@ export async function resolveServiceConfig(
   const serviceConfigPath = getServiceConfigPath(cliOptions?.configPath);
 
   try {
-    // Load platform defaults into Quadstore graphs
-    await loadPlatformDefaults();
-
     // Load environment config
     const envConfig = loadEnvConfig();
 
@@ -48,6 +47,19 @@ export async function resolveServiceConfig(
 
     // Merge input configs: env, file, CLI
     const mergedInputConfig = mergeConfigs(mergeConfigs(envConfig, fileConfig ?? {}), cliConfig);
+
+    // Extract service URI configuration from merged config, using platform defaults as fallback
+    const serviceUriConfig: ServiceUriConfig = {
+      scheme: mergedInputConfig['fsvc:scheme'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:scheme'],
+      host: mergedInputConfig['fsvc:host'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:host'],
+      port: mergedInputConfig['fsvc:port'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:port'],
+    };
+
+    // Initialize the service URI configuration manager early, before any quadstore operations
+    serviceUriConfigManager.setConfig(serviceUriConfig);
+
+    // Load platform defaults into Quadstore graphs (now uses dynamic URIs)
+    await loadPlatformDefaults();
 
     // Load merged input config into Quadstore graph
     await loadInputServiceConfig(mergedInputConfig);
@@ -95,6 +107,10 @@ function convertCliOptionsToConfig(
   cliOptions: ServiceOptions,
 ): ServiceConfigInput {
   const config: ServiceConfigInput = {};
+
+  if (cliOptions.scheme !== undefined) {
+    config['fsvc:scheme'] = cliOptions.scheme;
+  }
 
   if (cliOptions.port !== undefined) {
     config['fsvc:port'] = cliOptions.port;

@@ -25,6 +25,13 @@ export function loadEnvConfig(): ServiceConfigInput {
   const configInput: ServiceConfigInput = {};
 
   // Basic service settings
+  if (env.FLOW_SERVICE_SCHEME) {
+    const scheme = env.FLOW_SERVICE_SCHEME.toLowerCase();
+    if (scheme === 'http' || scheme === 'https') {
+      configInput['fsvc:scheme'] = scheme;
+    }
+  }
+
   if (env.FLOW_SERVICE_PORT) {
     const port = parseInt(env.FLOW_SERVICE_PORT, 10);
     if (!isNaN(port) && port > 0 && port <= 65535) {
@@ -239,6 +246,7 @@ export function loadEnvConfig(): ServiceConfigInput {
 function getEnvironmentVariables(): EnvironmentConfig {
   return {
     FLOW_CONFIG_PATH: Deno.env.get('FLOW_CONFIG_PATH'),
+    FLOW_SERVICE_SCHEME: Deno.env.get('FLOW_SERVICE_SCHEME'),
     FLOW_SERVICE_PORT: Deno.env.get('FLOW_SERVICE_PORT'),
     FLOW_SERVICE_HOST: Deno.env.get('FLOW_SERVICE_HOST'),
     FLOW_MESH_PATHS: Deno.env.get('FLOW_MESH_PATHS'),

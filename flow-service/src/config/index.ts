@@ -11,13 +11,12 @@ import { createServiceLogContext } from "../utils/service-log-context.ts";
  * Named graph terms for Quadstore config graphs
  */
 export const CONFIG_GRAPH_NAMES = {
-  platformServiceDefaults: 'http://localhost/graph/platformServiceDefaults',
-  platformImplicitMeshRootNodeConfig: 'http://localhost/graph/platformImplicitMeshRootNodeConfig',
-  inputServiceConfig: 'http://localhost/graph/inputServiceConfig',
-  inputMeshRootNodeConfig: 'http://localhost/graph/inputMeshRootNodeConfig',
-  mergedServiceConfig: 'http://localhost/graph/mergedServiceConfig',
-  // Per-node effective configs could be stored with dynamic graph names
-};
+  platformServiceDefaults: 'platformServiceDefaults',
+  platformImplicitMeshRootNodeConfig: 'platformImplicitMeshRootNodeConfig',
+  inputServiceConfig: 'inputServiceConfig',
+  inputMeshRootNodeConfig: 'inputMeshRootNodeConfig',
+  mergedServiceConfig: 'mergedServiceConfig',
+}
 
 
 // Core Types
