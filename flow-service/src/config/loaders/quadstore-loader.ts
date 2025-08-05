@@ -1,7 +1,7 @@
 import { defaultQuadstoreBundle } from '../../quadstore-default-bundle.ts';
 import type { ServiceConfigInput, MeshRootNodeConfigInput } from '../config-types.ts';
 import { PLATFORM_SERVICE_DEFAULTS, PLATFORM_NODE_DEFAULTS } from '../defaults.ts';
-import { clearGraph, copyGraph, createNewGraphFromJsonLd } from '../../../../flow-core/src/utils/quadstore-utils.ts';
+import { clearGraph, copyGraph, createNewGraphFromJsonLd } from '../../../../flow-core/src/utils/quadstore/quadstore-utils.ts';
 import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
 import { CONFIG_GRAPH_NAMES } from '../index.ts';
 import { expandRelativeIds } from "../../../../flow-core/src/utils/rdfjs-utils.ts";

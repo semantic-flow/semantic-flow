@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { createQuadstoreBundle } from "../../../flow-core/src/utils/quadstore/quadstore-factory.ts";
-import { copyGraph, clearGraph, putJsonLdToGraph } from "../../../flow-core/src/utils/quadstore-utils.ts";
+import { copyGraph, clearGraph, putJsonLdToGraph } from "../../../flow-core/src/utils/quadstore/quadstore-utils.ts";
 
 Deno.test("Quadstore SPARQL query integration test", async () => {
   const testQuadstoreBundle = await createQuadstoreBundle();

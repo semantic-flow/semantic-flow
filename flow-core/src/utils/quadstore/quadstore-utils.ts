@@ -1,8 +1,8 @@
-import { NodeObject, Quadstore, DataFactory } from '../deps.ts';
-import { RDF } from '../deps.ts';
-import { defaultQuadstoreBundle } from '../../../flow-service/src/quadstore-default-bundle.ts';
-import { jsonldToQuads } from './rdfjs-utils.ts';
-import type { QuadstoreBundle } from '../types.ts';
+import { NodeObject, Quadstore, DataFactory } from '../../deps.ts';
+import { RDF } from '../../deps.ts';
+import { defaultQuadstoreBundle } from '../../../../flow-service/src/quadstore-default-bundle.ts';
+import { jsonldToQuads } from '../rdfjs-utils.ts';
+import type { QuadstoreBundle } from '../../types.ts';
 
 export function countQuadsInStream(stream: RDF.Stream): Promise<number> {
   return new Promise((resolve, reject) => {
