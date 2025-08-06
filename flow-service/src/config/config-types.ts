@@ -21,7 +21,7 @@ export interface FlowServiceContext extends ContextDefinition {
 export interface LogChannelConfig extends NodeObject {
   readonly "@type": "fsvc:LogChannelConfig";
   readonly "fsvc:logChannelEnabled": boolean;
-  readonly "fsvc:logLevel": "debug" | "info" | "warn" | "error";
+  readonly "fsvc:logLevel": LogLevel;
   readonly "fsvc:logFormat"?: "json" | "pretty";
   readonly "fsvc:logFilePath"?: string;
   readonly "fsvc:sentryDsn"?: string;

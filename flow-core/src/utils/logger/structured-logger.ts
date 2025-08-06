@@ -3,8 +3,7 @@
  * Integrates console output, file logging, and Sentry error reporting with structured context.
  */
 
-import type { LogContext, StructuredLogger, LoggerConfig } from './logger-types.ts';
-import type { LogLevel } from './formatters.ts';
+import type { LogContext, StructuredLogger, LoggingConfig, LogLevel } from './logger-types.ts';
 import {
   formatConsoleMessage,
   formatStructuredMessage,
@@ -23,19 +22,30 @@ import {
  */
 export class StructuredLoggerImpl implements StructuredLogger {
   private baseContext: LogContext;
-  private config: LoggerConfig;
+  private config: LoggingConfig;
 
   /**
    * Create a new StructuredLogger instance
    * @param baseContext - Base context applied to all log entries
    * @param config - Logger configuration
    */
-  constructor(baseContext: LogContext = {}, config: LoggerConfig = {}) {
+  constructor(baseContext: LogContext = {}, config: LoggingConfig = {}) {
     this.baseContext = baseContext;
     this.config = {
-      enableConsole: true,
-      enableFile: true,
-      enableSentry: true,
+      consoleChannel: {
+        logChannelEnabled: true,
+        logLevel: 'info',
+        logFormat: 'pretty',
+      },
+      fileChannel: {
+        logChannelEnabled: false,
+        logLevel: 'info',
+        logFormat: 'json',
+      },
+      sentryChannel: {
+        logChannelEnabled: false,
+        logLevel: 'error',
+      },
       ...config,
     };
   }
@@ -48,9 +58,9 @@ export class StructuredLoggerImpl implements StructuredLogger {
     context?: LogContext,
     meta?: Record<string, unknown>,
   ): Promise<void> {
-    if (!shouldLog('DEBUG')) return;
+    if (!shouldLog('debug')) return;
     const mergedContext = this.mergeContexts(context, meta);
-    await this.writeToAllChannels('DEBUG', message, mergedContext);
+    await this.writeToAllChannels('debug', message, mergedContext);
   }
 
   /**
@@ -61,9 +71,9 @@ export class StructuredLoggerImpl implements StructuredLogger {
     context?: LogContext,
     meta?: Record<string, unknown>,
   ): Promise<void> {
-    if (!shouldLog('INFO')) return;
+    if (!shouldLog('info')) return;
     const mergedContext = this.mergeContexts(context, meta);
-    await this.writeToAllChannels('INFO', message, mergedContext);
+    await this.writeToAllChannels('info', message, mergedContext);
   }
 
   /**
@@ -74,9 +84,9 @@ export class StructuredLoggerImpl implements StructuredLogger {
     context?: LogContext,
     meta?: Record<string, unknown>,
   ): Promise<void> {
-    if (!shouldLog('WARN')) return;
+    if (!shouldLog('warn')) return;
     const mergedContext = this.mergeContexts(context, meta);
-    await this.writeToAllChannels('WARN', message, mergedContext);
+    await this.writeToAllChannels('warn', message, mergedContext);
   }
 
   /**
@@ -87,9 +97,9 @@ export class StructuredLoggerImpl implements StructuredLogger {
     context?: LogContext,
     meta?: Record<string, unknown>,
   ): Promise<void> {
-    if (!shouldLog('ERROR')) return;
+    if (!shouldLog('error')) return;
     const mergedContext = this.mergeContexts(context, meta);
-    await this.writeToAllChannels('ERROR', message, mergedContext);
+    await this.writeToAllChannels('error', message, mergedContext);
   }
 
   /**
@@ -101,7 +111,7 @@ export class StructuredLoggerImpl implements StructuredLogger {
     meta?: Record<string, unknown>,
   ): Promise<void> {
     const mergedContext = this.mergeContexts(context, meta);
-    await this.writeToAllChannels('CRITICAL', message, mergedContext);
+    await this.writeToAllChannels('critical', message, mergedContext);
   }
 
   /**
@@ -143,20 +153,37 @@ export class StructuredLoggerImpl implements StructuredLogger {
     context?: LogContext,
     error?: Error,
   ): Promise<void> {
-    // Write to console if enabled
-    if (this.config.enableConsole !== false) {
+    // Write to console if enabled and level meets threshold
+    if (this.config.consoleChannel?.logChannelEnabled && this.shouldLogToChannel(level, this.config.consoleChannel.logLevel)) {
       await this.writeToConsole(level, message, context);
     }
 
-    // Write to file if enabled
-    if (this.config.enableFile !== false) {
+    // Write to file if enabled and level meets threshold
+    if (this.config.fileChannel?.logChannelEnabled && this.shouldLogToChannel(level, this.config.fileChannel.logLevel)) {
       await this.writeToFile(level, message, context);
     }
 
-    // Write to Sentry if enabled
-    if (this.config.enableSentry !== false && isSentryEnabled()) {
+    // Write to Sentry if enabled, level meets threshold, and Sentry is initialized
+    if (this.config.sentryChannel?.logChannelEnabled && this.shouldLogToChannel(level, this.config.sentryChannel.logLevel) && isSentryEnabled()) {
       await this.writeToSentry(level, message, context, error);
     }
+  }
+
+  /**
+   * Check if a log level meets the threshold for a specific channel
+   */
+  private shouldLogToChannel(messageLevel: LogLevel, channelLevel: LogLevel): boolean {
+    const messageLevelValue = this.getLogLevelValue(messageLevel);
+    const channelLevelValue = this.getLogLevelValue(channelLevel);
+    return messageLevelValue >= channelLevelValue;
+  }
+
+  /**
+   * Get numeric value for log level comparison
+   */
+  private getLogLevelValue(level: LogLevel): number {
+    const levels = { debug: 0, info: 1, warn: 2, error: 3, critical: 4 };
+    return levels[level] ?? 1;
   }
 
   /**
@@ -171,15 +198,15 @@ export class StructuredLoggerImpl implements StructuredLogger {
       const consoleFormatted = formatConsoleMessage(level, message, context);
 
       switch (level) {
-        case 'DEBUG':
-        case 'INFO':
+        case 'debug':
+        case 'info':
           console.log(consoleFormatted);
           break;
-        case 'WARN':
+        case 'warn':
           console.warn(consoleFormatted);
           break;
-        case 'ERROR':
-        case 'CRITICAL':
+        case 'error':
+        case 'critical':
           console.error(consoleFormatted);
           break;
       }
@@ -227,7 +254,7 @@ export class StructuredLoggerImpl implements StructuredLogger {
       if (error) {
         // Error reporting
         reportErrorToSentry(error, level, context, message);
-      } else if (level === 'ERROR' || level === 'CRITICAL') {
+      } else if (level === 'error' || level === 'critical') {
         // Convert high-level log messages to Sentry messages
         reportMessageToSentry(message, level, context);
       }
@@ -259,14 +286,14 @@ export class StructuredLoggerImpl implements StructuredLogger {
   /**
    * Get the current logger configuration
    */
-  getConfig(): LoggerConfig {
+  getConfig(): LoggingConfig {
     return { ...this.config };
   }
 
   /**
    * Update the logger configuration
    */
-  updateConfig(config: Partial<LoggerConfig>): void {
+  updateConfig(config: Partial<LoggingConfig>): void {
     this.config = { ...this.config, ...config };
   }
 }
@@ -283,7 +310,7 @@ export class EnhancedStructuredLogger extends StructuredLoggerImpl {
     errorOrContext?: Error | LogContext,
     context?: LogContext,
   ): Promise<void> {
-    if (!shouldLog('ERROR')) return;
+    if (!shouldLog('error')) return;
 
     let error: Error | undefined;
     let finalContext: LogContext | undefined;
@@ -296,7 +323,7 @@ export class EnhancedStructuredLogger extends StructuredLoggerImpl {
     }
 
     const mergedContext = this.mergeContexts(finalContext);
-    await this.writeToAllChannels('ERROR', message, mergedContext, error);
+    await this.writeToAllChannels('error', message, mergedContext, error);
   }
 
   /**
@@ -318,7 +345,7 @@ export class EnhancedStructuredLogger extends StructuredLoggerImpl {
     }
 
     const mergedContext = this.mergeContexts(finalContext);
-    await this.writeToAllChannels('CRITICAL', message, mergedContext, error);
+    await this.writeToAllChannels('critical', message, mergedContext, error);
   }
 }
 
@@ -329,7 +356,7 @@ export class EnhancedStructuredLogger extends StructuredLoggerImpl {
  * @returns New StructuredLogger instance
  */
 export function createLogger(
-  config?: LoggerConfig,
+  config?: LoggingConfig,
   baseContext?: LogContext,
 ): StructuredLogger {
   return new StructuredLoggerImpl(baseContext, config);
@@ -337,12 +364,12 @@ export function createLogger(
 
 /**
  * Create an enhanced structured logger that supports Error objects
- * @param config - Logger configuration  
+ * @param config - Logger configuration
  * @param baseContext - Base context for all log entries
  * @returns New EnhancedStructuredLogger instance
  */
 export function createEnhancedLogger(
-  config?: LoggerConfig,
+  config?: LoggingConfig,
   baseContext?: LogContext,
 ): EnhancedStructuredLogger {
   return new EnhancedStructuredLogger(baseContext, config);

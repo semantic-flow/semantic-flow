@@ -7,9 +7,16 @@
 export type {
   LogContext,
   StructuredLogger,
-  LoggerConfig,
+  LoggingConfig,
+  LogChannelConfig,
+  ConsoleChannelConfig,
+  FileChannelConfig,
+  SentryChannelConfig,
+  SentryConfig,
   ErrorSeverity,
   ErrorHandlingOptions,
+  // Deprecated - use LoggingConfig instead
+  LoggerConfig,
 } from './logger-types.ts';
 
 export type { LogLevel } from './logger-types.ts';
@@ -76,9 +83,21 @@ export function createDefaultLogger(
 ): StructuredLogger {
   return createLogger(
     {
-      enableConsole: true,
-      enableFile: true,
-      enableSentry: true,
+      consoleChannel: {
+        logChannelEnabled: true,
+        logLevel: 'info',
+        logFormat: 'pretty',
+      },
+      fileChannel: {
+        logChannelEnabled: true,
+        logLevel: 'info',
+        logFormat: 'json',
+        logFilePath: './logs/app.log',
+      },
+      sentryChannel: {
+        logChannelEnabled: true,
+        logLevel: 'error',
+      },
       serviceContext: {
         serviceName: appName,
         serviceVersion: appVersion || 'unknown',
@@ -107,9 +126,21 @@ export function createDefaultEnhancedLogger(
 ): EnhancedStructuredLogger {
   return createEnhancedLogger(
     {
-      enableConsole: true,
-      enableFile: true,
-      enableSentry: true,
+      consoleChannel: {
+        logChannelEnabled: true,
+        logLevel: 'info',
+        logFormat: 'pretty',
+      },
+      fileChannel: {
+        logChannelEnabled: true,
+        logLevel: 'info',
+        logFormat: 'json',
+        logFilePath: './logs/app.log',
+      },
+      sentryChannel: {
+        logChannelEnabled: true,
+        logLevel: 'error',
+      },
       serviceContext: {
         serviceName: appName,
         serviceVersion: appVersion || 'unknown',

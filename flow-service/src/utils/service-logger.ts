@@ -6,7 +6,7 @@
 
 import {
   createEnhancedLogger,
-  type LoggerConfig,
+  type LoggingConfig,
   type LogContext,
   type StructuredLogger,
   type EnhancedStructuredLogger,
@@ -30,23 +30,27 @@ const SERVICE_CONTEXT = {
 /**
  * Service-specific logger configuration
  */
-export const SERVICE_LOGGER_CONFIG: LoggerConfig = {
-  enableConsole: true,
-  enableFile: Deno.env.get('FLOW_LOG_FILE_ENABLED') === 'true',
-  enableSentry: Deno.env.get('FLOW_SENTRY_ENABLED') === 'true',
-
-  fileConfig: {
-    logDir: Deno.env.get('FLOW_LOG_DIR') || './logs',
-    maxFileSize: parseInt(Deno.env.get('FLOW_LOG_MAX_FILE_SIZE') || '10485760'), // 10MB
-    maxFiles: parseInt(Deno.env.get('FLOW_LOG_MAX_FILES') || '5'),
-    rotateDaily: Deno.env.get('FLOW_LOG_ROTATE_DAILY') === 'true',
+export const SERVICE_LOGGER_CONFIG: LoggingConfig = {
+  consoleChannel: {
+    logChannelEnabled: true,
+    logLevel: 'info',
+    logFormat: 'pretty',
   },
 
-  sentryConfig: {
-    dsn: Deno.env.get('FLOW_SENTRY_DSN'),
-    environment: Deno.env.get('FLOW_ENV') || 'development',
-    release: Deno.env.get('FLOW_VERSION'),
-    sampleRate: parseFloat(Deno.env.get('FLOW_SENTRY_SAMPLE_RATE') || '1.0'),
+  fileChannel: {
+    logChannelEnabled: Deno.env.get('FLOW_LOG_FILE_ENABLED') === 'true',
+    logLevel: 'info',
+    logFormat: 'json',
+    logFilePath: `${Deno.env.get('FLOW_LOG_DIR') || './logs'}/flow-service.log`,
+    logMaxFileSize: parseInt(Deno.env.get('FLOW_LOG_MAX_FILE_SIZE') || '10485760'), // 10MB
+    logMaxFiles: parseInt(Deno.env.get('FLOW_LOG_MAX_FILES') || '5'),
+    logRotationInterval: Deno.env.get('FLOW_LOG_ROTATE_DAILY') === 'true' ? 'daily' : 'size-based',
+  },
+
+  sentryChannel: {
+    logChannelEnabled: Deno.env.get('FLOW_SENTRY_ENABLED') === 'true',
+    logLevel: 'error',
+    sentryDsn: Deno.env.get('FLOW_SENTRY_DSN'),
   },
 
   serviceContext: SERVICE_CONTEXT,

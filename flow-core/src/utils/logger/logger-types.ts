@@ -172,36 +172,66 @@ export const LogLevelValues = {
 } as const;
 
 /**
- * Logger configuration interface
+ * Base log channel configuration interface aligned with ontology fsvc:LogChannelConfig
  */
-export interface LoggerConfig {
-  /** Minimum log level to output */
-  level?: LogLevel;
+export interface LogChannelConfig {
+  /** Whether this logging channel is enabled (fsvc:logChannelEnabled) */
+  logChannelEnabled: boolean;
 
-  /** Whether to enable console output */
-  enableConsole?: boolean;
+  /** Minimum log level for this channel (fsvc:logLevel) */
+  logLevel: LogLevel;
 
-  /** Whether to enable file output */
-  enableFile?: boolean;
+  /** Log format for this channel (fsvc:logFormat) */
+  logFormat?: 'json' | 'pretty';
+}
 
-  /** Whether to enable Sentry integration */
-  enableSentry?: boolean;
+/**
+ * Console channel configuration interface
+ */
+export interface ConsoleChannelConfig extends LogChannelConfig {
+  // Console channels only need the base properties
+}
 
-  /** File logging configuration */
-  fileConfig?: {
-    logDir?: string;
-    maxFileSize?: number;
-    maxFiles?: number;
-    rotateDaily?: boolean;
-  };
+/**
+ * File channel configuration interface
+ */
+export interface FileChannelConfig extends LogChannelConfig {
+  /** Log file path (fsvc:logFilePath) */
+  logFilePath?: string;
 
-  /** Sentry configuration */
-  sentryConfig?: {
-    dsn?: string;
-    environment?: string;
-    release?: string;
-    sampleRate?: number;
-  };
+  /** Log retention days (fsvc:logRetentionDays) */
+  logRetentionDays?: number;
+
+  /** Maximum number of log files (fsvc:logMaxFiles) */
+  logMaxFiles?: number;
+
+  /** Maximum log file size in bytes (fsvc:logMaxFileSize) */
+  logMaxFileSize?: number;
+
+  /** Log rotation interval (fsvc:logRotationInterval) */
+  logRotationInterval?: 'daily' | 'weekly' | 'monthly' | 'size-based';
+}
+
+/**
+ * Sentry channel configuration interface
+ */
+export interface SentryChannelConfig extends LogChannelConfig {
+  /** Sentry DSN for error reporting (fsvc:sentryDsn) */
+  sentryDsn?: string;
+}
+
+/**
+ * Logging configuration interface aligned with ontology fsvc:LoggingConfig
+ */
+export interface LoggingConfig {
+  /** Console logging channel configuration (fsvc:hasConsoleChannel) */
+  consoleChannel?: ConsoleChannelConfig;
+
+  /** File logging channel configuration (fsvc:hasFileChannel) */
+  fileChannel?: FileChannelConfig;
+
+  /** Sentry logging channel configuration (fsvc:hasSentryChannel) */
+  sentryChannel?: SentryChannelConfig;
 
   /** Service context applied to all logs */
   serviceContext?: {
@@ -211,6 +241,32 @@ export interface LoggerConfig {
     instanceId?: string;
   };
 }
+
+/**
+ * Separate Sentry general configuration (not part of logging config)
+ * For tracing and other non-logging Sentry features
+ */
+export interface SentryConfig {
+  /** Sentry DSN */
+  dsn: string;
+
+  /** Environment name */
+  environment?: string;
+
+  /** Release version */
+  release?: string;
+
+  /** Traces sample rate for performance monitoring */
+  tracesSampleRate?: number;
+
+  /** Debug mode */
+  debug?: boolean;
+}
+
+/**
+ * @deprecated Use LoggingConfig instead. Will be removed in next major version.
+ */
+export type LoggerConfig = LoggingConfig;
 
 /**
  * Error severity levels for error handling
