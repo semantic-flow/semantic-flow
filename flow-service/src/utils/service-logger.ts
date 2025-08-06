@@ -22,7 +22,7 @@ export { handleCaughtError } from '../../../flow-core/src/utils/logger/error-han
  */
 const SERVICE_CONTEXT = {
   serviceName: 'flow-service',
-  serviceVersion: Deno.env.get('FLOW_VERSION') || FLOW_SERVICE_VERSION,
+  serviceVersion: Deno.env.get('FLOW_SERVICE_VERSION') || FLOW_SERVICE_VERSION,
   environment: Deno.env.get('FLOW_ENV') || 'development',
   instanceId: Deno.env.get('FLOW_INSTANCE_ID') || crypto.randomUUID(),
 } as const;
@@ -30,7 +30,7 @@ const SERVICE_CONTEXT = {
 /**
  * Service-specific logger configuration
  */
-export const SERVICE_LOGGER_CONFIG: LoggingConfig = {
+export const SERVICE_LOGGER_DEFAULT_CONFIG: LoggingConfig = {
   consoleChannel: {
     logChannelEnabled: true,
     logLevel: 'info',
@@ -59,7 +59,7 @@ export const SERVICE_LOGGER_CONFIG: LoggingConfig = {
 /**
  * Configured logger instance for flow-service with service-specific context
  */
-export const logger: EnhancedStructuredLogger = createEnhancedLogger(SERVICE_LOGGER_CONFIG);
+export const logger: EnhancedStructuredLogger = createEnhancedLogger(SERVICE_LOGGER_DEFAULT_CONFIG);
 
 /**
  * Create a logger with additional service operation context

@@ -88,7 +88,7 @@ export function formatStructuredMessage(
     level: level.toLowerCase(),
     message,
     service: serviceContext?.serviceName || 'flow-service',
-    version: serviceContext?.serviceVersion || Deno.env.get('FLOW_VERSION'),
+    version: serviceContext?.serviceVersion || Deno.env.get('FLOW_SERVICE_VERSION'),
     environment: serviceContext?.environment || Deno.env.get('FLOW_ENV') || 'development',
     instanceId: serviceContext?.instanceId,
     ...context,

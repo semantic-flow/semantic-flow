@@ -50,7 +50,7 @@ export function initSentry(config?: SentryConfig, dsn?: string): void {
         environment: config?.environment || (isDevelopment ? 'development' : 'production'),
         debug: config?.debug ?? isDevelopment,
         tracesSampleRate: config?.tracesSampleRate ?? (isDevelopment ? 1.0 : 0.1),
-        release: config?.release || Deno.env.get('FLOW_VERSION'),
+        release: config?.release || Deno.env.get('FLOW_SERVICE_VERSION'),
         // Enable logs to be sent to Sentry (experimental feature)
         _experiments: {
           enableLogs: config?.enableLogs ?? true
