@@ -11,6 +11,7 @@ import {
   type StructuredLogger,
   type EnhancedStructuredLogger,
 } from '../../../flow-core/src/utils/logger/index.ts';
+import { FLOW_SERVICE_VERSION } from "../service-constants.ts";
 
 // Re-export formatters and error handlers for test access
 export { formatConsoleMessage } from '../../../flow-core/src/utils/logger/formatters.ts';
@@ -21,7 +22,7 @@ export { handleCaughtError } from '../../../flow-core/src/utils/logger/error-han
  */
 const SERVICE_CONTEXT = {
   serviceName: 'flow-service',
-  serviceVersion: Deno.env.get('FLOW_VERSION') || '1.0.0',
+  serviceVersion: Deno.env.get('FLOW_VERSION') || FLOW_SERVICE_VERSION,
   environment: Deno.env.get('FLOW_ENV') || 'development',
   instanceId: Deno.env.get('FLOW_INSTANCE_ID') || crypto.randomUUID(),
 } as const;
@@ -29,7 +30,7 @@ const SERVICE_CONTEXT = {
 /**
  * Service-specific logger configuration
  */
-const SERVICE_LOGGER_CONFIG: LoggerConfig = {
+export const SERVICE_LOGGER_CONFIG: LoggerConfig = {
   enableConsole: true,
   enableFile: Deno.env.get('FLOW_LOG_FILE_ENABLED') === 'true',
   enableSentry: Deno.env.get('FLOW_SENTRY_ENABLED') === 'true',

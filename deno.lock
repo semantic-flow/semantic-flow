@@ -138,8 +138,7 @@
     "packageJson": {
       "dependencies": [
         "npm:@typescript-eslint/parser@^8.38.0",
-        "npm:eslint@^9.32.0",
-        "npm:quadstore@^15.4.0-beta.0"
+        "npm:eslint@^9.32.0"
       ]
     }
   }

@@ -12,10 +12,10 @@ export type {
   ErrorHandlingOptions,
 } from './logger-types.ts';
 
-export { LogLevel } from './logger-types.ts';
+export type { LogLevel } from './logger-types.ts';
+export { validLogLevels, LogLevelValues } from './logger-types.ts';
 
-// Export formatting utilities
-export type { LogLevel as LogLevelString } from './formatters.ts';
+// Export formatting utilities (LogLevel type is now imported from logger-types.ts)
 export {
   colorize,
   shouldLog,

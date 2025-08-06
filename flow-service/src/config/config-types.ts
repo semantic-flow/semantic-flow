@@ -6,6 +6,7 @@
  */
 
 import { NodeObject, ContextDefinition } from "../../../flow-core/src/deps.ts";
+import { LogLevel } from "../../../flow-core/src/utils/logger/logger-types.ts";
 
 // JSON-LD Context and Type Definitions
 export interface FlowServiceContext extends ContextDefinition {
@@ -188,5 +189,5 @@ export class ConfigValidationError extends ConfigError {
 }
 
 // Utility Types for Configuration Access
-export type LogLevel = "debug" | "info" | "warn" | "error";
+// LogLevel is now imported from the canonical source
 

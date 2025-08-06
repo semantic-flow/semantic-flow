@@ -4,8 +4,7 @@
  */
 
 import { Sentry } from '../../deps.ts';
-import type { LogContext } from './logger-types.ts';
-import type { LogLevel } from './formatters.ts';
+import type { LogContext, LogLevel } from './logger-types.ts';
 import { extractErrorContext } from './formatters.ts';
 
 /**
@@ -284,15 +283,15 @@ export function resetSentry(): void {
  */
 function mapLogLevelToSentry(level: LogLevel): 'debug' | 'info' | 'warning' | 'error' | 'fatal' {
   switch (level) {
-    case 'DEBUG':
+    case 'debug':
       return 'debug';
-    case 'INFO':
+    case 'info':
       return 'info';
-    case 'WARN':
+    case 'warn':
       return 'warning';
-    case 'ERROR':
+    case 'error':
       return 'error';
-    case 'CRITICAL':
+    case 'critical':
       return 'fatal';
     default:
       return 'info';

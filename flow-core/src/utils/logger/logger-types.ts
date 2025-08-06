@@ -73,6 +73,11 @@ export interface LogContext {
     instanceId?: string;
   };
 
+  /** SPARQL query context for SPARQL operations */
+  sparqlContext?: {
+    query?: string;
+  };
+
   /** Additional arbitrary metadata */
   metadata?: Record<string, unknown>;
 }
@@ -146,16 +151,25 @@ export interface StructuredLogger {
 }
 
 /**
- * Log level enumeration for controlling log output
+ * Log level type using lowercase string literals for controlling log output
  */
-export enum LogLevel {
-  DEBUG = 0,
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3,
-  CRITICAL = 4,
-  OFF = 5,
-}
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'critical';
+
+/**
+ * Valid log levels array for validation and iteration
+ */
+export const validLogLevels = ['debug', 'info', 'warn', 'error', 'critical'] as const;
+
+/**
+ * Log level numeric values for comparison and filtering
+ */
+export const LogLevelValues = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+  critical: 4,
+} as const;
 
 /**
  * Logger configuration interface
