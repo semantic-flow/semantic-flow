@@ -1,4 +1,5 @@
 export { normalize } from 'https://deno.land/std@0.224.0/path/mod.ts';
+export { describe, it } from "https://deno.land/std/testing/bdd.ts";
 export {
   assertEquals,
   assertNotStrictEquals,
@@ -38,3 +39,4 @@ export type * as RDF from 'npm:@rdfjs/types';
 
 // Sentry for error reporting and logging
 export * as Sentry from 'npm:@sentry/deno';
+

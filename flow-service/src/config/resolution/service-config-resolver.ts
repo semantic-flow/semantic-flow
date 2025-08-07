@@ -12,6 +12,9 @@ import { LogContext } from '../../../../flow-core/src/utils/logger/logger-types.
 import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
 import { createServiceLogContext } from '../../utils/service-log-context.ts';
 import { serviceUriConfigManager, type ServiceUriConfig } from '../../utils/service-uri-builder.ts';
+import { getComponentLogger } from "../../../../flow-core/src/utils/logger/component-logger.ts";
+
+const logger = getComponentLogger(import.meta);
 
 /**
  * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.
@@ -32,7 +35,7 @@ export async function resolveServiceConfig(
   try {
     // Load environment config
     const envConfig = loadEnvConfig();
-    //console.log(envConfig)
+
     // Load file config if specified
     let fileConfig: ServiceConfigInput | undefined;
     if (serviceConfigPath) {

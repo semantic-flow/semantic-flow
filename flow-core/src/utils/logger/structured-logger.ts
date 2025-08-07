@@ -10,7 +10,7 @@ import {
   shouldLog,
   mergeLogContext,
 } from './formatters.ts';
-import { getGlobalFileLogger, type FileLogger } from './file-logger.ts';
+import { getGlobalFileLogger } from './file-logger.ts';
 import {
   isSentryEnabled,
   reportErrorToSentry,
@@ -155,7 +155,7 @@ export class StructuredLoggerImpl implements StructuredLogger {
   ): Promise<void> {
     // Write to console if enabled and level meets threshold
     if (this.config.consoleChannel?.logChannelEnabled && this.shouldLogToChannel(level, this.config.consoleChannel.logLevel)) {
-      await this.writeToConsole(level, message, context);
+      this.writeToConsole(level, message, context);
     }
 
     // Write to file if enabled and level meets threshold
@@ -165,7 +165,7 @@ export class StructuredLoggerImpl implements StructuredLogger {
 
     // Write to Sentry if enabled, level meets threshold, and Sentry is initialized
     if (this.config.sentryChannel?.logChannelEnabled && this.shouldLogToChannel(level, this.config.sentryChannel.logLevel) && isSentryEnabled()) {
-      await this.writeToSentry(level, message, context, error);
+      this.writeToSentry(level, message, context, error);
     }
   }
 
@@ -189,11 +189,11 @@ export class StructuredLoggerImpl implements StructuredLogger {
   /**
    * Write log entry to console
    */
-  private async writeToConsole(
+  private writeToConsole(
     level: LogLevel,
     message: string,
     context?: LogContext,
-  ): Promise<void> {
+  ): void {
     try {
       const consoleFormatted = formatConsoleMessage(level, message, context);
 
@@ -244,12 +244,12 @@ export class StructuredLoggerImpl implements StructuredLogger {
   /**
    * Write log entry to Sentry
    */
-  private async writeToSentry(
+  private writeToSentry(
     level: LogLevel,
     message: string,
     context?: LogContext,
     error?: Error,
-  ): Promise<void> {
+  ): void {
     try {
       if (error) {
         // Error reporting

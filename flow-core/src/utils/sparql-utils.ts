@@ -1,6 +1,9 @@
 // Utility functions for SPARQL queries used across the codebase
-
 import type { QuadstoreBundle } from '../types.ts';
+import { getComponentLogger } from '../utils/logger/component-logger.ts';
+import { handleCaughtError } from "./logger/error-handlers.ts";
+
+const logger = getComponentLogger(import.meta);
 
 export async function querySingleValue(
   bundle: QuadstoreBundle,
@@ -19,10 +22,11 @@ export async function querySingleValue(
       }
     }
   } catch (error) {
-    throw new Error(`Failed to execute SPARQL query: ${error instanceof Error ? error.message : String(error)}`);
+    handleCaughtError(error, `Failed to execute SPARQL query ${sparql}`);
   }
   if (values.length > 1) {
-    throw new Error('Expected single result but multiple values were returned');
+    logger.warn(`Expected single result but got ${values.length} values for query: ${sparql}`);
+    //throw new Error('Expected single result but multiple values were returned');
   }
   return values.length === 1 ? values[0] : undefined;
 }
@@ -44,7 +48,7 @@ export async function queryMultipleValues(
       }
     }
   } catch (error) {
-    throw new Error(`Failed to execute SPARQL query: ${error instanceof Error ? error.message : String(error)}`);
+    handleCaughtError(error, `Failed to execute SPARQL query ${sparql}`);
   }
   return values;
 }

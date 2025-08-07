@@ -4,8 +4,12 @@ import { PLATFORM_SERVICE_DEFAULTS, PLATFORM_NODE_DEFAULTS } from '../defaults.t
 import { clearGraph, copyGraph, createNewGraphFromJsonLd } from '../../../../flow-core/src/utils/quadstore/quadstore-utils.ts';
 import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
 import { CONFIG_GRAPH_NAMES } from '../index.ts';
-import { expandRelativeIds } from "../../../../flow-core/src/utils/rdfjs-utils.ts";
+import { expandRelativeQuads, relativizeQuads, expandRelativeJsonLd } from "../../../../flow-core/src/utils/rdfjs-utils.ts";
 import { getCurrentServiceUri } from "../../utils/service-uri-builder.ts";
+import { getComponentLogger } from "../../../../flow-core/src/utils/logger/component-logger.ts";
+
+const logger = getComponentLogger(import.meta);
+
 /**
  * Load platform defaults into Quadstore graphs
  */
@@ -13,8 +17,8 @@ export async function loadPlatformServiceDefaults(): Promise<void> {
 
   try {
     const uri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.platformServiceDefaults);
-    const expandedPlatformServiceDefaults = expandRelativeIds(PLATFORM_SERVICE_DEFAULTS, uri);
-    //console.log(`Loading platform service defaults into graph:\n ${JSON.stringify(expandedPlatformServiceDefaults)}`);
+    const expandedPlatformServiceDefaults = expandRelativeJsonLd(PLATFORM_SERVICE_DEFAULTS, uri);
+    //logger.log(`Loading platform service defaults into graph:\n ${JSON.stringify(expandedPlatformServiceDefaults)}`);
     // use the Service URI for the graph name
     await createNewGraphFromJsonLd(expandedPlatformServiceDefaults, { graphName: uri });
   } catch (error) {
@@ -35,7 +39,7 @@ export async function loadPlatformServiceDefaults(): Promise<void> {
 
 export async function loadPlatformImplicitMeshRootNodeConfig(): Promise<void> {
   const uri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.platformImplicitMeshRootNodeConfig);
-  const expandedPlatformNodeDefaults = expandRelativeIds(PLATFORM_NODE_DEFAULTS, uri);
+  const expandedPlatformNodeDefaults = expandRelativeJsonLd(PLATFORM_NODE_DEFAULTS, uri);
   await createNewGraphFromJsonLd(expandedPlatformNodeDefaults, { graphName: uri });
 }
 
@@ -43,15 +47,15 @@ export async function loadPlatformImplicitMeshRootNodeConfig(): Promise<void> {
  * Load input service config into Quadstore graphs (both into inputServiceConfig and as a base for mergedServiceConfig)
  */
 export async function loadInputServiceConfig(inputConfig: ServiceConfigInput): Promise<void> {
-  //console.log(inputConfig);
+  //logger.log(inputConfig);
   const inputUri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.inputServiceConfig);
   const mergedUri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.mergedServiceConfig);
 
-  const expandedInputServiceConfig = expandRelativeIds(inputConfig, inputUri);
-  //console.log(expandedInputServiceConfig)
+  const expandedInputServiceConfig = expandRelativeJsonLd(inputConfig, inputUri);
+  //logger.log(expandedInputServiceConfig)
   await createNewGraphFromJsonLd(expandedInputServiceConfig, { graphName: inputUri });
 
-  const expandedMergedServiceConfig = expandRelativeIds(inputConfig, mergedUri);
+  const expandedMergedServiceConfig = expandRelativeJsonLd(inputConfig, mergedUri);
   await createNewGraphFromJsonLd(expandedMergedServiceConfig, { graphName: mergedUri });
 }
 
@@ -60,7 +64,7 @@ export async function loadInputServiceConfig(inputConfig: ServiceConfigInput): P
  */
 export async function loadInputMeshRootNodeConfig(inputMeshRootNodeConfig: MeshRootNodeConfigInput): Promise<void> {
   const uri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.inputMeshRootNodeConfig);
-  const expandedInputMeshRootNodeConfig = expandRelativeIds(inputMeshRootNodeConfig, uri);
+  const expandedInputMeshRootNodeConfig = expandRelativeJsonLd(inputMeshRootNodeConfig, uri);
   await createNewGraphFromJsonLd(expandedInputMeshRootNodeConfig, { graphName: uri });
 }
 
@@ -78,22 +82,27 @@ export async function mergeServiceConfigGraphs(
   const defaultUri = getCurrentServiceUri(CONFIG_GRAPH_NAMES.platformServiceDefaults);
 
   // Copy platform service defaults quads if not overridden
-  const platformQuads = store.match(undefined, undefined, undefined, df.namedNode(defaultUri));
+  const originalPlatformQuads = await store.get({ subject: undefined, predicate: undefined, object: undefined, graph: df.namedNode(defaultUri) });
+  const relativeizedPlatformQuads = relativizeQuads(originalPlatformQuads.items, defaultUri);
+  const expandedForMergedPlatformQuads = expandRelativeQuads(relativeizedPlatformQuads, mergedUri);
   let platformQuadsCopied = 0;
-  for await (const q of platformQuads) {
+  for await (const q of expandedForMergedPlatformQuads) {
+    logger.debug(`platform subject: ${q.subject.value}`);
     const existingQuads = await store.get({ subject: q.subject, predicate: q.predicate, object: undefined, graph: df.namedNode(mergedUri) });
-    //console.log(`${existingQuads.items}\n`)
-
+    logger.debug(`existing subject: ${existingQuads.items[0]?.subject.value}`);
+    logger.debug(`${q.subject.value.split('/').pop()}-${q.predicate.value.split('/').pop()}: ${existingQuads.items.length}`);
     if (existingQuads.items.length === 0) {
-      //console.log(`platform quad copied: ${q.subject.value} ${q.predicate.value} ${q.object.value} in graph ${mergedUri}`);
+      logger.info(`platform quad copied: ${q.subject.value} ${q.predicate.value} ${q.object.value} in graph ${mergedUri}`);
 
       await store.put(df.quad(q.subject, q.predicate, q.object, df.namedNode(mergedUri)));
       platformQuadsCopied++;
+    } else if (existingQuads.items.length === 1) {
+      logger.debug(`Quad already exists in merged graph: ${q.subject.value} ${q.predicate.value} ${q.object.value}`);
     } else if (existingQuads.items.length > 1) {
-      console.error(`Multiple quads found for ${q.subject.value} ${q.predicate.value} in graph ${mergedUri}. This may indicate a configuration error.`);
+      logger.error(`Multiple quads found for ${q.subject.value} ${q.predicate.value} in graph ${mergedUri}. This may indicate a configuration error.`);
     }
   }
-  //console.log(`platform quads copied: ${platformQuadsCopied}`);
+  logger.info(`platform quads copied: ${platformQuadsCopied}`);
 }
 
 
