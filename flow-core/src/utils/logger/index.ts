@@ -15,8 +15,6 @@ export type {
   SentryConfig,
   ErrorSeverity,
   ErrorHandlingOptions,
-  // Deprecated - use LoggingConfig instead
-  LoggerConfig,
 } from './logger-types.ts';
 
 export type { LogLevel } from './logger-types.ts';

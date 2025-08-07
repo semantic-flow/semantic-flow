@@ -253,11 +253,6 @@ export interface SentryConfig {
 }
 
 /**
- * @deprecated Use LoggingConfig instead. Will be removed in next major version.
- */
-export type LoggerConfig = LoggingConfig;
-
-/**
  * Error severity levels for error handling
  */
 export enum ErrorSeverity {

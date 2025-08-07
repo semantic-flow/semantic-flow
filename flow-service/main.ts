@@ -14,12 +14,12 @@ import { handleCaughtError } from "../flow-core/src/utils/logger/error-handlers.
 import type { LogContext } from "../flow-core/src/utils/logger/logger-types.ts";
 import { createServiceLogContext } from "./src/utils/service-log-context.ts";
 import { MESH } from "../flow-core/src/mesh-constants.ts";
-import { setGlobalLoggerConfig } from "../flow-core/src/utils/logger/component-logger.ts";
+import { setGlobalLoggingConfig } from "../flow-core/src/utils/logger/component-logger.ts";
 import { SERVICE_LOGGER_DEFAULT_CONFIG } from "./src/utils/service-logger.ts";
 import { getComponentLogger } from "../flow-core/src/utils/logger/component-logger.ts";
 
 // initialize a logger with default config until we can process the service config
-setGlobalLoggerConfig(SERVICE_LOGGER_DEFAULT_CONFIG);
+setGlobalLoggingConfig(SERVICE_LOGGER_DEFAULT_CONFIG);
 let logger = getComponentLogger(import.meta);
 logger.info("Starting Flow Service with initial logger configuration");
 
@@ -44,7 +44,7 @@ try {
     "./src/config/logging-config-extractor.ts"
   );
   const loggingConfig = await extractLoggingConfigFromService();
-  setGlobalLoggerConfig(loggingConfig);
+  setGlobalLoggingConfig(loggingConfig);
 
   // Get a new logger instance with the updated configuration
   logger = getComponentLogger(import.meta);

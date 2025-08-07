@@ -1,18 +1,18 @@
 import {
   EnhancedStructuredLogger,
-  LoggerConfig,
+  LoggingConfig,
   createEnhancedLogger,
 } from "./index.ts";
 
-let injectedLoggerConfig: LoggerConfig | undefined;
+let injectedLoggingConfig: LoggingConfig | undefined;
 let globalLogger: EnhancedStructuredLogger | undefined;
 
 /**
- * Inject a LoggerConfig to be used globally by flow-core.
+ * Inject a LoggingConfig to be used globally by flow-core.
  * Should be called once by flow-service at startup.
  */
-export function setGlobalLoggerConfig(config: LoggerConfig): void {
-  injectedLoggerConfig = config;
+export function setGlobalLoggingConfig(config: LoggingConfig): void {
+  injectedLoggingConfig = config;
   globalLogger = undefined; // force re-creation with new config
 }
 
@@ -20,7 +20,7 @@ export function setGlobalLoggerConfig(config: LoggerConfig): void {
  * Resets logger for testing or reconfiguration
  */
 export function resetGlobalLogger(): void {
-  injectedLoggerConfig = undefined;
+  injectedLoggingConfig = undefined;
   globalLogger = undefined;
 }
 
@@ -29,10 +29,12 @@ export function resetGlobalLogger(): void {
  */
 function getGlobalLogger(): EnhancedStructuredLogger {
   if (!globalLogger) {
-    globalLogger = createEnhancedLogger(injectedLoggerConfig ?? {
-      enableConsole: true,
-      enableFile: false,
-      enableSentry: false,
+    globalLogger = createEnhancedLogger(injectedLoggingConfig ?? {
+      consoleChannel: {
+        logChannelEnabled: true,
+        logLevel: 'info',
+        logFormat: 'pretty',
+      }
     });
   }
   return globalLogger;
