@@ -15,6 +15,7 @@ export async function querySingleValue(
   const values: string[] = [];
   try {
     const bindingsStream = await bundle.engine.queryBindings(sparql, { sources: [bundle.store] });
+    // deno-lint-ignore no-explicit-any
     for await (const binding of bindingsStream as any) {
       const value = binding.get('value');
       if (value) {
@@ -41,6 +42,7 @@ export async function queryMultipleValues(
   const values: string[] = [];
   try {
     const bindingsStream = await bundle.engine.queryBindings(sparql, { sources: [bundle.store] });
+    // deno-lint-ignore no-explicit-any
     for await (const binding of bindingsStream as any) {
       const value = binding.get('value');
       if (value) {

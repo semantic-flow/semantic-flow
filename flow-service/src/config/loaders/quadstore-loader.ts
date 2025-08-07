@@ -1,7 +1,7 @@
 import { defaultQuadstoreBundle } from '../../quadstore-default-bundle.ts';
 import type { ServiceConfigInput, MeshRootNodeConfigInput } from '../config-types.ts';
 import { PLATFORM_SERVICE_DEFAULTS, PLATFORM_NODE_DEFAULTS } from '../defaults.ts';
-import { clearGraph, copyGraph, createNewGraphFromJsonLd } from '../../../../flow-core/src/utils/quadstore/quadstore-utils.ts';
+import { createNewGraphFromJsonLd } from '../../../../flow-core/src/utils/quadstore/quadstore-utils.ts';
 import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
 import { CONFIG_GRAPH_NAMES } from '../index.ts';
 import { expandRelativeQuads, relativizeQuads, expandRelativeJsonLd } from "../../../../flow-core/src/utils/rdfjs-utils.ts";
@@ -92,7 +92,7 @@ export async function mergeServiceConfigGraphs(
     logger.debug(`existing subject: ${existingQuads.items[0]?.subject.value}`);
     logger.debug(`${q.subject.value.split('/').pop()}-${q.predicate.value.split('/').pop()}: ${existingQuads.items.length}`);
     if (existingQuads.items.length === 0) {
-      logger.info(`platform quad copied: ${q.subject.value} ${q.predicate.value} ${q.object.value} in graph ${mergedUri}`);
+      logger.debug(`platform quad copied: ${q.subject.value} ${q.predicate.value} ${q.object.value} in graph ${mergedUri}`);
 
       await store.put(df.quad(q.subject, q.predicate, q.object, df.namedNode(mergedUri)));
       platformQuadsCopied++;
@@ -102,7 +102,7 @@ export async function mergeServiceConfigGraphs(
       logger.error(`Multiple quads found for ${q.subject.value} ${q.predicate.value} in graph ${mergedUri}. This may indicate a configuration error.`);
     }
   }
-  logger.info(`platform quads copied: ${platformQuadsCopied}`);
+  logger.debug(`platform quads copied: ${platformQuadsCopied}`);
 }
 
 

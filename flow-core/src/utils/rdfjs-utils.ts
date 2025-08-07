@@ -88,7 +88,7 @@ export function expandRelativeQuads(inputQuads: RDF.Quad[], baseIRI: string): RD
   });
 }
 
-export function expandRelativeJsonLd(inputJsonLd: NodeObject, baseIRI: string): any {
+export function expandRelativeJsonLd(inputJsonLd: NodeObject, baseIRI: string): NodeObject {
   // Validate baseIRI format
   if (!baseIRI.startsWith("http://") && !baseIRI.startsWith("https://")) {
     throw new Error(`Invalid baseIRI: must start with http:// or https://, got: ${baseIRI}`);
@@ -98,7 +98,7 @@ export function expandRelativeJsonLd(inputJsonLd: NodeObject, baseIRI: string): 
   }
 
   const expanded = structuredClone(inputJsonLd);
-
+  // deno-lint-ignore no-explicit-any
   function rewrite(obj: any) {
     if (obj && typeof obj === "object") {
       if (typeof obj["@id"] === "string" && !obj["@id"].startsWith("http")) {

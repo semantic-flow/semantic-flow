@@ -52,15 +52,15 @@ export const singletonServiceConfigAccessor = new (class ServiceConfigAccessor {
   }
 
   async getHost(): Promise<string | undefined> {
-    return this.getConfigValue('fsvc:host');
+    return await this.getConfigValue('fsvc:host');
   }
 
   async getScheme(): Promise<string | undefined> {
-    return this.getConfigValue('fsvc:scheme');
+    return await this.getConfigValue('fsvc:scheme');
   }
 
   async getMeshPaths(): Promise<string[]> {
-    return this.getMultipleConfigValues('fsvc:meshPaths');
+    return await this.getMultipleConfigValues('fsvc:meshPaths');
   }
 
   // Custom accessors for logging channels
@@ -119,6 +119,7 @@ export const singletonServiceConfigAccessor = new (class ServiceConfigAccessor {
     }
     try {
       const bindingsStream = await this.bundle.engine.queryBindings(sparql, { sources: [this.bundle.store] });
+      // deno-lint-ignore no-explicit-any
       for await (const binding of bindingsStream as any) {
         const value = binding.get(variable);
         if (value) {

@@ -23,7 +23,7 @@ const logger = getComponentLogger(import.meta);
  * @throws ConfigError if configuration resolution fails or an unexpected error occurs
  */
 
-import { loadPlatformServiceDefaults, loadInputServiceConfig, loadInputMeshRootNodeConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
+import { loadPlatformServiceDefaults, loadInputServiceConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
 import { singletonServiceConfigAccessor } from "./service-config-accessor.ts";
 
 export async function resolveServiceConfig(
@@ -50,7 +50,7 @@ export async function resolveServiceConfig(
     const mergedInputConfig = mergeConfigs(mergeConfigs(envConfig, fileConfig ?? {}), cliConfig);
 
     // Extract service URI configuration from merged config, using platform defaults as fallback
-    // TODO: 
+    // This is used for for providing URL expansion before configuration merging has finished
     const serviceUriConfig: ServiceUriConfig = {
       scheme: mergedInputConfig['fsvc:scheme'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:scheme'],
       host: mergedInputConfig['fsvc:host'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:host'],
@@ -66,11 +66,9 @@ export async function resolveServiceConfig(
     // Load merged input config into Quadstore graph
     await loadInputServiceConfig(mergedInputConfig);
 
-    // TODO: Load input mesh node config if applicable
-    // await loadInputMeshRootNodeConfig(...);
-
-    // Merge all graphs into mergedServiceConfig graph
+    // Merge service config graphs into mergedServiceConfig graph
     await mergeServiceConfigGraphs();
+    logger.info(`Service configuration loaded from: ${serviceConfigPath || 'default environment'}`);
 
   } catch (error) {
     const context: LogContext = createServiceLogContext({

@@ -36,6 +36,7 @@ export async function handleError(
     // Extract error information for structured context
     const errorContext = error instanceof Error ? {
       errorType: error.constructor.name,
+      // deno-lint-ignore no-explicit-any
       errorCode: (error as any).code,
       stackTrace: error.stack,
       originalError: error
@@ -123,6 +124,7 @@ export async function handleCaughtError(
     const logDetailedError = async (error: Error, type = 'Error') => {
       const errorContext = {
         errorType: error.constructor.name,
+        // deno-lint-ignore no-explicit-any
         errorCode: (error as any).code,
         stackTrace: error.stack,
         originalError: error
@@ -432,7 +434,7 @@ export async function withErrorHandling<T>(
  */
 export function createContextualErrorHandler(baseContext: LogContext) {
   return {
-    handleError: async (
+    handleError: (
       error: unknown,
       context?: string,
       additionalContext?: LogContext,
@@ -443,7 +445,7 @@ export function createContextualErrorHandler(baseContext: LogContext) {
       return handleError(error, context, mergedContext, meta, options);
     },
 
-    handleCaughtError: async (
+    handleCaughtError: (
       error: unknown,
       customMessage?: string,
       additionalContext?: LogContext,
@@ -453,7 +455,7 @@ export function createContextualErrorHandler(baseContext: LogContext) {
       return handleCaughtError(error, customMessage, mergedContext, options);
     },
 
-    withErrorHandling: async <T>(
+    withErrorHandling: <T>(
       operation: () => Promise<T>,
       context?: string,
       additionalContext?: LogContext,
