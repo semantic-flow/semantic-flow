@@ -14,7 +14,7 @@
   },
   "tasks": {
     "test": "deno test --allow-net --allow-env --allow-read  --allow-write=./meshes,./flow-service/logs,./coverage",
-    "coverage": "deno test --allow-all--coverage=coverage_profile/ && deno coverage coverage_profile/ --lcov --output=coverage.lcov"
+    "coverage": "deno test --allow-all --coverage=coverage_profile/ && deno coverage coverage_profile/ --lcov --output=coverage.lcov"
   },
   "fmt": {
     "singleQuote": false
