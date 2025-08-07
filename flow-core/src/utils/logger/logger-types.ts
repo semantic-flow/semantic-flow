@@ -73,6 +73,11 @@ export interface LogContext {
     instanceId?: string;
   };
 
+  /** SPARQL query context for SPARQL operations */
+  sparqlContext?: {
+    query?: string;
+  };
+
   /** Additional arbitrary metadata */
   metadata?: Record<string, unknown>;
 }
@@ -146,48 +151,76 @@ export interface StructuredLogger {
 }
 
 /**
- * Log level enumeration for controlling log output
+ * Log level type using lowercase string literals for controlling log output
  */
-export enum LogLevel {
-  DEBUG = 0,
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3,
-  CRITICAL = 4,
-  OFF = 5,
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'critical';
+
+/**
+ * Valid log levels array for validation and iteration
+ */
+export const validLogLevels = ['debug', 'info', 'warn', 'error', 'critical'] as const;
+
+/**
+ * Base log channel configuration interface aligned with ontology fsvc:LogChannelConfig
+ */
+export interface LogChannelConfig {
+  /** Whether this logging channel is enabled (fsvc:logChannelEnabled) */
+  logChannelEnabled: boolean;
+
+  /** Minimum log level for this channel (fsvc:logLevel) */
+  logLevel: LogLevel;
+
+  /** Log format for this channel (fsvc:logFormat) */
+  logFormat?: 'json' | 'pretty';
 }
 
 /**
- * Logger configuration interface
+ * Console channel configuration interface
  */
-export interface LoggerConfig {
-  /** Minimum log level to output */
-  level?: LogLevel;
+export interface ConsoleChannelConfig extends LogChannelConfig {
+  // Console channels only need the base properties
+}
 
-  /** Whether to enable console output */
-  enableConsole?: boolean;
+/**
+ * File channel configuration interface
+ */
+export interface FileChannelConfig extends LogChannelConfig {
+  /** Log file path (fsvc:logFilePath) */
+  logFilePath?: string;
 
-  /** Whether to enable file output */
-  enableFile?: boolean;
+  /** Log retention days (fsvc:logRetentionDays) */
+  logRetentionDays?: number;
 
-  /** Whether to enable Sentry integration */
-  enableSentry?: boolean;
+  /** Maximum number of log files (fsvc:logMaxFiles) */
+  logMaxFiles?: number;
 
-  /** File logging configuration */
-  fileConfig?: {
-    logDir?: string;
-    maxFileSize?: number;
-    maxFiles?: number;
-    rotateDaily?: boolean;
-  };
+  /** Maximum log file size in bytes (fsvc:logMaxFileSize) */
+  logMaxFileSize?: number;
 
-  /** Sentry configuration */
-  sentryConfig?: {
-    dsn?: string;
-    environment?: string;
-    release?: string;
-    sampleRate?: number;
-  };
+  /** Log rotation interval (fsvc:logRotationInterval) */
+  logRotationInterval?: 'daily' | 'weekly' | 'monthly' | 'size-based';
+}
+
+/**
+ * Sentry channel configuration interface
+ */
+export interface SentryChannelConfig extends LogChannelConfig {
+  /** Sentry DSN for error reporting (fsvc:sentryDsn) */
+  sentryDsn?: string;
+}
+
+/**
+ * Logging configuration interface aligned with ontology fsvc:LoggingConfig
+ */
+export interface LoggingConfig {
+  /** Console logging channel configuration (fsvc:hasConsoleChannel) */
+  consoleChannel?: ConsoleChannelConfig;
+
+  /** File logging channel configuration (fsvc:hasFileChannel) */
+  fileChannel?: FileChannelConfig;
+
+  /** Sentry logging channel configuration (fsvc:hasSentryChannel) */
+  sentryChannel?: SentryChannelConfig;
 
   /** Service context applied to all logs */
   serviceContext?: {
@@ -196,6 +229,27 @@ export interface LoggerConfig {
     environment: string;
     instanceId?: string;
   };
+}
+
+/**
+ * Separate Sentry general configuration (not part of logging config)
+ * For tracing and other non-logging Sentry features
+ */
+export interface SentryConfig {
+  /** Sentry DSN */
+  dsn: string;
+
+  /** Environment name */
+  environment?: string;
+
+  /** Release version */
+  release?: string;
+
+  /** Traces sample rate for performance monitoring */
+  tracesSampleRate?: number;
+
+  /** Debug mode */
+  debug?: boolean;
 }
 
 /**

@@ -162,8 +162,8 @@ export function loadEnvConfig(): ServiceConfigInput {
   }
 
   // Sentry logging
-  if (env.FLOW_SENTRY_ENABLED) {
-    const enabled = parseBoolean(env.FLOW_SENTRY_ENABLED);
+  if (env.FLOW_SENTRY_LOGGING_ENABLED) {
+    const enabled = parseBoolean(env.FLOW_SENTRY_LOGGING_ENABLED);
     if (enabled !== undefined) {
       const sentryChannel: Record<string, string | boolean> = {
         "@id": "_service-config/loggingConfig/sentryChannel",
@@ -173,13 +173,6 @@ export function loadEnvConfig(): ServiceConfigInput {
 
       if (env.FLOW_SENTRY_DSN) {
         sentryChannel["fsvc:sentryDsn"] = env.FLOW_SENTRY_DSN;
-      }
-
-      if (env.FLOW_SENTRY_LOGGING_ENABLED) {
-        const loggingEnabled = parseBoolean(env.FLOW_SENTRY_LOGGING_ENABLED);
-        if (loggingEnabled !== undefined) {
-          sentryChannel["fsvc:sentryLoggingEnabled"] = loggingEnabled;
-        }
       }
 
       loggingConfig["fsvc:hasSentryChannel"] = sentryChannel;

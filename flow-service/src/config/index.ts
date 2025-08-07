@@ -25,7 +25,6 @@ export type {
   FlowServiceContext,
   LogChannelConfig,
   LoggingConfig,
-  LogLevel,
   MeshRootNodeConfig,
   MeshRootNodeConfigContext,
   MeshRootNodeConfigInput,

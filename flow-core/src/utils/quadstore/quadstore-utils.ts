@@ -3,6 +3,9 @@ import { RDF } from '../../deps.ts';
 import { defaultQuadstoreBundle } from '../../../../flow-service/src/quadstore-default-bundle.ts';
 import { jsonldToQuads } from '../rdfjs-utils.ts';
 import type { QuadstoreBundle } from '../../types.ts';
+import { getComponentLogger } from '../logger/component-logger.ts';
+
+const logger = getComponentLogger(import.meta);
 
 export function countQuadsInStream(stream: RDF.Stream): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -41,7 +44,8 @@ export async function clearGraph(
   const count = await countQuadsInStream(matchStream);
   //console.log(`Number of quads before delStream in graph ${graph.value}: ${count}`);
   const matchStream2 = store.match(undefined, undefined, undefined, graph);
-  await store.delStream(matchStream2);
+  // deno-lint-ignore no-explicit-any
+  await store.delStream(matchStream2 as any);
   /*const matchStream3 = store.match(undefined, undefined, undefined, graph);
   const count2 = await countQuadsInStream(matchStream3);
   console.log(`Number of quads in graph ${graph.value}: ${count2}`);
@@ -62,8 +66,11 @@ export async function copyGraph(
 ): Promise<number> {
   const stream = store.match(undefined, undefined, undefined, sourceGraph);
   const quads = [];
-  for await (const q of stream) {
-    //console.log(`Copying quad: ${q.subject.value} ${q.predicate.value} ${q.object.value} to graph ${targetGraph.value}`);
+
+  logger.info("COPIED QUADS:");
+  // deno-lint-ignore no-explicit-any
+  for await (const q of stream as any) {
+    logger.info(`${q.subject.value} ${q.predicate.value} ${q.object.value} to graph ${targetGraph.value}`);
     const newQuad = df.quad(q.subject, q.predicate, q.object, targetGraph);
     quads.push(newQuad);
   }

@@ -4,8 +4,7 @@
  */
 
 import { Sentry } from '../../deps.ts';
-import type { LogContext } from './types.ts';
-import type { LogLevel } from './formatters.ts';
+import type { LogContext, LogLevel } from './logger-types.ts';
 import { extractErrorContext } from './formatters.ts';
 
 /**
@@ -51,7 +50,7 @@ export function initSentry(config?: SentryConfig, dsn?: string): void {
         environment: config?.environment || (isDevelopment ? 'development' : 'production'),
         debug: config?.debug ?? isDevelopment,
         tracesSampleRate: config?.tracesSampleRate ?? (isDevelopment ? 1.0 : 0.1),
-        release: config?.release || Deno.env.get('FLOW_VERSION'),
+        release: config?.release || Deno.env.get('FLOW_SERVICE_VERSION'),
         // Enable logs to be sent to Sentry (experimental feature)
         _experiments: {
           enableLogs: config?.enableLogs ?? true
@@ -284,15 +283,15 @@ export function resetSentry(): void {
  */
 function mapLogLevelToSentry(level: LogLevel): 'debug' | 'info' | 'warning' | 'error' | 'fatal' {
   switch (level) {
-    case 'DEBUG':
+    case 'debug':
       return 'debug';
-    case 'INFO':
+    case 'info':
       return 'info';
-    case 'WARN':
+    case 'warn':
       return 'warning';
-    case 'ERROR':
+    case 'error':
       return 'error';
-    case 'CRITICAL':
+    case 'critical':
       return 'fatal';
     default:
       return 'info';

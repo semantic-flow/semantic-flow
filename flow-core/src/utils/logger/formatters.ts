@@ -3,12 +3,7 @@
  * Provides consistent formatting for console output, file logging, and structured data.
  */
 
-import type { LogContext } from './types.ts';
-
-/**
- * Log level type using string literals
- */
-export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL';
+import type { LogContext, LogLevel } from './logger-types.ts';
 
 /**
  * Console color codes for terminal output
@@ -24,14 +19,14 @@ const colors = {
 } as const;
 
 /**
- * Log level numeric values for comparison
+ * Log level numeric values for comparison (using lowercase keys)
  */
 export const LogLevels = {
-  DEBUG: 10,
-  INFO: 20,
-  WARN: 30,
-  ERROR: 40,
-  CRITICAL: 50,
+  debug: 10,
+  info: 20,
+  warn: 30,
+  error: 40,
+  critical: 50,
 } as const;
 
 /**
@@ -53,8 +48,8 @@ export function colorize(color: keyof typeof colors, text: string): string {
  */
 export function shouldLog(level: LogLevel): boolean {
   const configLevel = Deno.env.get('FLOW_LOG_LEVEL') ||
-    (Deno.env.get('FLOW_ENV') !== 'production' ? 'DEBUG' : 'INFO');
-  const currentLevel = LogLevels[configLevel as LogLevel] || LogLevels.INFO;
+    (Deno.env.get('FLOW_ENV') !== 'production' ? 'debug' : 'info');
+  const currentLevel = LogLevels[configLevel as LogLevel] || LogLevels.info;
   return LogLevels[level] >= currentLevel;
 }
 
@@ -93,7 +88,7 @@ export function formatStructuredMessage(
     level: level.toLowerCase(),
     message,
     service: serviceContext?.serviceName || 'flow-service',
-    version: serviceContext?.serviceVersion || Deno.env.get('FLOW_VERSION'),
+    version: serviceContext?.serviceVersion || Deno.env.get('FLOW_SERVICE_VERSION'),
     environment: serviceContext?.environment || Deno.env.get('FLOW_ENV') || 'development',
     instanceId: serviceContext?.instanceId,
     ...context,
@@ -119,13 +114,13 @@ export function formatConsoleMessage(
   const prefix = `[${timestamp}] ${level.padEnd(5)}`;
 
   if (isDevelopment) {
-    const coloredLevel = level === 'ERROR' || level === 'CRITICAL'
-      ? colorize('red', level)
-      : level === 'WARN'
-        ? colorize('yellow', level)
-        : level === 'DEBUG'
-          ? colorize('blue', level)
-          : colorize('green', level);
+    const coloredLevel = level === 'error' || level === 'critical'
+      ? colorize('red', level.toUpperCase())
+      : level === 'warn'
+        ? colorize('yellow', level.toUpperCase())
+        : level === 'debug'
+          ? colorize('blue', level.toUpperCase())
+          : colorize('green', level.toUpperCase());
 
     const coloredPrefix = colorize('gray', `[${timestamp}]`) +
       ` ${coloredLevel.padEnd(5)}`;

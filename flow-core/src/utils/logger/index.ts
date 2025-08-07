@@ -7,15 +7,20 @@
 export type {
   LogContext,
   StructuredLogger,
-  LoggerConfig,
+  LoggingConfig,
+  LogChannelConfig,
+  ConsoleChannelConfig,
+  FileChannelConfig,
+  SentryChannelConfig,
+  SentryConfig,
   ErrorSeverity,
   ErrorHandlingOptions,
-} from './types.ts';
+} from './logger-types.ts';
 
-export { LogLevel } from './types.ts';
+export type { LogLevel } from './logger-types.ts';
+export { validLogLevels } from './logger-types.ts';
 
-// Export formatting utilities
-export type { LogLevel as LogLevelString } from './formatters.ts';
+// Export formatting utilities (LogLevel type is now imported from logger-types.ts)
 export {
   colorize,
   shouldLog,
@@ -60,7 +65,7 @@ export {
 } from './error-handlers.ts';
 
 // Import types for function signatures
-import type { StructuredLogger } from './types.ts';
+import type { StructuredLogger } from './logger-types.ts';
 import type { EnhancedStructuredLogger } from './structured-logger.ts';
 import { createLogger, createEnhancedLogger } from './structured-logger.ts';
 
@@ -76,9 +81,21 @@ export function createDefaultLogger(
 ): StructuredLogger {
   return createLogger(
     {
-      enableConsole: true,
-      enableFile: true,
-      enableSentry: true,
+      consoleChannel: {
+        logChannelEnabled: true,
+        logLevel: 'info',
+        logFormat: 'pretty',
+      },
+      fileChannel: {
+        logChannelEnabled: true,
+        logLevel: 'info',
+        logFormat: 'json',
+        logFilePath: './logs/app.log',
+      },
+      sentryChannel: {
+        logChannelEnabled: true,
+        logLevel: 'error',
+      },
       serviceContext: {
         serviceName: appName,
         serviceVersion: appVersion || 'unknown',
@@ -107,9 +124,21 @@ export function createDefaultEnhancedLogger(
 ): EnhancedStructuredLogger {
   return createEnhancedLogger(
     {
-      enableConsole: true,
-      enableFile: true,
-      enableSentry: true,
+      consoleChannel: {
+        logChannelEnabled: true,
+        logLevel: 'info',
+        logFormat: 'pretty',
+      },
+      fileChannel: {
+        logChannelEnabled: true,
+        logLevel: 'info',
+        logFormat: 'json',
+        logFilePath: './logs/app.log',
+      },
+      sentryChannel: {
+        logChannelEnabled: true,
+        logLevel: 'error',
+      },
       serviceContext: {
         serviceName: appName,
         serviceVersion: appVersion || 'unknown',

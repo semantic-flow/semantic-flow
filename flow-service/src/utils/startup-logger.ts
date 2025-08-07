@@ -7,6 +7,9 @@
 import { singletonServiceConfigAccessor as config } from '../config/index.ts';
 import { MESH } from '../../../flow-core/src/mesh-constants.ts';
 import { resolve } from '../../../flow-core/src/deps.ts';
+import { getComponentLogger } from "../../../flow-core/src/utils/logger/component-logger.ts";
+
+const logger = getComponentLogger(import.meta);
 
 /**
  * Logs the service startup configuration details with a timestamp in US locale.
@@ -14,35 +17,46 @@ import { resolve } from '../../../flow-core/src/deps.ts';
  * Outputs mesh paths, logging levels, and feature enablement statuses to the console for the provided configuration.
  */
 export async function logStartupConfiguration(): Promise<void> {
-  const now = new Date();
-  const timestamp = now.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }) + ' ' + now.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  }).toLowerCase();
+  if (!config.isInitialized()) {
+    logger.error('Service configuration is not initialized.');
+    Deno.exit(1);
+  }
 
-  console.log(
-    `🔧 Flow Service initializing at ${timestamp} with configuration:`,
-  );
 
   const meshPaths = await config.getMeshPaths();
   if (meshPaths.length > 0) {
+    let message = `Configured mesh paths:`;
     for (const meshPath of meshPaths) {
       const absolutePath = resolve(Deno.cwd(), meshPath);
-      console.log(`   Configured mesh path: ${absolutePath}`);
+      message += `\n - ${absolutePath}`;
     }
+    logger.info(message);
   } else {
-    console.log(`   Mesh Paths: none configured`);
+    logger.info(`   Mesh Paths: none configured`);
   }
 
-  // TODO: Add methods to accessor for these properties or query directly
-  console.log(`   Console Logging: info`);
-  console.log(`   File Logging: disabled`);
-  console.log(`   Sentry Logging: disabled`);
+
+  // Use custom config accessors for logging channels
+  try {
+    const consoleConfig = await config.getConsoleLoggingConfig();
+    logger.info(`   Console Logging: ${consoleConfig.enabled ? (consoleConfig.level ?? 'enabled') : 'disabled'}`);
+  } catch {
+    logger.info(`   Console Logging: error fetching config`);
+  }
+
+  try {
+    const fileConfig = await config.getFileLoggingConfig();
+    logger.info(`   File Logging: ${fileConfig.enabled ? (fileConfig.level ?? 'enabled') : 'disabled'}`);
+  } catch {
+    logger.info(`   File Logging: error fetching config`);
+  }
+
+  try {
+    const sentryConfig = await config.getSentryLoggingConfig();
+    logger.info(`   Sentry Logging: ${sentryConfig.enabled ? (sentryConfig.level ?? 'enabled') : 'disabled'}`);
+  } catch {
+    logger.info(`   Sentry Logging: error fetching config`);
+  }
 
   const enabledServices: string[] = [];
   // TODO: Query service enablement flags from config
@@ -50,7 +64,7 @@ export async function logStartupConfiguration(): Promise<void> {
   // if (await config.sparqlEnabled()) enabledServices.push('SPARQL Endpoint');
   // if (await config.queryWidgetEnabled()) enabledServices.push('SPARQL GUI');
 
-  console.log(
+  logger.info(
     `   Services: ${enabledServices.length > 0 ? enabledServices.join(', ') : 'none'}`,
   );
 }
@@ -62,8 +76,9 @@ export async function logStartupConfiguration(): Promise<void> {
 export async function logStartupUrls(): Promise<void> {
   const host = await config.getHost();
   const port = await config.getPort();
-  const baseUrl = `http://${host}:${port}`;
+  const scheme = await config.getScheme() || 'http';
+  const baseUrl = `${scheme}://${host}:${port}`;
 
-  console.log(`📍 Root: ${baseUrl}/`);
-  console.log(`� API documentation: ${baseUrl}${MESH.API_PORTAL_ROUTE}`);
+  logger.info(`📍 Root: ${baseUrl}/`);
+  logger.info(`📍 API documentation: ${baseUrl}${MESH.API_PORTAL_ROUTE}`);
 }

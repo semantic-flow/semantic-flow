@@ -26,7 +26,73 @@ export async function jsonldToQuads(
   );
 }
 
-export function expandRelativeIds(inputJsonLd: NodeObject, baseIRI: string): any {
+
+export function relativizeQuads(inputQuads: RDF.Quad[], baseIRI: string): RDF.Quad[] {
+  // Validate baseIRI format
+  if (!baseIRI.startsWith("http://") && !baseIRI.startsWith("https://")) {
+    throw new Error(`Invalid baseIRI: must start with http:// or https://, got: ${baseIRI}`);
+  }
+  if (!baseIRI.endsWith("/")) {
+    throw new Error(`Invalid baseIRI: must end with "/", got: ${baseIRI}`);
+  }
+
+  return inputQuads.map(quad => {
+    const subject = quad.subject.termType === 'NamedNode' ? quad.subject.value.replace(baseIRI, '') : quad.subject.value;
+    const predicate = quad.predicate.termType === 'NamedNode' ? quad.predicate.value.replace(baseIRI, '') : quad.predicate.value;
+    let object;
+    if (quad.object.termType === 'NamedNode') {
+      object = df.namedNode(quad.object.value.replace(baseIRI, ''));
+    } else if (quad.object.termType === 'Literal') {
+      object = df.literal(quad.object.value, quad.object.datatype);
+    } else {
+      object = quad.object;
+    }
+    const graph = quad.graph && quad.graph.termType === 'NamedNode' ? df.namedNode(quad.graph.value.replace(baseIRI, '')) : quad.graph.termType === 'DefaultGraph' ? df.defaultGraph() : undefined;
+    return df.quad(
+      quad.subject.termType === 'NamedNode' ? df.namedNode(subject) : quad.subject,
+      quad.predicate.termType === 'NamedNode' ? df.namedNode(predicate) : quad.predicate,
+      object,
+      graph
+    );
+  });
+}
+
+
+export function expandRelativeQuads(inputQuads: RDF.Quad[], baseIRI: string): RDF.Quad[] {
+  // Validate baseIRI format
+  if (!baseIRI.startsWith("http://") && !baseIRI.startsWith("https://")) {
+    throw new Error(`Invalid baseIRI: must start with http:// or https://, got: ${baseIRI}`);
+  }
+  if (!baseIRI.endsWith("/")) {
+    throw new Error(`Invalid baseIRI: must end with "/", got: ${baseIRI}`);
+  }
+
+  return inputQuads.map(quad => {
+    const isAbsoluteURI = (uri: string) => /^[a-z][a-z0-9+.-]*:/i.test(uri);
+    const subject = quad.subject.termType === 'NamedNode' ? (isAbsoluteURI(quad.subject.value) ? quad.subject.value : baseIRI + quad.subject.value) : quad.subject.value;
+    const predicate = quad.predicate.termType === 'NamedNode' ? (isAbsoluteURI(quad.predicate.value) ? quad.predicate.value : baseIRI + quad.predicate.value) : quad.predicate.value;
+
+
+    let object;
+    if (quad.object.termType === 'NamedNode') {
+      object = df.namedNode(isAbsoluteURI(quad.object.value) ? quad.object.value : baseIRI + quad.object.value);
+    } else if (quad.object.termType === 'Literal') {
+      object = df.literal(quad.object.value, quad.object.datatype);
+    } else {
+      object = quad.object;
+    }
+    const graph = quad.graph && quad.graph.termType === 'NamedNode' ? df.namedNode(isAbsoluteURI(quad.graph.value) ? quad.graph.value : baseIRI + quad.graph.value) : quad.graph.termType === 'DefaultGraph' ? df.defaultGraph() : undefined;
+
+    return df.quad(
+      quad.subject.termType === 'NamedNode' ? df.namedNode(subject) : quad.subject,
+      quad.predicate.termType === 'NamedNode' ? df.namedNode(predicate) : quad.predicate,
+      object,
+      graph
+    );
+  });
+}
+
+export function expandRelativeJsonLd(inputJsonLd: NodeObject, baseIRI: string): NodeObject {
   // Validate baseIRI format
   if (!baseIRI.startsWith("http://") && !baseIRI.startsWith("https://")) {
     throw new Error(`Invalid baseIRI: must start with http:// or https://, got: ${baseIRI}`);
@@ -36,7 +102,7 @@ export function expandRelativeIds(inputJsonLd: NodeObject, baseIRI: string): any
   }
 
   const expanded = structuredClone(inputJsonLd);
-
+  // deno-lint-ignore no-explicit-any
   function rewrite(obj: any) {
     if (obj && typeof obj === "object") {
       if (typeof obj["@id"] === "string" && !obj["@id"].startsWith("http")) {

@@ -8,9 +8,9 @@
   "@type": "fsvc:ServiceConfig",
   "fsvc:scheme": "http",
   "fsvc:host": "localhost",
-  "fsvc:port": 8080,
   "fsvc:meshPaths": [
-    "../meshes/test-ns/"
+    "../meshes/test-ns/",
+    "../meshes/ns/"
   ],
   "fsvc:defaultLicense": "https://creativecommons.org/licenses/by-sa/4.0/",
   "fsvc:defaultAttributedTo": "http://djradon.github.io/ns/djradon",

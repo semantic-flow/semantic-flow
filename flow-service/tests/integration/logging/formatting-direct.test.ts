@@ -9,7 +9,7 @@
 
 import { dirname, ensureDir } from '../../../../flow-core/src/deps.ts';
 
-type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL';
+import type { LogLevel } from '../../../../flow-core/src/utils/logger/logger-types.ts';
 
 interface LogContext {
   operation?:
@@ -88,7 +88,7 @@ const fileLogger = new SimpleFileLogger(logFile);
 // Test different log levels with various contexts
 const testCases = [
   {
-    level: 'INFO' as LogLevel,
+    level: 'info' as LogLevel,
     message: 'File logging test started',
     context: {
       operation: 'startup' as const,
@@ -96,7 +96,7 @@ const testCases = [
     },
   },
   {
-    level: 'WARN' as LogLevel,
+    level: 'warn' as LogLevel,
     message: 'Configuration override detected',
     context: {
       operation: 'config-resolve' as const,
@@ -104,12 +104,12 @@ const testCases = [
     },
   },
   {
-    level: 'ERROR' as LogLevel,
+    level: 'error' as LogLevel,
     message: 'Database connection failed',
     context: { operation: 'startup' as const, duration: 5000 },
   },
   {
-    level: 'DEBUG' as LogLevel,
+    level: 'debug' as LogLevel,
     message: 'Processing mesh nodes',
     context: {
       operation: 'scan' as const,

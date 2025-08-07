@@ -6,11 +6,12 @@
 
 import {
   createEnhancedLogger,
-  type LoggerConfig,
+  type LoggingConfig,
   type LogContext,
   type StructuredLogger,
   type EnhancedStructuredLogger,
 } from '../../../flow-core/src/utils/logger/index.ts';
+import { FLOW_SERVICE_VERSION, FLOW_SERVICE_INSTANCE_ID } from "../service-constants.ts";
 
 // Re-export formatters and error handlers for test access
 export { formatConsoleMessage } from '../../../flow-core/src/utils/logger/formatters.ts';
@@ -21,31 +22,35 @@ export { handleCaughtError } from '../../../flow-core/src/utils/logger/error-han
  */
 const SERVICE_CONTEXT = {
   serviceName: 'flow-service',
-  serviceVersion: Deno.env.get('FLOW_VERSION') || '1.0.0',
+  serviceVersion: Deno.env.get('FLOW_SERVICE_VERSION') || FLOW_SERVICE_VERSION,
   environment: Deno.env.get('FLOW_ENV') || 'development',
-  instanceId: Deno.env.get('FLOW_INSTANCE_ID') || crypto.randomUUID(),
+  instanceId: Deno.env.get('FLOW_SERVICE_INSTANCE_ID') || FLOW_SERVICE_INSTANCE_ID,
 } as const;
 
 /**
  * Service-specific logger configuration
  */
-const SERVICE_LOGGER_CONFIG: LoggerConfig = {
-  enableConsole: true,
-  enableFile: Deno.env.get('FLOW_LOG_FILE_ENABLED') === 'true',
-  enableSentry: Deno.env.get('FLOW_SENTRY_ENABLED') === 'true',
-
-  fileConfig: {
-    logDir: Deno.env.get('FLOW_LOG_DIR') || './logs',
-    maxFileSize: parseInt(Deno.env.get('FLOW_LOG_MAX_FILE_SIZE') || '10485760'), // 10MB
-    maxFiles: parseInt(Deno.env.get('FLOW_LOG_MAX_FILES') || '5'),
-    rotateDaily: Deno.env.get('FLOW_LOG_ROTATE_DAILY') === 'true',
+export const SERVICE_LOGGER_DEFAULT_CONFIG: LoggingConfig = {
+  consoleChannel: {
+    logChannelEnabled: true,
+    logLevel: 'info',
+    logFormat: 'pretty',
   },
 
-  sentryConfig: {
-    dsn: Deno.env.get('FLOW_SENTRY_DSN'),
-    environment: Deno.env.get('FLOW_ENV') || 'development',
-    release: Deno.env.get('FLOW_VERSION'),
-    sampleRate: parseFloat(Deno.env.get('FLOW_SENTRY_SAMPLE_RATE') || '1.0'),
+  fileChannel: {
+    logChannelEnabled: Deno.env.get('FLOW_LOG_FILE_ENABLED') === 'true',
+    logLevel: 'info',
+    logFormat: 'json',
+    logFilePath: `${Deno.env.get('FLOW_LOG_DIR') || './logs'}/flow-service.log`,
+    logMaxFileSize: parseInt(Deno.env.get('FLOW_LOG_MAX_FILE_SIZE') || '10485760'), // 10MB
+    logMaxFiles: parseInt(Deno.env.get('FLOW_LOG_MAX_FILES') || '5'),
+    logRotationInterval: Deno.env.get('FLOW_LOG_ROTATE_DAILY') === 'true' ? 'daily' : 'size-based',
+  },
+
+  sentryChannel: {
+    logChannelEnabled: Deno.env.get('FLOW_SENTRY_ENABLED') === 'true',
+    logLevel: 'error',
+    sentryDsn: Deno.env.get('FLOW_SENTRY_DSN'),
   },
 
   serviceContext: SERVICE_CONTEXT,
@@ -54,7 +59,7 @@ const SERVICE_LOGGER_CONFIG: LoggerConfig = {
 /**
  * Configured logger instance for flow-service with service-specific context
  */
-export const logger: EnhancedStructuredLogger = createEnhancedLogger(SERVICE_LOGGER_CONFIG);
+export const logger: EnhancedStructuredLogger = createEnhancedLogger(SERVICE_LOGGER_DEFAULT_CONFIG);
 
 /**
  * Create a logger with additional service operation context
@@ -134,7 +139,7 @@ export function createMeshLogger(
 /**
  * Create a logger with configuration operation context
  * @param configPath - Path to configuration file
- * @param configType - Type of configuration (e.g., 'service', 'mesh', 'env')
+ * @param configType - Type of configuration (e.g., 'service', 'node')
  * @param validationStage - Current validation stage
  * @returns Logger instance with config context
  */

@@ -1,6 +1,4 @@
-export const validLogLevels = ['debug', 'info', 'warn', 'error'] as const;
-
-export type LogLevel = typeof validLogLevels[number];
+import { LogLevel, validLogLevels } from './utils/logger/logger-types.ts';
 
 /**
  * Validates that the provided log level is one of the allowed values.

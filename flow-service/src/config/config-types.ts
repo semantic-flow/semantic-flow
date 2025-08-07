@@ -6,6 +6,7 @@
  */
 
 import { NodeObject, ContextDefinition } from "../../../flow-core/src/deps.ts";
+import { LogLevel } from "../../../flow-core/src/utils/logger/logger-types.ts";
 
 // JSON-LD Context and Type Definitions
 export interface FlowServiceContext extends ContextDefinition {
@@ -20,11 +21,10 @@ export interface FlowServiceContext extends ContextDefinition {
 export interface LogChannelConfig extends NodeObject {
   readonly "@type": "fsvc:LogChannelConfig";
   readonly "fsvc:logChannelEnabled": boolean;
-  readonly "fsvc:logLevel": "debug" | "info" | "warn" | "error";
+  readonly "fsvc:logLevel": LogLevel;
   readonly "fsvc:logFormat"?: "json" | "pretty";
   readonly "fsvc:logFilePath"?: string;
   readonly "fsvc:sentryDsn"?: string;
-  readonly "fsvc:sentryLoggingEnabled"?: boolean;
   readonly "fsvc:logRetentionDays"?: number;
   readonly "fsvc:logMaxFiles"?: number;
   readonly "fsvc:logMaxFileSize"?: number;
@@ -83,6 +83,8 @@ export interface ServiceConfig extends NodeObject {
   readonly "fsvc:rootMeshRootNodeConfigTemplate"?: MeshRootNodeConfig;
   readonly "fsvc:defaultDelegationChain"?: DelegationChain;
   readonly "fsvc:defaultAttributedTo"?: string;
+  readonly "fsvc:defaultRights"?: string[];
+  readonly "fsvc:defaultRightsHolder"?: string;
 }
 
 // Delegation Chain Configuration
@@ -187,5 +189,5 @@ export class ConfigValidationError extends ConfigError {
 }
 
 // Utility Types for Configuration Access
-export type LogLevel = "debug" | "info" | "warn" | "error";
+// LogLevel is now imported from the canonical source
 

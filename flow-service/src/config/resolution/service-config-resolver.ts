@@ -8,10 +8,13 @@ import { PLATFORM_SERVICE_DEFAULTS } from '../defaults.ts';
 import { ConfigError } from '../config-types.ts';
 import { mergeConfigs } from '../../utils/merge-configs.ts';
 import { handleCaughtError } from '../../../../flow-core/src/utils/logger/error-handlers.ts';
-import { LogContext } from '../../../../flow-core/src/utils/logger/types.ts';
+import { LogContext } from '../../../../flow-core/src/utils/logger/logger-types.ts';
 import { validateLogLevel } from '../../../../flow-core/src/platform-constants.ts';
 import { createServiceLogContext } from '../../utils/service-log-context.ts';
 import { serviceUriConfigManager, type ServiceUriConfig } from '../../utils/service-uri-builder.ts';
+import { getComponentLogger } from "../../../../flow-core/src/utils/logger/component-logger.ts";
+
+const logger = getComponentLogger(import.meta);
 
 /**
  * Asynchronously resolves the service configuration by merging CLI options, environment variables, configuration files, and environment-specific defaults in a defined precedence order.
@@ -20,7 +23,8 @@ import { serviceUriConfigManager, type ServiceUriConfig } from '../../utils/serv
  * @throws ConfigError if configuration resolution fails or an unexpected error occurs
  */
 
-import { loadPlatformServiceDefaults, loadInputServiceConfig, loadInputMeshRootNodeConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
+import { loadPlatformServiceDefaults, loadInputServiceConfig, mergeServiceConfigGraphs } from '../loaders/quadstore-loader.ts';
+import { singletonServiceConfigAccessor } from "./service-config-accessor.ts";
 
 export async function resolveServiceConfig(
   cliOptions?: ServiceOptions,
@@ -31,7 +35,7 @@ export async function resolveServiceConfig(
   try {
     // Load environment config
     const envConfig = loadEnvConfig();
-    //console.log(envConfig)
+
     // Load file config if specified
     let fileConfig: ServiceConfigInput | undefined;
     if (serviceConfigPath) {
@@ -46,6 +50,7 @@ export async function resolveServiceConfig(
     const mergedInputConfig = mergeConfigs(mergeConfigs(envConfig, fileConfig ?? {}), cliConfig);
 
     // Extract service URI configuration from merged config, using platform defaults as fallback
+    // This is used for for providing URL expansion before configuration merging has finished
     const serviceUriConfig: ServiceUriConfig = {
       scheme: mergedInputConfig['fsvc:scheme'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:scheme'],
       host: mergedInputConfig['fsvc:host'] ?? PLATFORM_SERVICE_DEFAULTS['fsvc:host'],
@@ -61,11 +66,9 @@ export async function resolveServiceConfig(
     // Load merged input config into Quadstore graph
     await loadInputServiceConfig(mergedInputConfig);
 
-    // TODO: Load input mesh node config if applicable
-    // await loadInputMeshRootNodeConfig(...);
-
-    // Merge all graphs into mergedServiceConfig graph
+    // Merge service config graphs into mergedServiceConfig graph
     await mergeServiceConfigGraphs();
+    logger.info(`Service configuration loaded from: ${serviceConfigPath || 'default environment'}`);
 
   } catch (error) {
     const context: LogContext = createServiceLogContext({
@@ -80,16 +83,18 @@ export async function resolveServiceConfig(
     if (error instanceof ConfigError) {
       await handleCaughtError(error, `Service configuration resolution failed`, context);
       throw error;
+    } else {
+      await handleCaughtError(error, `Failed to resolve service configuration`, context);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const cause = error instanceof Error ? error : undefined;
+      throw new ConfigError(
+        `Failed to resolve service configuration: ${errorMessage}`,
+        cause,
+      );
     }
-
-    await handleCaughtError(error, `Failed to resolve service configuration`, context);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const cause = error instanceof Error ? error : undefined;
-    throw new ConfigError(
-      `Failed to resolve service configuration: ${errorMessage}`,
-      cause,
-    );
   }
+  // mark the singletonServiceConfigAccessor as initialized
+  singletonServiceConfigAccessor.setInitialized(true);
 }
 
 /**
