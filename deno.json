@@ -18,5 +18,6 @@
   },
   "fmt": {
     "singleQuote": false
-  }
+  },
+  "nodeModulesDir": "auto"
 }
