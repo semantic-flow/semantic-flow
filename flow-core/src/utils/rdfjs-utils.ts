@@ -68,17 +68,21 @@ export function expandRelativeQuads(inputQuads: RDF.Quad[], baseIRI: string): RD
   }
 
   return inputQuads.map(quad => {
-    const subject = quad.subject.termType === 'NamedNode' ? (quad.subject.value.startsWith("http") ? quad.subject.value : baseIRI + quad.subject.value) : quad.subject.value;
-    const predicate = quad.predicate.termType === 'NamedNode' ? (quad.predicate.value.startsWith("http") ? quad.predicate.value : baseIRI + quad.predicate.value) : quad.predicate.value;
+    const isAbsoluteURI = (uri: string) => /^[a-z][a-z0-9+.-]*:/i.test(uri);
+    const subject = quad.subject.termType === 'NamedNode' ? (isAbsoluteURI(quad.subject.value) ? quad.subject.value : baseIRI + quad.subject.value) : quad.subject.value;
+    const predicate = quad.predicate.termType === 'NamedNode' ? (isAbsoluteURI(quad.predicate.value) ? quad.predicate.value : baseIRI + quad.predicate.value) : quad.predicate.value;
+
+
     let object;
     if (quad.object.termType === 'NamedNode') {
-      object = df.namedNode(quad.object.value.startsWith("http") ? quad.object.value : baseIRI + quad.object.value);
+      object = df.namedNode(isAbsoluteURI(quad.object.value) ? quad.object.value : baseIRI + quad.object.value);
     } else if (quad.object.termType === 'Literal') {
       object = df.literal(quad.object.value, quad.object.datatype);
     } else {
       object = quad.object;
     }
-    const graph = quad.graph && quad.graph.termType === 'NamedNode' ? df.namedNode(quad.graph.value.startsWith("http") ? quad.graph.value : baseIRI + quad.graph.value) : quad.graph.termType === 'DefaultGraph' ? df.defaultGraph() : undefined;
+    const graph = quad.graph && quad.graph.termType === 'NamedNode' ? df.namedNode(isAbsoluteURI(quad.graph.value) ? quad.graph.value : baseIRI + quad.graph.value) : quad.graph.termType === 'DefaultGraph' ? df.defaultGraph() : undefined;
+
     return df.quad(
       quad.subject.termType === 'NamedNode' ? df.namedNode(subject) : quad.subject,
       quad.predicate.termType === 'NamedNode' ? df.namedNode(predicate) : quad.predicate,

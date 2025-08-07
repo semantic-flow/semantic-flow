@@ -161,17 +161,6 @@ export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'critical';
 export const validLogLevels = ['debug', 'info', 'warn', 'error', 'critical'] as const;
 
 /**
- * Log level numeric values for comparison and filtering
- */
-export const LogLevelValues = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-  critical: 4,
-} as const;
-
-/**
  * Base log channel configuration interface aligned with ontology fsvc:LogChannelConfig
  */
 export interface LogChannelConfig {

@@ -20,7 +20,7 @@ export type {
 } from './logger-types.ts';
 
 export type { LogLevel } from './logger-types.ts';
-export { validLogLevels, LogLevelValues } from './logger-types.ts';
+export { validLogLevels } from './logger-types.ts';
 
 // Export formatting utilities (LogLevel type is now imported from logger-types.ts)
 export {

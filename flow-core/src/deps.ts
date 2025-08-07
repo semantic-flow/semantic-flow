@@ -1,5 +1,5 @@
 export { normalize } from 'https://deno.land/std@0.224.0/path/mod.ts';
-export { describe, it } from "https://deno.land/std/testing/bdd.ts";
+export { describe, it } from "https://deno.land/std@0.224.0/testing/bdd.ts";
 export {
   assertEquals,
   assertNotStrictEquals,

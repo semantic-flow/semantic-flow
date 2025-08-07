@@ -12,6 +12,7 @@ export async function querySingleValue(
   if (!bundle.engine) {
     throw new Error('SPARQL engine not initialized in Quadstore bundle');
   }
+  logger.debug(`Executing SPARQL query: ${sparql}`);
   const values: string[] = [];
   try {
     const bindingsStream = await bundle.engine.queryBindings(sparql, { sources: [bundle.store] });
@@ -26,8 +27,7 @@ export async function querySingleValue(
     handleCaughtError(error, `Failed to execute SPARQL query ${sparql}`);
   }
   if (values.length > 1) {
-    logger.warn(`Expected single result but got ${values.length} values for query: ${sparql}`);
-    //throw new Error('Expected single result but multiple values were returned');
+    throw new Error('Expected single result but multiple values were returned');
   }
   return values.length === 1 ? values[0] : undefined;
 }
@@ -39,6 +39,7 @@ export async function queryMultipleValues(
   if (!bundle.engine) {
     throw new Error('SPARQL engine not initialized in Quadstore bundle');
   }
+  logger.debug(`Executing SPARQL query: ${sparql}`);
   const values: string[] = [];
   try {
     const bindingsStream = await bundle.engine.queryBindings(sparql, { sources: [bundle.store] });

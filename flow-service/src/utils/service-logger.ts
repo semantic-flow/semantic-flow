@@ -11,7 +11,7 @@ import {
   type StructuredLogger,
   type EnhancedStructuredLogger,
 } from '../../../flow-core/src/utils/logger/index.ts';
-import { FLOW_SERVICE_VERSION } from "../service-constants.ts";
+import { FLOW_SERVICE_VERSION, FLOW_SERVICE_INSTANCE_ID } from "../service-constants.ts";
 
 // Re-export formatters and error handlers for test access
 export { formatConsoleMessage } from '../../../flow-core/src/utils/logger/formatters.ts';
@@ -24,7 +24,7 @@ const SERVICE_CONTEXT = {
   serviceName: 'flow-service',
   serviceVersion: Deno.env.get('FLOW_SERVICE_VERSION') || FLOW_SERVICE_VERSION,
   environment: Deno.env.get('FLOW_ENV') || 'development',
-  instanceId: Deno.env.get('FLOW_INSTANCE_ID') || crypto.randomUUID(),
+  instanceId: Deno.env.get('FLOW_SERVICE_INSTANCE_ID') || FLOW_SERVICE_INSTANCE_ID,
 } as const;
 
 /**
