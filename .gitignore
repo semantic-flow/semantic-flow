@@ -7,6 +7,13 @@ ontology
 sflo-dendron-notes
 sflow-platform
 test-ns
+ns
 .roo/mcp.json
 .env
 logs
+
+# Coverage files
+coverage_profile/
+coverage.lcov
+*.lcov
+coverage/

@@ -61,7 +61,7 @@ Deno.test('clearGraph deletes all quads', async () => {
   const emptyAfterPut = await isGraphEmpty(graph, testQuadstoreBundle);
   assertEquals(emptyAfterPut, false);
 
-  await clearGraph(graph);
+  await clearGraph(graph, testQuadstoreBundle);
 
   const matchStream = store.match(undefined, undefined, undefined, graph);
   const count = await countQuadsInStream(matchStream);

@@ -16,7 +16,8 @@ export async function validateServiceConfig(): Promise<void> {
   let count = 0;
 
   //console.log(`Validating port in graph ${graph.value}`);
-  for await (const quad of portQuads) {
+  // deno-lint-ignore no-explicit-any
+  for await (const quad of portQuads as any) {
     //console.log(`quad matched: ${quad.subject.value} ${quad.predicate.value} ${quad.object.value} in graph ${graph.value}`);
     if (count > 0) {
       throw new ConfigError('Multiple port definitions found in service configuration.');
@@ -31,7 +32,8 @@ export async function validateServiceConfig(): Promise<void> {
   // Validate host presence
   const hostQuads = store.match(undefined, df.namedNode('https://semantic-flow.github.io/ontology/flow-service/host'), undefined, graph);
   let hostFound = false;
-  for await (const _ of hostQuads) {
+  // deno-lint-ignore no-explicit-any
+  for await (const _ of hostQuads as any) {
     hostFound = true;
     break;
   }

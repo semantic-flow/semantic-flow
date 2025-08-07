@@ -25,7 +25,7 @@ const basicContext: LogContext = {
   }
 };
 
-const consoleMsg = formatConsoleMessage('INFO', 'File logging test started', basicContext);
+const consoleMsg = formatConsoleMessage('info', 'File logging test started', basicContext);
 console.log('Formatted console message:', consoleMsg);
 
 // Test structured message formatting
@@ -49,7 +49,7 @@ const complexContext: LogContext = {
   }
 };
 
-const structuredMsg = formatStructuredMessage('DEBUG', 'Processing mesh nodes', complexContext);
+const structuredMsg = formatStructuredMessage('debug', 'Processing mesh nodes', complexContext);
 console.log('Formatted structured message:', JSON.stringify(structuredMsg, null, 2));
 
 // Test context summary creation
